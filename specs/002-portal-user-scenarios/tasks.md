@@ -26,8 +26,8 @@
 - [X] T004 Initialize shadcn/ui with default components (button, card, input, label, dialog, badge, dropdown-menu, avatar, sheet, separator, select, textarea, toast) in `src/components/ui/`
 - [X] T005 [P] Set up Neon database connection in `src/lib/db/index.ts` using `@neondatabase/serverless` HTTP driver
 - [X] T006 Configure CSS custom properties in `src/app/globals.css` for light and dark modes matching color tokens from `docs/design-direction.md` (primary `#5B5FEF` light / `#8B8FFF` dark, secondary `#8B5CF6` / `#A78BFA`, status amber/green/red with low-opacity backgrounds)
-- [ ] T007 Create `src/styles/tags.css` with the neumorphic soft tag recipe from `docs/design-direction.md` §5 (border-radius 999px, low-opacity background, inset highlight shadow)
-- [ ] T008 Add `config/site.ts` with CURRENT_BATCH default value and site-wide constants
+- [X] T007 Create `src/styles/tags.css` with the neumorphic soft tag recipe from `docs/design-direction.md` §5 (border-radius 999px, low-opacity background, inset highlight shadow)
+- [X] T008 Add `config/site.ts` with CURRENT_BATCH default value and site-wide constants
 
 ---
 

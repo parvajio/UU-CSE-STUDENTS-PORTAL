@@ -1,0 +1,131 @@
+/* ── Soft Tag (Neumorphic Pill) ── §5 of design-direction.md */
+
+.soft-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  transition: background 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.soft-tag:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+
+/* ── Status variants ── */
+
+.soft-tag--pending {
+  color: var(--color-status-pending);
+  background: var(--color-status-pending-bg);
+  border-color: var(--color-status-pending);
+}
+
+.soft-tag--approved {
+  color: var(--color-status-approved);
+  background: var(--color-status-approved-bg);
+  border-color: var(--color-status-approved);
+}
+
+.soft-tag--rejected {
+  color: var(--color-status-rejected);
+  background: var(--color-status-rejected-bg);
+  border-color: var(--color-status-rejected);
+}
+
+/* ── Skill category variants ── */
+
+.soft-tag--web {
+  --tag-h: 210;
+  --tag-s: 50%;
+  --tag-l: 50%;
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.1);
+  color: hsla(var(--tag-h), var(--tag-s), 40%, 1);
+  border-color: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.25);
+}
+
+.soft-tag--web:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.16);
+}
+
+.soft-tag--ml {
+  --tag-h: 270;
+  --tag-s: 50%;
+  --tag-l: 50%;
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.1);
+  color: hsla(var(--tag-h), var(--tag-s), 40%, 1);
+  border-color: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.25);
+}
+
+.soft-tag--ml:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.16);
+}
+
+.soft-tag--cyber {
+  --tag-h: 340;
+  --tag-s: 50%;
+  --tag-l: 50%;
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.1);
+  color: hsla(var(--tag-h), var(--tag-s), 40%, 1);
+  border-color: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.25);
+}
+
+.soft-tag--cyber:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.16);
+}
+
+.soft-tag--cp {
+  --tag-h: 35;
+  --tag-s: 50%;
+  --tag-l: 50%;
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.1);
+  color: hsla(var(--tag-h), var(--tag-s), 40%, 1);
+  border-color: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.25);
+}
+
+.soft-tag--cp:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.16);
+}
+
+.soft-tag--research {
+  --tag-h: 170;
+  --tag-s: 50%;
+  --tag-l: 50%;
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.1);
+  color: hsla(var(--tag-h), var(--tag-s), 40%, 1);
+  border-color: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.25);
+}
+
+.soft-tag--research:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.16);
+}
+
+.soft-tag--design {
+  --tag-h: 320;
+  --tag-s: 50%;
+  --tag-l: 50%;
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.1);
+  color: hsla(var(--tag-h), var(--tag-s), 40%, 1);
+  border-color: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.25);
+}
+
+.soft-tag--design:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.16);
+}
+
+/* ── Dark mode overrides ── */
+
+.dark .soft-tag--web,
+.dark .soft-tag--ml,
+.dark .soft-tag--cyber,
+.dark .soft-tag--cp,
+.dark .soft-tag--research,
+.dark .soft-tag--design {
+  color: hsla(var(--tag-h), var(--tag-s), 60%, 1);
+}
