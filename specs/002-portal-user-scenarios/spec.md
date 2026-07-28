@@ -363,7 +363,7 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 
 ### Edge Cases
 
-- **Duplicate submission attempts**: A user with an existing approved profile cannot submit a second profile — one profile per user. Same for alumni (one alumni record per userId when set).
+- **Duplicate submission attempts**: A user with an existing approved profile cannot submit a second profile — one profile per user.
 - **Empty state — no data yet**: Modules with no approved content show friendly empty states ("No profiles found yet — check back after students join") rather than error pages.
 - **Concurrent moderation**: Two moderators open the same pending item. The first click (approve or reject) succeeds. The second sees a "This item was already processed" notice.
 - **Unsupported file type**: Question paper uploads reject non-PDF/non-image files with a clear error before the upload starts.
@@ -377,17 +377,17 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 ### What Each Role Must Be Able to Do
 
 - **R-001**: Guests can search and browse the Student Expert Directory, Faculty Directory, Question Bank (metadata only without download), Club pages, Event Gallery, Notice Board, Alumni Network (approved profiles only), and Achievement Hall of Fame.
-- **R-002**: Guests see only fullName, batchNumber, and skill tags on profile views — never contact info, social links, portfolio, or GitHub URLs.
+- **R-002**: Guests see only fullName, batchNumber, and skill tags on profile views — never bio, avatarUrl, section, contact info, social links, portfolio, or GitHub URLs.
 - **R-003**: Guests cannot download question paper files or see download buttons.
-- **R-004**: Users (logged-in students) can submit, view, and edit their own profile with fields matching the profiles table (fullName, studentId, batchNumber, section, avatarUrl, bio, facebookUrl, linkedinUrl, whatsappNumber, portfolioUrl, githubUrl).
+- **R-004**: Users (logged-in students) can submit, view, and edit their own profile with fields matching the profiles table (fullName, studentId — required for current students, nullable for legacy alum — batchNumber, section, avatarUrl, bio, facebookUrl, linkedinUrl, whatsappNumber, portfolioUrl, githubUrl).
 - **R-005**: Users can submit question papers with title, subject, course, batch, examType (previous_year/midterm/final/lab/viva), file upload, and optional tags.
-- **R-006**: Users can submit alumni self-profiles, projects, lost & found posts, and other submittable content — all enter `status = pending`.
+- **R-006**: Users can toggle alumni status on their own profile, submit projects, lost & found posts, and other submittable content — all enter `status = pending` where approval is required.
 - **R-007**: Users can download approved question papers.
 - **R-008**: Users can browse and search approved alumni, faculty, clubs, events, notices, and hall of fame.
 - **R-009**: Users can request career guidance from alumni via a message.
 - **R-010**: Moderators can do everything a User can, plus approve/reject questions and other low-sensitivity submissions from the unified approval dashboard.
-- **R-011**: Moderators cannot see or approve profiles, manage roles, manage faculty/clubs/alumni directly, or perform other admin-only actions.
-- **R-012**: Admins can do everything — approve/reject any pending resource, manage faculty/clubs/alumni directly, assign roles, manage events and achievements, and publish notices.
+- **R-011**: Moderators cannot see or approve profiles, manage roles, manage faculty/clubs directly, manage alumni-status profiles, or perform other admin-only actions.
+- **R-012**: Admins can do everything — approve/reject any pending resource, manage faculty/clubs and alumni-status profiles directly, assign roles, manage events and achievements, and publish notices.
 - **R-013**: The approval dashboard shows pending items across all resource types in a single unified queue, filterable by type.
 - **R-014**: Every approved resource records `approvedBy` (the reviewer's ID) and `approvedAt` (the approval timestamp).
 - **R-015**: Rejected submissions include an optional reason visible to the submitter.
@@ -400,13 +400,13 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 
 ### Key Entities
 
-- **User**: Authenticated account with email, password or Google auth, and a role (user, moderator, admin). Guests have no user row.
+- **User**: Authenticated account with email, password or Google auth (or `unclaimed` for admin-created placeholder accounts with no login yet), and a role (user, moderator, admin). Guests have no user row.
 - **Profile**: A student's public identity — fullName, studentId, batchNumber, section, avatarUrl, bio, social links, portfolio, GitHub, skill tags (via profile_skills join), plus an `isAlumni` boolean (default false). When `isAlumni` is toggled on, additional fields currentCompany and jobPosition appear. The profile serves double duty: it appears in the Student Expert Directory and, when `isAlumni=true`, also in the Alumni Career Network.
 - **Skill**: A hierarchical category or subskill (name, slug, parentSkillId, colorKey) linked to profiles via profile_skills.
 - **Question**: A past exam upload — title, subject, course, batch, examType, fileUrl, tags (via question_tags) — with the same approval lifecycle as profiles.
 - **Faculty**: An admin-managed directory entry with fullName, designation, email, phone, researchInterests, officeRoom, photoUrl — no approval workflow.
-- **Alumnus**: A graduate record — for users who signed up as students, this is represented by their profile with `isAlumni=true`. For non-user graduates, an admin can enter an alumni record directly (fullName, batchNumber, currentCompany, jobPosition, linkedinUrl, facebookUrl, contactInfo, userId=null, status=approved immediately).
-- **Career Guidance Request**: A message from a student to an alumnus (studentProfileId, alumniId, message) with status pending/accepted/declined.
+- **Alumnus**: A graduate record. For users who signed up as students, this is their profile with `isAlumni=true`. For legacy graduates with no account, an admin creates a `profiles` row (with a matching `unclaimed` `users` row) directly, leaving `studentId` null.
+- **Career Guidance Request**: A message from a student to an alumnus (studentProfileId, alumniProfileId, message) with status pending/accepted/declined.
 - **Club**: A student organization with name, description, logoUrl, and members (club_members with roleInClub and position).
 - **Notice**: A time-sensitive announcement (title, body, createdBy) published by moderators/admins — always visible.
 - **Event**: A scheduled or past program with date, media, description, and optional registration link.
@@ -419,7 +419,7 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 - **SC-002**: A user can complete and submit a profile with all fields from the data-dictionary in under 5 minutes.
 - **SC-003**: A moderator or admin can locate, review, and approve/reject a pending item from the unified dashboard in under 30 seconds.
 - **SC-004**: An approved resource becomes publicly visible within 5 seconds of the approval action.
-- **SC-005**: All submittable resource types (profiles, questions, alumni, projects, etc.) use exactly the same `status/approvedBy/approvedAt` columns — verified by a single schema check.
+- **SC-005**: All submittable resource types (profiles, questions, projects, etc.) use exactly the same `status/approvedBy/approvedAt` columns — verified by a single schema check.
 - **SC-006**: Role-based access rules are enforced at the data-access level for every resource type — zero cases of a guest accessing contact data or a moderator approving a profile.
 - **SC-007**: Every module listed in overview.md §3 is navigable and displays its data according to the access rules — none are missing or throw errors.
 - **SC-008**: Search results across profiles and questions return within 2 seconds for up to 5,000 profiles and 10,000 questions.
@@ -427,7 +427,7 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 ## Assumptions
 
 - The portal serves a single CSE department initially — multi-department support is out of scope for this specification.
-- Authentication methods are email/password and Google OAuth — no other SSO providers for the MVP.
+- Authentication methods are email/password, Google OAuth, and `unclaimed` placeholder accounts for legacy alumni — no other SSO providers for the MVP.
 - Notifications are delivered in-app (bell icon / notification inbox) — email or push notifications are deferred.
 - File uploads for question papers are limited to PDF and common image formats (PNG, JPEG) with a 10 MB maximum file size.
 - The Learning Academy (Module 3.7) and Extras supporting features (Module 3.9 items beyond the notice board and project showcase) are Phase 5 / lowest priority and will be built only after core modules are stable.

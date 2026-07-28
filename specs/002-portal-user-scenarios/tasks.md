@@ -35,8 +35,8 @@
 
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented. No user story work can begin until this phase is complete.
 
-- [ ] T009 Create Drizzle schema for `users` in `src/lib/db/schema/users.ts` — fields: id (uuid PK), email (text unique required), passwordHash (text nullable), authProvider (enum credentials|google), role (enum user|moderator|admin default user), createdAt, updatedAt
-- [ ] T010 Create Drizzle schema for `profiles` in `src/lib/db/schema/profiles.ts` — fields: id (uuid PK), userId (uuid FK→users.id unique), fullName (text required), studentId (text required unique), batchNumber (integer required), section (text required), avatarUrl (text nullable), bio (text nullable), facebookUrl (text nullable), linkedinUrl (text nullable), whatsappNumber (text nullable), portfolioUrl (text nullable), githubUrl (text nullable), isAlumni (boolean default false), currentCompany (text nullable), jobPosition (text nullable), status (enum pending|approved|rejected default pending), approvedBy (uuid FK→users.id nullable), approvedAt (timestamp nullable), createdAt, updatedAt
+- [ ] T009 Create Drizzle schema for `users` in `src/lib/db/schema/users.ts` — fields: id (uuid PK), email (text unique required), passwordHash (text nullable), authProvider (enum credentials|google|unclaimed), role (enum user|moderator|admin default user), createdAt, updatedAt
+- [ ] T010 Create Drizzle schema for `profiles` in `src/lib/db/schema/profiles.ts` — fields: id (uuid PK), userId (uuid FK→users.id unique), fullName (text required), studentId (text nullable unique when set), batchNumber (integer required), section (text required), avatarUrl (text nullable), bio (text nullable), facebookUrl (text nullable), linkedinUrl (text nullable), whatsappNumber (text nullable), portfolioUrl (text nullable), githubUrl (text nullable), isAlumni (boolean default false), currentCompany (text nullable), jobPosition (text nullable), status (enum pending|approved|rejected default pending), approvedBy (uuid FK→users.id nullable), approvedAt (timestamp nullable), createdAt, updatedAt
 - [ ] T011 Create Drizzle schema for `skills` in `src/lib/db/schema/skills.ts` — fields: id (uuid PK), name (text required), slug (text unique), parentSkillId (uuid FK→skills.id nullable), colorKey (text nullable)
 - [ ] T012 Create Drizzle schema for `profile_skills` join table in `src/lib/db/schema/profile-skills.ts` — fields: profileId (uuid FK→profiles.id), skillId (uuid FK→skills.id), composite PK
 - [ ] T013 [P] Create Drizzle schema for `notifications` in `src/lib/db/schema/notifications.ts` — fields: id (uuid PK), userId (uuid FK→users.id required), type (text required), title (text required), message (text nullable), resourceType (text nullable), resourceId (uuid nullable), read (boolean default false), createdAt (timestamp default now)
@@ -45,7 +45,7 @@
 - [ ] T016 [P] Create `src/lib/auth/providers.ts` with Credentials and Google provider configs imported by auth.ts
 - [ ] T017 Implement Next.js middleware in `src/middleware.ts` — read JWT session, check role against route permissions map from `contracts/auth.md`, redirect unauthenticated users to `/login` for protected routes, return 403 for unauthorized role
 - [ ] T018 Create seed script in `src/lib/db/seed.ts` — insert admin user (email read from `ADMIN_SEED_EMAIL` env var or default, password read from `ADMIN_SEED_PASSWORD` env var), insert top-level skills (Web Development, ML/AI, Competitive Programming, Cybersecurity, Research, Design) with slugs and colorKeys
-- [ ] T019 Create permission utility in `src/lib/auth/permissions.ts` — `canApprove(userRole, resourceType)` returns boolean; moderators can approve `question`, `alumni`, `project`; only admins can approve `profile`
+- [ ] T019 Create permission utility in `src/lib/auth/permissions.ts` — `canApprove(userRole, resourceType)` returns boolean; moderators can approve `question`, `project`; only admins can approve `profile`. Note: alumni-flag changes are part of regular profile approval (admin-only) — no separate alumni approval path. Rationale: verifying alumni status/company claim is as trust-sensitive as verifying a new student profile. If alumni approval volume becomes a bottleneck later, split it into its own `canApprove` case then.
 - [ ] T020 Create `src/lib/utils.ts` with `cn()` (clsx+tailwind-merge), `formatDate()`, `capitalize()` helpers
 
 **Checkpoint**: Foundation ready — user story implementation can now begin.
@@ -141,7 +141,8 @@
 - [ ] T051 Create `LoadingSkeleton` component in `src/components/shared/LoadingSkeleton.tsx` — renders placeholder shimmer for profile cards and directory list
 - [ ] T052 Run `quickstart.md` scenarios 1 through 4 to validate all Foundation stories end-to-end
 - [ ] T053 Verify guest SQL queries in `src/lib/db/queries/directory.ts` never return contact fields — inspect raw SQL for SELECT clause
-- [ ] T054 Write a basic load test that confirms search latency stays under 2s for 1,000 profiles (SC-008 benchmark) — using Playwright or a simple script
+- [ ] T054 Write a load test that confirms search latency stays under 2s for up to 5,000 profiles and 10,000 questions (SC-008 scale) — using Playwright or a simple script with EXPLAIN ANALYZE
+- [ ] T055 [P] Configure Next.js revalidation for approval actions — after approveItem/rejectItem, call `revalidateTag('pending-items')` and `revalidateTag('directory')` so approved resources appear publicly within 5 seconds (SC-004)
 
 ---
 

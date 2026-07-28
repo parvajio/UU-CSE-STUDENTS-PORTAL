@@ -17,7 +17,7 @@ All tables below match `docs/data-dictionary.md` exactly. Drizzle schema files l
 | id | uuid | PK, default random | |
 | email | text | unique, required | |
 | passwordHash | text | nullable | null if Google-only account |
-| authProvider | enum | `credentials` \| `google` | |
+| authProvider | enum | `credentials` \| `google` \| `unclaimed` | `unclaimed` = admin-created placeholder for a legacy alum with no login yet |
 | role | enum | `user` \| `moderator` \| `admin`, default `user` | guest = no row (unauthenticated) |
 | createdAt | timestamp | default now | |
 | updatedAt | timestamp | auto-update | |
@@ -26,7 +26,7 @@ All tables below match `docs/data-dictionary.md` exactly. Drizzle schema files l
 
 **Validation Rules**:
 - R-001: Email must be unique
-- R-002: At least one auth method (passwordHash for credentials, provider set to `google` for Google-only)
+- R-002: At least one auth method (passwordHash for credentials, provider set to `google` for Google-only) — unclaimed accounts have no auth method until claimed
 - R-003: Role transitions (user→moderator, moderator→admin) require admin action only
 
 ---
@@ -38,7 +38,7 @@ All tables below match `docs/data-dictionary.md` exactly. Drizzle schema files l
 | id | uuid | PK | |
 | userId | uuid | FK → users.id, unique | 1:1 with users |
 | fullName | text | required | |
-| studentId | text | required, unique | Admin verification key |
+| studentId | text | unique when set, nullable | SID — required for current students (app/Zod level), null for legacy alum with no SID |
 | batchNumber | integer | required | Dynamic dropdown up to CURRENT_BATCH |
 | section | text | required | Fixed dropdown (A–F) |
 | avatarUrl | text | nullable | |
@@ -57,13 +57,12 @@ All tables below match `docs/data-dictionary.md` exactly. Drizzle schema files l
 | createdAt | timestamp | default now | |
 | updatedAt | timestamp | auto-update | |
 
-> **Note**: `isAlumni`, `currentCompany`, `jobPosition` are additions from the clarification session. They are not in the original `data-dictionary.md` but are needed per the spec's approved student-to-alumni lifecycle. These should be added to the dictionary on next update.
 
 **Guest-visible columns only**: `fullName`, `batchNumber`, skill tags (via join). Everything else requires login.
 
 **Validation Rules**:
 - P-001: One profile per userId (unique constraint enforced)
-- P-002: studentId must be unique across all profiles
+- P-002: studentId must be unique across all profiles where set (nullable for legacy alum with no SID)
 - P-003: Batch number must be ≤ admin-configurable CURRENT_BATCH
 - P-004: Editing an approved profile resets status to pending
 - P-005: Rate limit: 1 profile edit per hour per user
@@ -117,39 +116,13 @@ When `isAlumni` is toggled on an approved profile without changing other fields,
 
 ---
 
-## alumni
-
-| Field | Type | Constraints | Notes |
-|---|---|---|---|
-| id | uuid | PK | |
-| userId | uuid | FK → users.id, nullable, unique when set | null when admin-entered directly |
-| fullName | text | required | |
-| batchNumber | integer | required | |
-| currentCompany | text | nullable | |
-| jobPosition | text | nullable | |
-| linkedinUrl | text | nullable | |
-| facebookUrl | text | nullable | |
-| contactInfo | text | nullable | |
-| status | enum | `pending` \| `approved` \| `rejected` | |
-| approvedBy | uuid | FK → users.id, nullable | |
-| approvedAt | timestamp | nullable | |
-| createdAt | timestamp | default now | |
-
-**Two creation paths**:
-1. **Self-submission** (userId set) → starts `pending`, admin approves
-2. **Admin entry** (userId null) → inserted directly as `approved`
-
-**Relationship to profiles**: When `isAlumni = true` on a profile, that profile also appears in the alumni directory. The `alumni` table handles the separate case — graduates without portal accounts entered by admin.
-
----
-
 ## career_guidance_requests
 
 | Field | Type | Constraints |
 |---|---|---|
 | id | uuid | PK |
 | studentProfileId | uuid | FK → profiles.id (requester) |
-| alumniId | uuid | FK → alumni.id |
+| alumniProfileId | uuid | FK → profiles.id (alumnus) |
 | message | text | required |
 | status | enum | `pending` \| `accepted` \| `declined` |
 | createdAt | timestamp | default now |
@@ -322,7 +295,7 @@ users (1) ──→ (0..1) profiles ──→ (M) profile_skills ←── (M) s
                                                               ↑
                                                          parentSkillId (self-ref)
 
-users (1) ──→ (0..1) alumni ←── (M) career_guidance_requests ←── (M) profiles
+profiles (student) ──→ (M) career_guidance_requests ←── (M) profiles (alumnus)
 
 users (1) ──→ (M) questions ──→ (M) question_tags
 
@@ -346,5 +319,5 @@ projects (standalone, approval workflow)
 | questions | `(title, subject)` GIN tsvector | Full-text search |
 | question_tags | `(tag)` | Tag-based filtering |
 | notifications | `(userId, read, createdAt)` | Unread count + recent list |
-| career_guidance_requests | `(alumniId, status)` | Alumnus inbox |
+| career_guidance_requests | `(alumniProfileId, status)` | Alumnus inbox |
 | club_members | `(clubId, roleInClub)` | Executive committee listing |

@@ -8,7 +8,7 @@
 // Submit or update profile
 async function upsertProfile(data: {
   fullName: string;
-  studentId: string;
+  studentId?: string;           // nullable for unclaimed/legacy alum accounts
   batchNumber: number;
   section: string;
   avatarUrl?: string;
@@ -65,7 +65,7 @@ async function searchQuestions(params: {
 
 ```typescript
 async function getPendingItems(params: {
-  resourceType?: "profile" | "question" | "alumni" | "project";
+  resourceType?: "profile" | "question" | "project";
   page?: number;
 }): Promise<{
   items: PendingItem[];
@@ -88,7 +88,7 @@ async function rejectItem(data: {
 
 ```typescript
 async function requestCareerGuidance(data: {
-  alumniId: string;
+  alumniProfileId: string;
   message: string;
 }): Promise<{ success: boolean; requestId: string }>
 

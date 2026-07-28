@@ -12,7 +12,7 @@ Shared pattern used across every user-submitted table: `status`, `approvedBy`, `
 | id | uuid | PK, default random | |
 | email | text | unique, required | |
 | passwordHash | text | nullable | null if Google-only account |
-| authProvider | enum | `credentials` \| `google` | |
+| authProvider | enum | `credentials` \| `google` \| `unclaimed` | `unclaimed` = admin-created placeholder for a legacy alum who has no login yet (e.g. graduated before the portal existed) — no real sign-in until they claim it |
 | role | enum | `user` \| `moderator` \| `admin`, default `user` | guest = no row, unauthenticated |
 | createdAt | timestamp | default now | |
 | updatedAt | timestamp | auto-update | |
@@ -25,9 +25,12 @@ Shared pattern used across every user-submitted table: `status`, `approvedBy`, `
 | id | uuid | PK | |
 | userId | uuid | FK → users.id, unique | 1:1 with users |
 | fullName | text | required | |
-| studentId | text | required, unique | "SID" — used by admin to verify a real CSE student before approval |
+| studentId | text | unique when set, nullable | "SID" — required for current students (enforced at app/Zod level, not a DB constraint); left null for a legacy alum an admin adds who has no SID on file |
 | batchNumber | integer | required | e.g. `61`, `68` — new batch every ~4 months, so render as a dropdown generated dynamically up to the current max (an admin-configurable `CURRENT_BATCH` value), not a hardcoded option list |
 | section | text | required, e.g. `C` | small fixed dropdown (A–F or whatever range the department actually uses) |
+| isAlumni | boolean | default `false` | flips a student's own profile into an alumni record — no separate alumni entity; see "Alumni" note below |
+| currentCompany | text | nullable | shown only when `isAlumni = true` |
+| jobPosition | text | nullable | shown only when `isAlumni = true` |
 | avatarUrl | text | nullable | |
 | bio | text | nullable, max ~500 chars | |
 | facebookUrl | text | nullable | |
@@ -78,27 +81,16 @@ Admin-managed directly — no `status`/submission flow (per your spec: faculty d
 
 ---
 
-## alumni
-| Field | Type | Constraints | Notes |
-|---|---|---|---|
-| id | uuid | PK | |
-| userId | uuid | FK → users.id, nullable, unique when set | set when the alumnus self-submitted and has a login; null when admin-entered directly |
-| fullName | text | required | |
-| batchNumber | integer | required | same batch system as profiles |
-| currentCompany | text | nullable | |
-| jobPosition | text | nullable | |
-| linkedinUrl | text | nullable | |
-| facebookUrl | text | nullable | |
-| contactInfo | text | nullable | |
-| status | enum | `pending` \| `approved` \| `rejected` | self-submitted rows start `pending`; admin-entered rows can be inserted directly as `approved` |
-| approvedBy / approvedAt | | nullable | |
+## Alumni (merged into `profiles`, no separate table)
+
+Superseded decision — kept here for history: an earlier version of this doc had `alumni` as its own table. Revised during spec-kit `/clarify`: most alumni were students on this portal already, so an alumnus is just a `profiles` row with `isAlumni = true`, `currentCompany`, and `jobPosition` set — not a duplicate entity. For a legacy alum with no prior account, an admin creates a `profiles` row (with a matching `unclaimed` `users` row) directly, leaving `studentId` null.
 
 ## career_guidance_requests
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | PK | |
 | studentProfileId | uuid | FK → profiles.id | requester |
-| alumniId | uuid | FK → alumni.id | |
+| alumniProfileId | uuid | FK → profiles.id | the alumnus being contacted — same table as the requester, since alumni are now just profiles with `isAlumni = true` |
 | message | text | required | |
 | status | enum | `pending` \| `accepted` \| `declined` | |
 | createdAt | timestamp | | |
@@ -166,4 +158,4 @@ Recommend a join table over a text array — lets you filter/search by tag with 
 1. **Batch/section:** split into `batchNumber` (integer, dropdown generated dynamically up to the current batch — not a hardcoded list, since a new batch starts every ~4 months) and `section` (e.g. `C`, small fixed dropdown).
 2. **Student ID:** required, unique `studentId` field on profiles — used by admins to verify real CSE students before approval.
 3. **WhatsApp number:** stored as free text for now, no validation/formatting enforced at input.
-4. **Alumni entries:** both paths supported — self-submission (nullable `userId`, starts `pending`) and direct admin entry (`userId` null, can be inserted as `approved`).
+4. **Alumni:** merged into `profiles` via an `isAlumni` flag — no separate table. `studentId` is nullable (unique when set) to allow a legacy alum with no SID; `users.authProvider` gains an `unclaimed` value for admin-created accounts with no real login yet.

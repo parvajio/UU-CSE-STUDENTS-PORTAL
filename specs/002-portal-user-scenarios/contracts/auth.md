@@ -69,6 +69,7 @@ const routePermissions: Record<string, Role[]> = {
 
 - **Credentials**: email + password → verify against `users.passwordHash` (bcrypt)
 - **Google**: OAuth2 → create user on first login if email not found
+- **Unclaimed**: accounts with `authProvider = 'unclaimed'` have no passwordHash and no real login — they are admin-created placeholders for legacy alumni. The account stays locked until the alum completes a claim-account flow (out of scope for Foundation).
 
 ## JWT Callback
 
