@@ -58,3 +58,15 @@ Phase 1 (Foundation) → Phase 2 (Core Content) → Phase 3 (Community) → Phas
 ## SpecKit Workflow
 
 This repo uses [SpecKit](https://github.com/anomalyco/speckit) via `.specify/` and `.opencode/commands/speckit.*.md`. When starting work on a feature, use commands like `speckit.clarify`, `speckit.specify`, `speckit.plan`, `speckit.tasks`, `speckit.implement` in sequence.
+
+## Schema Conventions
+
+All decisions below are reflected in the Drizzle schemas at `src/lib/db/schema/`.
+
+- **onDelete pattern**: `SET NULL` on `approvedBy` and `parentSkillId` (preserves history, avoids cascading deletes); `CASCADE` on `userId` and join-table columns (cleans up when owning row is removed).
+- **`users.authProvider`**: includes `'unclaimed'` for admin-created placeholder accounts with no real login yet (used for legacy alumni). These accounts have no `passwordHash` until claimed.
+- **`profiles.studentId`**: nullable, unique when set. "Required for current students" is an app-level Zod rule, not a DB constraint. Allows legacy alumni (added by admin) with no SID.
+- **Self-referencing FK pattern**: typed callback `(): AnyPgColumn => table.id` with explicit `onDelete`, paired with a `relations()` block in `relations.ts` using a matched `relationName` string on both the `one()` and `many()` sides.
+- **All `*Relations`** live in `src/lib/db/schema/relations.ts`, not in individual table files, to avoid circular imports.
+- **`$onUpdate`** for `updatedAt` timestamps, not DB triggers (simpler, version-controlled, sufficient for a single-app deployment).
+- **`pg_trgm` extension**: The `0000_*.sql` migration is manually edited to prepend `CREATE EXTENSION IF NOT EXISTS pg_trgm;` before the GIN trigram index on `profiles.fullName`. This is tracked in git (not manual SQL) so it applies automatically on Neon branch-per-feature deployments.
