@@ -138,7 +138,6 @@ src/
 │   │   │   ├── questions.ts
 │   │   │   ├── question-tags.ts
 │   │   │   ├── faculty.ts
-│   │   │   ├── alumni.ts
 │   │   │   ├── career-guidance.ts
 │   │   │   ├── clubs.ts
 │   │   │   ├── club-members.ts
