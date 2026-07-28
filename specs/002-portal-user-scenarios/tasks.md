@@ -20,10 +20,10 @@
 
 **Purpose**: Scaffold the Next.js project, install all dependencies, configure Tailwind/shadcn/ui with project design tokens.
 
-- [ ] T001 Initialize Next.js 15 project with TypeScript, App Router, `src/` directory at project root
-- [ ] T002 Install core dependencies: next-auth@5, drizzle-orm, @neondatabase/serverless, drizzle-kit, bcryptjs
-- [ ] T003 Install UI dependencies: tailwindcss, @tailwindcss/postcss, @radix-ui/* packages, lucide-react, class-variance-authority, clsx, tailwind-merge
-- [ ] T004 Initialize shadcn/ui with default components (button, card, input, label, dialog, badge, dropdown-menu, avatar, sheet, separator, select, textarea, toast) in `src/components/ui/`
+- [X] T001 Initialize Next.js 15 project with TypeScript, App Router, `src/` directory at project root
+- [X] T002 Install core dependencies: next-auth@5, drizzle-orm, @neondatabase/serverless, drizzle-kit, bcryptjs
+- [X] T003 Install UI dependencies: tailwindcss, @tailwindcss/postcss, @radix-ui/* packages, lucide-react, class-variance-authority, clsx, tailwind-merge
+- [X] T004 Initialize shadcn/ui with default components (button, card, input, label, dialog, badge, dropdown-menu, avatar, sheet, separator, select, textarea, toast) in `src/components/ui/`
 - [ ] T005 [P] Set up Neon database connection in `src/lib/db/index.ts` using `@neondatabase/serverless` HTTP driver
 - [ ] T006 Configure CSS custom properties in `src/app/globals.css` for light and dark modes matching color tokens from `docs/design-direction.md` (primary `#5B5FEF` light / `#8B8FFF` dark, secondary `#8B5CF6` / `#A78BFA`, status amber/green/red with low-opacity backgrounds)
 - [ ] T007 Create `src/styles/tags.css` with the neumorphic soft tag recipe from `docs/design-direction.md` §5 (border-radius 999px, low-opacity background, inset highlight shadow)
@@ -41,12 +41,14 @@
 - [ ] T012 Create Drizzle schema for `profile_skills` join table in `src/lib/db/schema/profile-skills.ts` — fields: profileId (uuid FK→profiles.id), skillId (uuid FK→skills.id), composite PK
 - [ ] T013 [P] Create Drizzle schema for `notifications` in `src/lib/db/schema/notifications.ts` — fields: id (uuid PK), userId (uuid FK→users.id required), type (text required), title (text required), message (text nullable), resourceType (text nullable), resourceId (uuid nullable), read (boolean default false), createdAt (timestamp default now)
 - [ ] T014 [P] Run `drizzle-kit generate` and `drizzle-kit migrate` to push schemas to Neon
+- [ ] T014b Add search-performance indexes to Drizzle schema per `data-model.md` Index Strategy — GIN trgm index on `profiles(fullName)`, composite indexes on `profiles(batchNumber)` and `profiles(status, isAlumni)`; GIN tsvector on `questions(title, subject)` and composite on `questions(subject, course, batch, examType)`; applies to existing profiles and future questions schemas
 - [ ] T015 Implement Auth.js config in `src/lib/auth/auth.ts` — configure Credentials provider (verify email+passwordHash with bcrypt), Google provider, JWT strategy, extend JWT callback to inject role from `users.role`, extend session callback to pass role+id to client
 - [ ] T016 [P] Create `src/lib/auth/providers.ts` with Credentials and Google provider configs imported by auth.ts
 - [ ] T017 Implement Next.js middleware in `src/middleware.ts` — read JWT session, check role against route permissions map from `contracts/auth.md`, redirect unauthenticated users to `/login` for protected routes, return 403 for unauthorized role
 - [ ] T018 Create seed script in `src/lib/db/seed.ts` — insert admin user (email read from `ADMIN_SEED_EMAIL` env var or default, password read from `ADMIN_SEED_PASSWORD` env var), insert top-level skills (Web Development, ML/AI, Competitive Programming, Cybersecurity, Research, Design) with slugs and colorKeys
 - [ ] T019 Create permission utility in `src/lib/auth/permissions.ts` — `canApprove(userRole, resourceType)` returns boolean; moderators can approve `question`, `project`; only admins can approve `profile`. Note: alumni-flag changes are part of regular profile approval (admin-only) — no separate alumni approval path. Rationale: verifying alumni status/company claim is as trust-sensitive as verifying a new student profile. If alumni approval volume becomes a bottleneck later, split it into its own `canApprove` case then.
 - [ ] T020 Create `src/lib/utils.ts` with `cn()` (clsx+tailwind-merge), `formatDate()`, `capitalize()` helpers
+- [ ] T020b [P] Create `src/lib/search.ts` with shared Postgres full-text search helpers — `buildSearchQuery(term, columns)` returning SQL for tsquery match, `searchProfiles(term, filters, viewerRole)` using the helper; referenced by T021 directory query and future question search
 
 **Checkpoint**: Foundation ready — user story implementation can now begin.
 
@@ -111,6 +113,7 @@
 - [ ] T043 [US3] Create notification query helpers in `src/lib/db/queries/notifications.ts` — `getUnreadCount(userId)`, `getRecentNotifications(userId, limit)`, `markAsRead(notificationId)`, `insertNotification(userId, type, title, message, resourceType, resourceId)`
 - [ ] T044 [US3] Create notification bell component in `src/components/layout/NotificationBell.tsx` — renders bell icon with unread count badge, dropdown of recent notifications on click, click notification navigates to related page, auto-polls every 30s
 - [ ] T045 [US3] Integrate notification bell into Navbar component — shows for authenticated users only (depends on T026 Navbar being complete)
+- [ ] T045b Create notification API route at `src/app/api/notifications/route.ts` — `GET` returns unread count + recent notifications for current user, supports `?markRead={id}` param; used by T044 notification bell polling
 
 **Checkpoint**: US3 fully functional — admin can approve/reject profiles and notifications are delivered.
 
@@ -143,6 +146,7 @@
 - [ ] T053 Verify guest SQL queries in `src/lib/db/queries/directory.ts` never return contact fields — inspect raw SQL for SELECT clause
 - [ ] T054 Write a load test that confirms search latency stays under 2s for up to 5,000 profiles and 10,000 questions (SC-008 scale) — using Playwright or a simple script with EXPLAIN ANALYZE
 - [ ] T055 [P] Configure Next.js revalidation for approval actions — after approveItem/rejectItem, call `revalidateTag('pending-items')` and `revalidateTag('directory')` so approved resources appear publicly within 5 seconds (SC-004)
+- [ ] T056 Create admin settings page at `src/app/(admin)/manage/settings/page.tsx` with a form to update `CURRENT_BATCH`, saved to a `site_config` DB table or config; add `updateCurrentBatch` Server Action with admin-only access
 
 ---
 

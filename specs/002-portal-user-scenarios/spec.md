@@ -6,6 +6,11 @@
 
 **Status**: Draft
 
+> **Phase Mapping**: Stories are labeled with overall product priority (P1–P5).
+> Foundation phase (tasks.md) implements only Stories 3.1-A through 3.1-D.
+> Modules 3.2–3.9 are scheduled in Phases 2–5 per the build order in `plan.md`.
+> P1 label does not imply Foundation-scope inclusion.
+
 **Input**: User description: "Specify the CSE Students Portal based on docs/overview.md — every module, the 4 roles, the access-rule table, and the approval workflow, written as user scenarios and acceptance criteria."
 
 ## Clarifications
