@@ -3,12 +3,14 @@ import { users } from "./users"
 import { profiles } from "./profiles"
 import { skills } from "./skills"
 import { profileSkills } from "./profile-skills"
+import { notifications } from "./notifications"
 
-export const usersRelations = relations(users, ({ one }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
     fields: [users.id],
     references: [profiles.userId],
   }),
+  notifications: many(notifications),
 }))
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -43,5 +45,12 @@ export const profileSkillsRelations = relations(profileSkills, ({ one }) => ({
   skill: one(skills, {
     fields: [profileSkills.skillId],
     references: [skills.id],
+  }),
+}))
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
   }),
 }))
