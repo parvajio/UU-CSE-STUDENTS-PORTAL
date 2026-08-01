@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Bell, GraduationCap } from "lucide-react"
+import { GraduationCap } from "lucide-react"
 import { SITE_NAME } from "../../../config/site"
 import { Button } from "@/components/ui/button"
 import { NavLinks } from "./NavLinks"
+import { NotificationBell } from "./NotificationBell"
 import { ThemeToggle } from "./ThemeToggle"
 import { UserMenu } from "./UserMenu"
 import type { NavbarUser } from "./types"
@@ -28,15 +29,7 @@ export function NavbarClient({ user }: { user: NavbarUser | null }) {
           <ThemeToggle />
           {user ? (
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled
-                aria-label="Notifications"
-                title="Notifications coming soon"
-              >
-                <Bell className="size-[1.2rem]" strokeWidth={1.5} />
-              </Button>
+              <NotificationBell />
               <UserMenu user={user} />
             </>
           ) : (
