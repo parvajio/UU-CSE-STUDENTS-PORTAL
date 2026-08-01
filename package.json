@@ -10,7 +10,10 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "NODE_OPTIONS=\"--require ./scripts/force-ipv4.cjs\" drizzle-kit migrate",
     "db:push": "NODE_OPTIONS=\"--require ./scripts/force-ipv4.cjs\" drizzle-kit push",
-    "db:seed": "tsx --env-file=.env src/lib/db/seed.ts"
+    "db:seed": "tsx --env-file=.env src/lib/db/seed.ts",
+    "test:e2e": "playwright test",
+    "verify:guest-sql": "tsx --env-file=.env scripts/verify-guest-sql.ts",
+    "test:load": "tsx --env-file=.env scripts/load-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -41,6 +44,7 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^26.1.2",
     "@types/react": "^19.2.17",

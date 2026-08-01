@@ -142,9 +142,9 @@
 - [X] T049 Create rate-limit helper in `src/lib/rate-limit.ts` — in-memory `Map<string, { count: number; resetAt: number }>`, `checkRateLimit(key: string, maxCount: number, windowMs: number)` returns `{ allowed: boolean; retryAfter?: number }`
 - [X] T050 Wire rate-limit helper into existing Server Actions (upsertProfile = 1/hour, all others = 5/hour) with user-based keys. **Note: upsertProfile's 1/hour edit limit was wired in T048; this task adds the shared `enforceSubmissionLimit` wrapper in `src/lib/rate-limit.ts` (5/hour default for all future submission actions) and wires it into `registerUser` at 5/hour keyed by client IP (no userId exists pre-registration). approveItem/rejectItem are exempt per spec R-021 (moderators/admins have no rate limits). Content-submission actions (questions, projects) don't exist in Foundation scope — they'll call `enforceSubmissionLimit(userId)` when built.**
 - [X] T051 Create `LoadingSkeleton` component in `src/components/shared/LoadingSkeleton.tsx` — renders placeholder shimmer for profile cards and directory list
-- [ ] T052 Run `quickstart.md` scenarios 1 through 4 to validate all Foundation stories end-to-end
-- [ ] T053 Verify guest SQL queries in `src/lib/db/queries/directory.ts` never return contact fields — inspect raw SQL for SELECT clause
-- [ ] T054 Write a load test that confirms search latency stays under 2s for up to 5,000 profiles and 10,000 questions (SC-008 scale) — using Playwright or a simple script with EXPLAIN ANALYZE
+- [X] T052 Run `quickstart.md` scenarios 1 through 4 to validate all Foundation stories end-to-end
+- [X] T053 Verify guest SQL queries in `src/lib/db/queries/directory.ts` never return contact fields — inspect raw SQL for SELECT clause
+- [X] T054 Write a load test that confirms search latency stays under 2s for up to 5,000 profiles and 10,000 questions (SC-008 scale) — using Playwright or a simple script with EXPLAIN ANALYZE
 - [ ] T055 [P] Configure Next.js revalidation for approval actions — after approveItem/rejectItem, call `revalidateTag('pending-items')` and `revalidateTag('directory')` so approved resources appear publicly within 5 seconds (SC-004)
 - [ ] T056 Create admin settings page at `src/app/(admin)/manage/settings/page.tsx` with a form to update `CURRENT_BATCH`, saved to a `site_config` DB table or config; add `updateCurrentBatch` Server Action with admin-only access
 
