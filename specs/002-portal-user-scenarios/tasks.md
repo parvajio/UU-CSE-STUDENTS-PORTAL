@@ -127,9 +127,9 @@
 
 ### Implementation for US4
 
-- [ ] T046 [US4] Update `upsertProfile` Server Action to handle edits on approved profiles — when an existing approved profile is edited with field changes, set `status = 'pending'`, clear `approvedBy` and `approvedAt`, keep existing profile ID, update all provided fields. **Note: core revert-to-pending logic (keep id, set pending, clear approvedBy/approvedAt) already implemented in T029's upsertProfile. Remaining scope is UI-only: Edit button + under-review banner, per T047.**
-- [ ] T047 [US4] Update profile page at `src/app/(user)/profile/page.tsx` — when the profile is approved, show "Edit Profile" button that opens the ProfileForm pre-filled with current data; show "Your profile is under review" banner when status is pending
-- [ ] T048 [US4] Add rate limit check to `upsertProfile` — enforce 1 profile edit per hour per user; return rate-limit error with `retryAfter` field when exceeded
+- [X] T046 [US4] Update `upsertProfile` Server Action to handle edits on approved profiles — when an existing approved profile is edited with field changes, set `status = 'pending'`, clear `approvedBy` and `approvedAt`, keep existing profile ID, update all provided fields. **Note: revert-to-pending is gated on prior `status === 'approved'` (pending/rejected edits don't clear already-null approval columns); rejected edits re-queue as pending.**
+- [X] T047 [US4] Update profile page at `src/app/(user)/profile/page.tsx` — when the profile is approved, show "Edit Profile" button that opens the ProfileForm pre-filled with current data; show "Your profile is under review" banner when status is pending. **Note: Edit button + pre-filled form already existed in `ProfileView.tsx`; added the pending-status under-review banner.**
+- [X] T048 [US4] Add rate limit check to `upsertProfile` — enforce 1 profile edit per hour per user; return rate-limit error with `retryAfter` field when exceeded. **Note: creation is exempt; helper lives in `src/lib/rate-limit.ts` (T049).**
 
 **Checkpoint**: US4 fully functional — editing an approved profile re-enters the approval workflow.
 
@@ -139,7 +139,7 @@
 
 **Purpose**: Improvements that affect multiple Foundation stories.
 
-- [ ] T049 Create rate-limit helper in `src/lib/rate-limit.ts` — in-memory `Map<string, { count: number; resetAt: number }>`, `checkRateLimit(key: string, maxCount: number, windowMs: number)` returns `{ allowed: boolean; retryAfter?: number }`
+- [X] T049 Create rate-limit helper in `src/lib/rate-limit.ts` — in-memory `Map<string, { count: number; resetAt: number }>`, `checkRateLimit(key: string, maxCount: number, windowMs: number)` returns `{ allowed: boolean; retryAfter?: number }`
 - [ ] T050 Wire rate-limit helper into existing Server Actions (upsertProfile = 1/hour, all others = 5/hour) with user-based keys
 - [ ] T051 Create `LoadingSkeleton` component in `src/components/shared/LoadingSkeleton.tsx` — renders placeholder shimmer for profile cards and directory list
 - [ ] T052 Run `quickstart.md` scenarios 1 through 4 to validate all Foundation stories end-to-end

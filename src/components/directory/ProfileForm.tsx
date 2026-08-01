@@ -162,7 +162,7 @@ export function ProfileForm({
         <CardTitle>{initial ? "Edit Profile" : "Create Profile"}</CardTitle>
         <CardDescription>
           {initial
-            ? "Your changes will be reviewedbank before they appear in the directory."
+            ? "Your changes will be reviewed before they appear in the directory."
             : "Fill in your details. Your profile will appear in the directory after an admin approves it."}
         </CardDescription>
       </CardHeader>
