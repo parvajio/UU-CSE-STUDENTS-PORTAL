@@ -140,7 +140,7 @@
 **Purpose**: Improvements that affect multiple Foundation stories.
 
 - [X] T049 Create rate-limit helper in `src/lib/rate-limit.ts` — in-memory `Map<string, { count: number; resetAt: number }>`, `checkRateLimit(key: string, maxCount: number, windowMs: number)` returns `{ allowed: boolean; retryAfter?: number }`
-- [ ] T050 Wire rate-limit helper into existing Server Actions (upsertProfile = 1/hour, all others = 5/hour) with user-based keys
+- [X] T050 Wire rate-limit helper into existing Server Actions (upsertProfile = 1/hour, all others = 5/hour) with user-based keys. **Note: upsertProfile's 1/hour edit limit was wired in T048; this task adds the shared `enforceSubmissionLimit` wrapper in `src/lib/rate-limit.ts` (5/hour default for all future submission actions) and wires it into `registerUser` at 5/hour keyed by client IP (no userId exists pre-registration). approveItem/rejectItem are exempt per spec R-021 (moderators/admins have no rate limits). Content-submission actions (questions, projects) don't exist in Foundation scope — they'll call `enforceSubmissionLimit(userId)` when built.**
 - [ ] T051 Create `LoadingSkeleton` component in `src/components/shared/LoadingSkeleton.tsx` — renders placeholder shimmer for profile cards and directory list
 - [ ] T052 Run `quickstart.md` scenarios 1 through 4 to validate all Foundation stories end-to-end
 - [ ] T053 Verify guest SQL queries in `src/lib/db/queries/directory.ts` never return contact fields — inspect raw SQL for SELECT clause

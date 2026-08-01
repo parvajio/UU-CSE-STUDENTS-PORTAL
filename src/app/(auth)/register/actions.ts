@@ -2,8 +2,10 @@
 
 import bcrypt from "bcryptjs"
 import { eq } from "drizzle-orm"
+import { headers } from "next/headers"
 import { db } from "@/lib/db"
 import { users } from "@/lib/db/schema"
+import { enforceSubmissionLimit } from "@/lib/rate-limit"
 
 const WEAK_PASSWORDS = new Set([
   "password",
@@ -33,7 +35,18 @@ export type RegisterInput = {
 
 type RegisterResult =
   | { success: true }
-  | { success: false; error: string }
+  | { success: false; error: string; retryAfter?: number }
+
+async function getClientIp(): Promise<string> {
+  const h = await headers()
+  const forwarded = h.get("x-forwarded-for")
+  return forwarded?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown"
+}
+
+function formatRetry(retryAfterSeconds: number): string {
+  const minutes = Math.ceil(retryAfterSeconds / 60)
+  return minutes > 1 ? `${minutes} minutes` : "1 minute"
+}
 
 export async function registerUser(
   input: RegisterInput
@@ -41,6 +54,16 @@ export async function registerUser(
   const email = input.email?.trim().toLowerCase() ?? ""
   const password = input.password ?? ""
   const confirmPassword = input.confirmPassword ?? ""
+
+  const ip = await getClientIp()
+  const limit = enforceSubmissionLimit(ip)
+  if (!limit.allowed) {
+    return {
+      success: false,
+      error: `Too many registration attempts. Try again in ${formatRetry(limit.retryAfter)}.`,
+      retryAfter: limit.retryAfter,
+    }
+  }
 
   if (!EMAIL_RE.test(email)) {
     return { success: false, error: "Enter a valid email address." }
