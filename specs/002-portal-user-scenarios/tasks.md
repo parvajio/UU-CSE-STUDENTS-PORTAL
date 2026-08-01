@@ -89,8 +89,8 @@
 - [X] T032 [US2] Build the profile creation/edit form component in `src/components/directory/ProfileForm.tsx` — fields: fullName, studentId, batchNumber (dynamic dropdown up to CURRENT_BATCH), section (fixed A–F dropdown), avatarUrl, bio, facebookUrl, linkedinUrl, whatsappNumber, portfolioUrl, githubUrl; skill multi-select using `getAllSkills()`; when isAlumni toggled, show currentCompany + jobPosition; submit calls upsertProfile
 - [X] T033 [US2] Create `StatusBadge` component in `src/components/approval/StatusBadge.tsx` — renders amber/pending, green/approved, or red/rejected pill using the soft tag CSS from `docs/design-direction.md` §5 with status colors
 - [X] T034 [US2] Create the "my submissions" page at `src/app/(user)/my-submissions/page.tsx` — shows the user's submitted profile with StatusBadge, link to edit
-- [ ] T035 [US2] Add login page at `src/app/(auth)/login/page.tsx` — email/password form with "Sign in with Google" button, calls Auth.js `signIn()`
-- [ ] T036 [US2] Add register page at `src/app/(auth)/register/page.tsx` — email, password, confirm password form; on submit creates user row in DB with `role = 'user'`, then signs in
+- [X] T035 [US2] Add login page at `src/app/(auth)/login/page.tsx` — email/password form with "Sign in with Google" button, calls Auth.js `signIn()`
+- [X] T036 [US2] Add register page at `src/app/(auth)/register/page.tsx` — email, password, confirm password form; on submit creates user row in DB with `role = 'user'`, then signs in
 
 **Checkpoint**: US2 fully functional — a logged-in student can create a profile, see it marked as pending, and it is hidden from public search.
 
