@@ -82,7 +82,7 @@
 
 ### Implementation for US2
 
-- [ ] T028 [P] [US2] Create skills query helper in `src/lib/db/queries/skills.ts` — `getSkillsTree()` returns all skills grouped by parentSkillId (null = top-level), `getAllSkills()` returns flat list with id, name, slug, parentSkillId, colorKey
+- [X] T028 [P] [US2] Create skills query helper in `src/lib/db/queries/skills.ts` — `getSkillsTree()` returns all skills grouped by parentSkillId (null = top-level), `getAllSkills()` returns flat list with id, name, slug, parentSkillId, colorKey
 - [ ] T029 [US2] Create the `upsertProfile` Server Action in `src/app/(user)/profile/actions.ts` — validates required fields (fullName, studentId, batchNumber, section), checks studentId uniqueness, sets `status = 'pending'`, inserts/updates profile_skills join records, returns `{ success, profileId, status }`
 - [ ] T030 [US2] Create the `getMyProfile` Server Action in `src/app/(user)/profile/actions.ts` — returns the current user's full profile data including linked skills, or null if none exists
 - [ ] T031 [US2] Create profile page layout and form at `src/app/(user)/profile/page.tsx` — if profile exists, show profile view page with full data and "Edit" button; if no profile, show creation form
