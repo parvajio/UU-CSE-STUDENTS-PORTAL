@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { signOut } from "next-auth/react"
-import { ClipboardList, LogOut, UserRound } from "lucide-react"
+import { ClipboardList, LogOut, ShieldCheck, UserRound } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -50,6 +50,14 @@ export function UserMenu({ user }: { user: NavbarUser }) {
             My Submissions
           </Link>
         </DropdownMenuItem>
+        {user.role === "moderator" || user.role === "admin" ? (
+          <DropdownMenuItem asChild>
+            <Link href="/approve" className="cursor-pointer">
+              <ShieldCheck className="size-4" strokeWidth={1.5} />
+              Approvals
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem
           className="cursor-pointer"
           onSelect={() => signOut({ callbackUrl: "/" })}
