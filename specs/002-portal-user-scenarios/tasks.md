@@ -83,7 +83,7 @@
 ### Implementation for US2
 
 - [X] T028 [P] [US2] Create skills query helper in `src/lib/db/queries/skills.ts` — `getSkillsTree()` returns all skills grouped by parentSkillId (null = top-level), `getAllSkills()` returns flat list with id, name, slug, parentSkillId, colorKey
-- [ ] T029 [US2] Create the `upsertProfile` Server Action in `src/app/(user)/profile/actions.ts` — validates required fields (fullName, studentId, batchNumber, section), checks studentId uniqueness, sets `status = 'pending'`, inserts/updates profile_skills join records, returns `{ success, profileId, status }`
+- [X] T029 [US2] Create the `upsertProfile` Server Action in `src/app/(user)/profile/actions.ts` — validates required fields (fullName, studentId, batchNumber, section), checks studentId uniqueness, sets `status = 'pending'`, inserts/updates profile_skills join records, returns `{ success, profileId, status }`
 - [ ] T030 [US2] Create the `getMyProfile` Server Action in `src/app/(user)/profile/actions.ts` — returns the current user's full profile data including linked skills, or null if none exists
 - [ ] T031 [US2] Create profile page layout and form at `src/app/(user)/profile/page.tsx` — if profile exists, show profile view page with full data and "Edit" button; if no profile, show creation form
 - [ ] T032 [US2] Build the profile creation/edit form component in `src/components/directory/ProfileForm.tsx` — fields: fullName, studentId, batchNumber (dynamic dropdown up to CURRENT_BATCH), section (fixed A–F dropdown), avatarUrl, bio, facebookUrl, linkedinUrl, whatsappNumber, portfolioUrl, githubUrl; skill multi-select using `getAllSkills()`; when isAlumni toggled, show currentCompany + jobPosition; submit calls upsertProfile
@@ -127,7 +127,7 @@
 
 ### Implementation for US4
 
-- [ ] T046 [US4] Update `upsertProfile` Server Action to handle edits on approved profiles — when an existing approved profile is edited with field changes, set `status = 'pending'`, clear `approvedBy` and `approvedAt`, keep existing profile ID, update all provided fields
+- [ ] T046 [US4] Update `upsertProfile` Server Action to handle edits on approved profiles — when an existing approved profile is edited with field changes, set `status = 'pending'`, clear `approvedBy` and `approvedAt`, keep existing profile ID, update all provided fields. **Note: core revert-to-pending logic (keep id, set pending, clear approvedBy/approvedAt) already implemented in T029's upsertProfile. Remaining scope is UI-only: Edit button + under-review banner, per T047.**
 - [ ] T047 [US4] Update profile page at `src/app/(user)/profile/page.tsx` — when the profile is approved, show "Edit Profile" button that opens the ProfileForm pre-filled with current data; show "Your profile is under review" banner when status is pending
 - [ ] T048 [US4] Add rate limit check to `upsertProfile` — enforce 1 profile edit per hour per user; return rate-limit error with `retryAfter` field when exceeded
 
