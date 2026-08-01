@@ -5,7 +5,16 @@ import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
 import { profiles, profileSkills, skills } from "@/lib/db/schema"
+import { checkRateLimit } from "@/lib/rate-limit"
 import { CURRENT_BATCH, SECTIONS } from "../../../../config/site"
+
+const PROFILE_EDIT_MAX = 1
+const PROFILE_EDIT_WINDOW_MS = 60 * 60 * 1000
+
+function formatRetry(retryAfterSeconds: number): string {
+  const minutes = Math.ceil(retryAfterSeconds / 60)
+  return minutes > 1 ? `${minutes} minutes` : "1 minute"
+}
 
 export type UpsertProfileInput = {
   fullName: string
@@ -27,7 +36,7 @@ export type UpsertProfileInput = {
 
 type UpsertProfileResult =
   | { success: true; profileId: string; status: "pending" }
-  | { success: false; error: string }
+  | { success: false; error: string; retryAfter?: number }
 
 function fail(error: string): UpsertProfileResult {
   return { success: false, error }
@@ -110,8 +119,31 @@ export async function upsertProfile(
 
   const existing = await db.query.profiles.findFirst({
     where: eq(profiles.userId, userId),
-    columns: { id: true },
+    columns: { id: true, status: true },
   })
+
+  // T048: 1 profile edit per hour per user (creation is not rate-limited).
+  if (existing) {
+    const limit = checkRateLimit(
+      `profile-upsert:${userId}`,
+      PROFILE_EDIT_MAX,
+      PROFILE_EDIT_WINDOW_MS
+    )
+    if (!limit.allowed) {
+      return {
+        success: false,
+        error: `You've reached the profile edit limit. Try again in ${formatRetry(limit.retryAfter)}.`,
+        retryAfter: limit.retryAfter,
+      }
+    }
+  }
+
+  // T046: only an APPROVED profile loses its approval on edit. Pending and
+  // rejected profiles are already not approved (approval columns already
+  // null), so their status/approval fields stay untouched. Every save
+  // re-queues as pending (creation, approved-edit, rejected-resubmit);
+  // a pending edit simply remains pending.
+  const resetApproval = existing?.status === "approved"
 
   const values = {
     userId,
@@ -130,8 +162,8 @@ export async function upsertProfile(
     currentCompany: isAlumni ? opt(input.currentCompany) : null,
     jobPosition: isAlumni ? opt(input.jobPosition) : null,
     status: "pending" as const,
-    approvedBy: null,
-    approvedAt: null,
+    approvedBy: resetApproval ? null : undefined,
+    approvedAt: resetApproval ? null : undefined,
   }
 
   const profileId = existing ? existing.id : crypto.randomUUID()
