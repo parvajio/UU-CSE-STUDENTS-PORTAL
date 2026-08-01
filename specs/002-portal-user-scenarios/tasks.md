@@ -48,7 +48,7 @@
 - [X] T018 Create seed script in `src/lib/db/seed.ts` — insert admin user (email read from `ADMIN_SEED_EMAIL` env var or default, password read from `ADMIN_SEED_PASSWORD` env var), insert top-level skills (Web Development, ML/AI, Competitive Programming, Cybersecurity, Research, Design) with slugs and colorKeys
 - [X] T019 Create permission utility in `src/lib/auth/permissions.ts` — `canApprove(userRole, resourceType)` returns boolean; moderators can approve `question`, `project`; only admins can approve `profile`. Note: alumni-flag changes are part of regular profile approval (admin-only) — no separate alumni approval path. Rationale: verifying alumni status/company claim is as trust-sensitive as verifying a new student profile. If alumni approval volume becomes a bottleneck later, split it into its own `canApprove` case then.
 - [X] T020 Create `src/lib/utils.ts` with `cn()` (clsx+tailwind-merge), `formatDate()`, `capitalize()` helpers
-- [X] T020b [P] Create `src/lib/search.ts` with shared Postgres full-text search helpers — `buildSearchQuery(term, columns)` returning SQL for tsquery match, `searchProfiles(term, filters, viewerRole)` using the helper; referenced by T021 directory query and future question search
+- [X] T020b [P] Create `src/lib/search.ts` with shared Postgres full-text search helper — `buildSearchQuery(term, columns)` returning SQL for tsquery match; used by future question search. Note: the profile-role query (`searchProfiles`) was folded into `searchDirectory` in T021 so the guest-field SELECT lives in exactly one place
 
 **Checkpoint**: Foundation ready — user story implementation can now begin.
 
@@ -62,7 +62,7 @@
 
 ### Implementation for US1
 
-- [ ] T021 [P] [US1] Create directory query helper in `src/lib/db/queries/directory.ts` — `searchDirectory(params: { query?, skillIds?, batchNumber? }, viewerRole): ProfileCard[]` — when viewerRole is `guest`, SELECT only profiles.id, profiles.fullName, profiles.batchNumber, join skills via profile_skills; when viewerRole is `user`/`moderator`/`admin`, SELECT full profile fields; always filter to `status = 'approved'`
+- [X] T021 [P] [US1] Create directory query helper in `src/lib/db/queries/directory.ts` — `searchDirectory(params: { query?, skillIds?, batchNumber? }, viewerRole): ProfileCard[]` — when viewerRole is `guest`, SELECT only profiles.id, profiles.fullName, profiles.batchNumber, join skills via profile_skills; when viewerRole is `user`/`moderator`/`admin`, SELECT full profile fields; always filter to `status = 'approved'`
 - [ ] T022 [US1] Create guest directory page at `src/app/(guest)/directory/page.tsx` — search bar + results grid using shadcn/ui components, calls `searchDirectory` Server Action, renders ProfileCard with guest-visible fields only
 - [ ] T023 [P] [US1] Create `ProfileCard` component in `src/components/directory/ProfileCard.tsx` — renders fullName, batchNumber, skill tags as neumorphic pills (using `src/styles/tags.css` recipe); when viewer is authenticated, also shows avatarUrl, section; conditionally shows isAlumni badge
 - [ ] T024 [P] [US1] Create `SkillTag` component in `src/components/directory/SkillTag.tsx` — renders a single skill pill with colorKey-based background from `src/styles/tags.css`
