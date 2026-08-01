@@ -19,6 +19,16 @@
     0 0 0 1px rgba(255, 255, 255, 0.5) inset;
 }
 
+.soft-tag--default {
+  color: var(--color-muted-foreground);
+  background: color-mix(in srgb, var(--color-muted-foreground) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-muted-foreground) 25%, transparent);
+}
+
+.soft-tag--default:hover {
+  background: color-mix(in srgb, var(--color-muted-foreground) 16%, transparent);
+}
+
 /* ── Status variants ── */
 
 .soft-tag--pending {

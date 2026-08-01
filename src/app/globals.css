@@ -32,6 +32,21 @@
   --color-status-approved-bg: rgba(21, 128, 61, 0.10);
   --color-status-rejected: #B91C1C;
   --color-status-rejected-bg: rgba(185, 28, 28, 0.10);
+
+  /* shadcn/ui aliases — derived from design-direction.md palette */
+  --color-card: #FFFFFF;             /* surface */
+  --color-card-foreground: #1A1B2E;  /* text-primary */
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary-foreground: #FFFFFF;
+  --color-ring: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  --color-input: #E4E5F1;            /* border */
+  --color-accent: #E4E5F1;           /* border — neutral hover fill */
+  --color-accent-foreground: #1A1B2E;/* text-primary */
+  --color-muted: #E4E5F1;            /* border */
+  --color-popover: #FFFFFF;          /* surface */
+  --color-popover-foreground: #1A1B2E;
+  --color-destructive: #B91C1C;      /* status-rejected */
+  --color-destructive-foreground: #FFFFFF;
 }
 
 /* ── Dark mode tokens ──────────────────────────────── */
@@ -64,6 +79,21 @@
   --color-status-approved-bg: rgba(34, 197, 94, 0.10);
   --color-status-rejected: #EF4444;
   --color-status-rejected-bg: rgba(239, 68, 68, 0.10);
+
+  /* shadcn/ui aliases — derived from design-direction.md palette */
+  --color-card: #1A1B2E;             /* surface */
+  --color-card-foreground: #F2F2F7;  /* text-primary */
+  --color-primary-foreground: #0F1020;   /* background — dark text on light primary */
+  --color-secondary-foreground: #0F1020;
+  --color-ring: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  --color-input: #2A2C45;            /* border */
+  --color-accent: #2A2C45;           /* border — neutral hover fill */
+  --color-accent-foreground: #F2F2F7;/* text-primary */
+  --color-muted: #2A2C45;            /* border */
+  --color-popover: #1A1B2E;          /* surface */
+  --color-popover-foreground: #F2F2F7;
+  --color-destructive: #EF4444;      /* status-rejected */
+  --color-destructive-foreground: #FFFFFF;
 }
 
 /* ── Tailwind v4 theme registration ────────────────── */
@@ -90,4 +120,23 @@
   --color-status-approved-bg: var(--color-status-approved-bg);
   --color-status-rejected: var(--color-status-rejected);
   --color-status-rejected-bg: var(--color-status-rejected-bg);
+
+  /* shadcn/ui alias tokens */
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+  --color-ring: var(--color-ring);
+  --color-input: var(--color-input);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-muted: var(--color-muted);
+  --color-popover: var(--color-popover);
+  --color-popover-foreground: var(--color-popover-foreground);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
+
+  /* Fonts — set via next/font in layout */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-space-grotesk), var(--font-sans);
 }
