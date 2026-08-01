@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { signOut } from "next-auth/react"
-import { LogOut, UserRound } from "lucide-react"
+import { ClipboardList, LogOut, UserRound } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -42,6 +42,12 @@ export function UserMenu({ user }: { user: NavbarUser }) {
           <Link href="/profile" className="cursor-pointer">
             <UserRound className="size-4" strokeWidth={1.5} />
             My Profile
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/my-submissions" className="cursor-pointer">
+            <ClipboardList className="size-4" strokeWidth={1.5} />
+            My Submissions
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem

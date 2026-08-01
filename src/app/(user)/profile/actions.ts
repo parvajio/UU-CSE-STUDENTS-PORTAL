@@ -7,7 +7,7 @@ import { db } from "@/lib/db"
 import { profiles, profileSkills, skills } from "@/lib/db/schema"
 import { CURRENT_BATCH, SECTIONS } from "../../../../config/site"
 
-type UpsertProfileInput = {
+export type UpsertProfileInput = {
   fullName: string
   studentId?: string
   batchNumber: number
