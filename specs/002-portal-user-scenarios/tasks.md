@@ -63,12 +63,12 @@
 ### Implementation for US1
 
 - [X] T021 [P] [US1] Create directory query helper in `src/lib/db/queries/directory.ts` — `searchDirectory(params: { query?, skillIds?, batchNumber? }, viewerRole): ProfileCard[]` — when viewerRole is `guest`, SELECT only profiles.id, profiles.fullName, profiles.batchNumber, join skills via profile_skills; when viewerRole is `user`/`moderator`/`admin`, SELECT full profile fields; always filter to `status = 'approved'`
-- [ ] T022 [US1] Create guest directory page at `src/app/(guest)/directory/page.tsx` — search bar + results grid using shadcn/ui components, calls `searchDirectory` Server Action, renders ProfileCard with guest-visible fields only
-- [ ] T023 [P] [US1] Create `ProfileCard` component in `src/components/directory/ProfileCard.tsx` — renders fullName, batchNumber, skill tags as neumorphic pills (using `src/styles/tags.css` recipe); when viewer is authenticated, also shows avatarUrl, section; conditionally shows isAlumni badge
-- [ ] T024 [P] [US1] Create `SkillTag` component in `src/components/directory/SkillTag.tsx` — renders a single skill pill with colorKey-based background from `src/styles/tags.css`
-- [ ] T025 [P] [US1] Create `EmptyState` component in `src/components/shared/EmptyState.tsx` — renders a centered message with optional icon and action button for modules with no content
-- [ ] T026 [US1] Create Navbar component in `src/components/layout/Navbar.tsx` — glassmorphism sticky navbar (using `docs/design-direction.md` §4 recipe: `rgba(255,255,255,0.55)` + `blur(16px)` + 1px border), logo, navigation links (Directory, Faculty, Questions, Clubs, Events, etc.), login button for guests, dark mode toggle via `next-themes`, user menu + bell icon placeholder for authenticated users
-- [ ] T027 [US1] Create root layout in `src/app/layout.tsx` — wraps children with `next-themes` ThemeProvider (light default, dark toggle), includes Navbar, imports `globals.css` and `tags.css`
+- [X] T022 [US1] Create guest directory page at `src/app/(guest)/directory/page.tsx` — search bar + results grid using shadcn/ui components, calls `searchDirectory` Server Action, renders ProfileCard with guest-visible fields only
+- [X] T023 [P] [US1] Create `ProfileCard` component in `src/components/directory/ProfileCard.tsx` — renders fullName, batchNumber, skill tags as neumorphic pills (using `src/styles/tags.css` recipe); when viewer is authenticated, also shows avatarUrl, section; conditionally shows isAlumni badge
+- [X] T024 [P] [US1] Create `SkillTag` component in `src/components/directory/SkillTag.tsx` — renders a single skill pill with colorKey-based background from `src/styles/tags.css`
+- [X] T025 [P] [US1] Create `EmptyState` component in `src/components/shared/EmptyState.tsx` — renders a centered message with optional icon and action button for modules with no content
+- [X] T026 [US1] Create Navbar component in `src/components/layout/Navbar.tsx` — glassmorphism sticky navbar (using `docs/design-direction.md` §4 recipe: `rgba(255,255,255,0.55)` + `blur(16px)` + 1px border), logo, navigation links (Directory, Faculty, Questions, Clubs, Events, etc.), login button for guests, dark mode toggle via `next-themes`, user menu + bell icon placeholder for authenticated users
+- [X] T027 [US1] Create root layout in `src/app/layout.tsx` — wraps children with `next-themes` ThemeProvider (light default, dark toggle), includes Navbar, imports `globals.css` and `tags.css`
 
 **Checkpoint**: US1 fully functional — a guest can browse the directory and see only permitted profile fields.
 

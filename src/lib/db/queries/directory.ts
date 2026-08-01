@@ -1,6 +1,6 @@
 import { and, eq, exists, inArray, sql, type SQL } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { profiles, profileSkills } from "@/lib/db/schema"
+import { profiles, profileSkills, skills } from "@/lib/db/schema"
 import type { Role } from "@/lib/auth/types"
 
 export type ViewerRole = Role | "guest"
@@ -44,7 +44,15 @@ export async function searchDirectory(
 
   const trimmed = query?.trim()
   if (trimmed) {
-    conditions.push(sql`${profiles.fullName} ILIKE '%' || ${trimmed} || '%'`)
+    conditions.push(sql`(
+      ${profiles.fullName} ILIKE '%' || ${trimmed} || '%'
+      OR EXISTS (
+        SELECT 1 FROM ${profileSkills} ps
+        JOIN ${skills} s ON s.id = ps.skill_id
+        WHERE ps.profile_id = ${profiles.id}
+          AND s.name ILIKE '%' || ${trimmed} || '%'
+      )
+    )`)
   }
 
   if (skillIds && skillIds.length > 0) {

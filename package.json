@@ -8,9 +8,9 @@
     "start": "next start",
     "lint": "eslint .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:seed": "tsx src/lib/db/seed.ts"
+    "db:migrate": "NODE_OPTIONS=\"--require ./scripts/force-ipv4.cjs\" drizzle-kit migrate",
+    "db:push": "NODE_OPTIONS=\"--require ./scripts/force-ipv4.cjs\" drizzle-kit push",
+    "db:seed": "tsx --env-file=.env src/lib/db/seed.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
