@@ -154,3 +154,66 @@ export async function upsertProfile(
 
   return { success: true, profileId, status: "pending" }
 }
+
+export type MyProfileSkill = {
+  id: string
+  name: string
+  slug: string
+  parentSkillId: string | null
+  colorKey: string | null
+}
+
+export type MyProfile = {
+  id: string
+  userId: string
+  fullName: string
+  studentId: string | null
+  batchNumber: number
+  section: string
+  avatarUrl: string | null
+  bio: string | null
+  facebookUrl: string | null
+  linkedinUrl: string | null
+  whatsappNumber: string | null
+  portfolioUrl: string | null
+  githubUrl: string | null
+  isAlumni: boolean
+  currentCompany: string | null
+  jobPosition: string | null
+  status: "pending" | "approved" | "rejected"
+  approvedBy: string | null
+  approvedAt: string | null
+  createdAt: string
+  updatedAt: string
+  skills: MyProfileSkill[]
+}
+
+export async function getMyProfile(): Promise<MyProfile | null> {
+  const session = await auth()
+  if (!session?.user?.id) redirect("/login")
+  const userId = session.user.id
+
+  const row = await db.query.profiles.findFirst({
+    where: eq(profiles.userId, userId),
+    with: {
+      profileSkills: {
+        columns: {},
+        with: { skill: true },
+      },
+    },
+  })
+
+  if (!row) return null
+
+  const { profileSkills: joinRows, ...profile } = row
+  return {
+    ...profile,
+    skills: joinRows.map((j) => ({
+      id: j.skill.id,
+      name: j.skill.name,
+      slug: j.skill.slug,
+      parentSkillId: j.skill.parentSkillId,
+      colorKey: j.skill.colorKey,
+    })),
+  }
+}
