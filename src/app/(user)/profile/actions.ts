@@ -1,12 +1,14 @@
 "use server"
 
 import { and, eq, inArray, ne } from "drizzle-orm"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
 import { profiles, profileSkills, skills } from "@/lib/db/schema"
 import { checkRateLimit } from "@/lib/rate-limit"
-import { CURRENT_BATCH, SECTIONS } from "../../../../config/site"
+import { getCurrentBatch } from "@/lib/db/queries/site-config"
+import { SECTIONS } from "../../../../config/site"
 
 const PROFILE_EDIT_MAX = 1
 const PROFILE_EDIT_WINDOW_MS = 60 * 60 * 1000
@@ -57,13 +59,15 @@ export async function upsertProfile(
   const fullName = input.fullName?.trim()
   if (!fullName) return fail("Full name is required.")
 
+  const currentBatch = await getCurrentBatch()
+
   const batchNumber = input.batchNumber
   if (
     !Number.isInteger(batchNumber) ||
     batchNumber < 1 ||
-    batchNumber > CURRENT_BATCH
+    batchNumber > currentBatch
   ) {
-    return fail(`Batch must be between 1 and ${CURRENT_BATCH}.`)
+    return fail(`Batch must be between 1 and ${currentBatch}.`)
   }
 
   if (!SECTIONS.includes(input.section as (typeof SECTIONS)[number])) {
@@ -183,6 +187,11 @@ export async function upsertProfile(
   ] as const
 
   await db.batch(batchItems)
+
+  revalidateTag("directory")
+  revalidatePath("/directory")
+  revalidatePath("/my-submissions")
+  revalidatePath("/profile")
 
   return { success: true, profileId, status: "pending" }
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { getAllSkills } from "@/lib/db/queries/skills"
+import { getCurrentBatch } from "@/lib/db/queries/site-config"
 import { ProfileForm } from "@/components/directory/ProfileForm"
 import { getMyProfile } from "./actions"
 import { ProfileView } from "./ProfileView"
@@ -9,7 +10,11 @@ export const metadata: Metadata = {
 }
 
 export default async function ProfilePage() {
-  const [profile, skills] = await Promise.all([getMyProfile(), getAllSkills()])
+  const [profile, skills, currentBatch] = await Promise.all([
+    getMyProfile(),
+    getAllSkills(),
+    getCurrentBatch(),
+  ])
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
@@ -23,9 +28,9 @@ export default async function ProfilePage() {
       </div>
 
       {profile ? (
-        <ProfileView profile={profile} skills={skills} />
+        <ProfileView profile={profile} skills={skills} currentBatch={currentBatch} />
       ) : (
-        <ProfileForm skills={skills} />
+        <ProfileForm skills={skills} currentBatch={currentBatch} />
       )}
     </main>
   )

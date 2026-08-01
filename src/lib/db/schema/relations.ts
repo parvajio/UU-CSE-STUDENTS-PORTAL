@@ -4,6 +4,7 @@ import { profiles } from "./profiles"
 import { skills } from "./skills"
 import { profileSkills } from "./profile-skills"
 import { notifications } from "./notifications"
+import { siteConfig } from "./site-config"
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
@@ -11,6 +12,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [profiles.userId],
   }),
   notifications: many(notifications),
+  siteConfigs: many(siteConfig),
 }))
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -51,6 +53,13 @@ export const profileSkillsRelations = relations(profileSkills, ({ one }) => ({
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, {
     fields: [notifications.userId],
+    references: [users.id],
+  }),
+}))
+
+export const siteConfigRelations = relations(siteConfig, ({ one }) => ({
+  updater: one(users, {
+    fields: [siteConfig.updatedBy],
     references: [users.id],
   }),
 }))

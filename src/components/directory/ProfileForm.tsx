@@ -23,11 +23,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { CURRENT_BATCH, SECTIONS } from "../../../config/site"
+import { SECTIONS } from "../../../config/site"
 import { upsertProfile, type MyProfile, type UpsertProfileInput } from "@/app/(user)/profile/actions"
 import type { FlatSkill } from "@/lib/db/queries/skills"
-
-const batchOptions = Array.from({ length: CURRENT_BATCH }, (_, i) => i + 1)
 
 function SkillPill({
   skill,
@@ -57,19 +55,26 @@ function SkillPill({
 export function ProfileForm({
   skills,
   initial,
+  currentBatch,
   onSuccess,
 }: {
   skills: FlatSkill[]
   initial?: MyProfile | null
+  currentBatch: number
   onSuccess?: () => void
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
+  const batchOptions = useMemo(
+    () => Array.from({ length: currentBatch }, (_, i) => i + 1),
+    [currentBatch]
+  )
+
   const [fullName, setFullName] = useState(initial?.fullName ?? "")
   const [studentId, setStudentId] = useState(initial?.studentId ?? "")
-  const [batchNumber, setBatchNumber] = useState(initial?.batchNumber ?? CURRENT_BATCH)
+  const [batchNumber, setBatchNumber] = useState(initial?.batchNumber ?? currentBatch)
   const [section, setSection] = useState(initial?.section ?? SECTIONS[0])
   const [avatarUrl, setAvatarUrl] = useState(initial?.avatarUrl ?? "")
   const [bio, setBio] = useState(initial?.bio ?? "")
