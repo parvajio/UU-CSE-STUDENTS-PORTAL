@@ -1,6 +1,7 @@
 "use server"
 
 import { eq } from "drizzle-orm"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
@@ -107,6 +108,13 @@ async function decideItem(
   })
 
   if (!result.success) return fail(result.error ?? "Unable to update item.")
+
+  revalidateTag("pending-items")
+  revalidateTag("directory")
+  revalidatePath("/approve")
+  revalidatePath("/directory")
+  revalidatePath("/my-submissions")
+
   return { success: true }
 }
 

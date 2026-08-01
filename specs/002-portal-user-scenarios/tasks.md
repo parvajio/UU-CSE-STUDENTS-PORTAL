@@ -145,8 +145,8 @@
 - [X] T052 Run `quickstart.md` scenarios 1 through 4 to validate all Foundation stories end-to-end
 - [X] T053 Verify guest SQL queries in `src/lib/db/queries/directory.ts` never return contact fields — inspect raw SQL for SELECT clause
 - [X] T054 Write a load test that confirms search latency stays under 2s for up to 5,000 profiles and 10,000 questions (SC-008 scale) — using Playwright or a simple script with EXPLAIN ANALYZE
-- [ ] T055 [P] Configure Next.js revalidation for approval actions — after approveItem/rejectItem, call `revalidateTag('pending-items')` and `revalidateTag('directory')` so approved resources appear publicly within 5 seconds (SC-004)
-- [ ] T056 Create admin settings page at `src/app/(admin)/manage/settings/page.tsx` with a form to update `CURRENT_BATCH`, saved to a `site_config` DB table or config; add `updateCurrentBatch` Server Action with admin-only access
+- [X] T055 [P] Configure Next.js revalidation for approval actions — after approveItem/rejectItem, call `revalidateTag('pending-items')` and `revalidateTag('directory')` so approved resources appear publicly within 5 seconds (SC-004)
+- [X] T056 Create admin settings page at `src/app/(admin)/manage/settings/page.tsx` with a form to update `CURRENT_BATCH`, saved to a `site_config` DB table or config; add `updateCurrentBatch` Server Action with admin-only access
 
 ---
 

@@ -1,4 +1,7 @@
-export const CURRENT_BATCH = 67 as const;
+// Fallback default only — the runtime value lives in the `site_config` DB
+// table (key "currentBatch") and is read via getCurrentBatch(). Keep this in
+// sync with the seeded value.
+export const CURRENT_BATCH = 68 as const;
 
 export const SITE_NAME = "CSE Students Portal";
 export const SITE_DESCRIPTION = "Department of Computer Science & Engineering";

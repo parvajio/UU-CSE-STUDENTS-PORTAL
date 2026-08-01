@@ -3,6 +3,8 @@ import { eq } from "drizzle-orm"
 import { db } from "./index"
 import { users } from "./schema/users"
 import { skills } from "./schema/skills"
+import { siteConfig } from "./schema/site-config"
+import { CURRENT_BATCH } from "../../../config/site"
 
 const ADMIN_EMAIL = process.env.ADMIN_SEED_EMAIL ?? "admin@cse-portal.edu"
 const ADMIN_PASSWORD = process.env.ADMIN_SEED_PASSWORD ?? "changeme123"
@@ -56,11 +58,30 @@ async function seedSkills() {
   return inserted
 }
 
+async function seedCurrentBatch() {
+  const existing = await db.query.siteConfig.findFirst({
+    where: eq(siteConfig.key, "currentBatch"),
+  })
+  if (existing) {
+    console.log(
+      `[seed] currentBatch already set, skipping (value: ${JSON.stringify(existing.value)})`
+    )
+    return 0
+  }
+  await db.insert(siteConfig).values({
+    key: "currentBatch",
+    value: CURRENT_BATCH,
+  })
+  console.log(`[seed] Set currentBatch to ${CURRENT_BATCH}`)
+  return 1
+}
+
 async function seed() {
   const adminCount = await seedAdmin()
   const skillCount = await seedSkills()
+  const batchCount = await seedCurrentBatch()
   console.log(
-    `[seed] Done. admin inserted: ${adminCount}, skills inserted: ${skillCount}`
+    `[seed] Done. admin inserted: ${adminCount}, skills inserted: ${skillCount}, currentBatch inserted: ${batchCount}`
   )
 }
 

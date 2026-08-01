@@ -11,15 +11,22 @@ import type { MyProfile } from "./actions"
 export function ProfileView({
   profile,
   skills,
+  currentBatch,
 }: {
   profile: MyProfile
   skills: FlatSkill[]
+  currentBatch: number
 }) {
   const [editing, setEditing] = useState(false)
 
   if (editing) {
     return (
-      <ProfileForm skills={skills} initial={profile} onSuccess={() => setEditing(false)} />
+      <ProfileForm
+        skills={skills}
+        initial={profile}
+        currentBatch={currentBatch}
+        onSuccess={() => setEditing(false)}
+      />
     )
   }
 
