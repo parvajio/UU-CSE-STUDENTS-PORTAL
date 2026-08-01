@@ -33,3 +33,14 @@ export function checkRateLimit(
   entry.count += 1
   return { allowed: true }
 }
+
+export const SUBMISSION_MAX = 5
+export const SUBMISSION_WINDOW_MS = 60 * 60 * 1000
+
+export function enforceSubmissionLimit(
+  identity: string,
+  maxCount = SUBMISSION_MAX,
+  windowMs = SUBMISSION_WINDOW_MS
+): RateLimitResult {
+  return checkRateLimit(`submit:${identity}`, maxCount, windowMs)
+}
