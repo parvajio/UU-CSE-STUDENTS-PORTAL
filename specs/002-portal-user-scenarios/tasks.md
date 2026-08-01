@@ -47,8 +47,8 @@
 - [X] T017 Implement Next.js middleware in `src/middleware.ts` — read JWT session, check role against route permissions map from `contracts/auth.md`, redirect unauthenticated users to `/login` for protected routes, return 403 for unauthorized role
 - [X] T018 Create seed script in `src/lib/db/seed.ts` — insert admin user (email read from `ADMIN_SEED_EMAIL` env var or default, password read from `ADMIN_SEED_PASSWORD` env var), insert top-level skills (Web Development, ML/AI, Competitive Programming, Cybersecurity, Research, Design) with slugs and colorKeys
 - [X] T019 Create permission utility in `src/lib/auth/permissions.ts` — `canApprove(userRole, resourceType)` returns boolean; moderators can approve `question`, `project`; only admins can approve `profile`. Note: alumni-flag changes are part of regular profile approval (admin-only) — no separate alumni approval path. Rationale: verifying alumni status/company claim is as trust-sensitive as verifying a new student profile. If alumni approval volume becomes a bottleneck later, split it into its own `canApprove` case then.
-- [ ] T020 Create `src/lib/utils.ts` with `cn()` (clsx+tailwind-merge), `formatDate()`, `capitalize()` helpers
-- [ ] T020b [P] Create `src/lib/search.ts` with shared Postgres full-text search helpers — `buildSearchQuery(term, columns)` returning SQL for tsquery match, `searchProfiles(term, filters, viewerRole)` using the helper; referenced by T021 directory query and future question search
+- [X] T020 Create `src/lib/utils.ts` with `cn()` (clsx+tailwind-merge), `formatDate()`, `capitalize()` helpers
+- [X] T020b [P] Create `src/lib/search.ts` with shared Postgres full-text search helpers — `buildSearchQuery(term, columns)` returning SQL for tsquery match, `searchProfiles(term, filters, viewerRole)` using the helper; referenced by T021 directory query and future question search
 
 **Checkpoint**: Foundation ready — user story implementation can now begin.
 
