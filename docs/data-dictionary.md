@@ -2,7 +2,7 @@
 
 Covers the entities needed for Phases 1–4 (Foundation, Core Content, Community). Extras-phase entities (CGPA calculator, blood donor, lost & found, learning academy, etc.) are intentionally left out — write their dictionaries when you reach that phase, since their shape may shift based on what you learn building the core first.
 
-Shared pattern used across every user-submitted table: `status`, `approvedBy`, `approvedAt` — noted per table below where it applies.
+Shared pattern used across every user-submitted table: `status`, `approvedBy`, `approvedAt` — noted per table below where it applies (`career_guidance_requests` is the documented exception — see below).
 
 ---
 
@@ -95,6 +95,8 @@ Superseded decision — kept here for history: an earlier version of this doc ha
 | status | enum | `pending` \| `accepted` \| `declined` | |
 | createdAt | timestamp | | |
 
+**Exception to the shared approval pattern**: peer-to-peer accept/decline by the alumnus, not admin-moderated publish-content — the `status/approvedBy/approvedAt` columns do not apply. Modeled for Phase 3 (Alumni Network), not implemented in Foundation.
+
 ---
 
 ## questions
@@ -150,6 +152,23 @@ Recommend a join table over a text array — lets you filter/search by tag with 
 | body | text | required |
 | createdBy | uuid | FK → users.id (moderator/admin only) |
 | createdAt | timestamp | |
+
+---
+
+## notifications
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| userId | uuid | FK → users.id, required | |
+| type | text | required | e.g. "approval", "rejection", "guidance_accepted" |
+| title | text | required | |
+| message | text | nullable | |
+| resourceType | text | nullable | e.g. "profile", "question", "project" |
+| resourceId | uuid | nullable | links to the relevant resource |
+| read | boolean | default false | |
+| createdAt | timestamp | default now | |
+
+Supports the in-app notification bell (spec R-016). Auto-delete after 30 days is deferred in Foundation — cleanup-on-read-query is the intended lightweight approach when built.
 
 ---
 

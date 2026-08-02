@@ -1,6 +1,6 @@
 "use server"
 
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
@@ -53,34 +53,35 @@ const decisionHandlers: Partial<Record<ResourceType, DecisionHandler>> = {
   profile: async (kind, resourceId, ctx) => {
     const row = await db.query.profiles.findFirst({
       where: eq(profiles.id, resourceId),
-      columns: { userId: true, fullName: true, status: true },
+      columns: { userId: true, fullName: true },
     })
     if (!row) {
       return { success: false, error: "Item not found." }
     }
-    if (row.status !== "pending") {
-      return { success: false, error: "Item has already been reviewed." }
+
+    const updated = await db
+      .update(profiles)
+      .set({
+        status: kind,
+        approvedBy: ctx.approvedBy,
+        approvedAt: ctx.approvedAt,
+      })
+      .where(and(eq(profiles.id, resourceId), eq(profiles.status, "pending")))
+      .returning({ id: profiles.id })
+
+    if (updated.length === 0) {
+      return { success: false, error: "This item was already processed." }
     }
 
-    await db.batch([
-      db
-        .update(profiles)
-        .set({
-          status: kind,
-          approvedBy: ctx.approvedBy,
-          approvedAt: ctx.approvedAt,
-        })
-        .where(eq(profiles.id, resourceId)),
-      db.insert(notifications).values(
-        buildNotification(kind, {
-          userId: row.userId,
-          label: row.fullName,
-          reason: ctx.reason,
-          resourceType: "profile",
-          resourceId,
-        })
-      ),
-    ])
+    await db.insert(notifications).values(
+      buildNotification(kind, {
+        userId: row.userId,
+        label: row.fullName,
+        reason: ctx.reason,
+        resourceType: "profile",
+        resourceId,
+      })
+    )
 
     return { success: true }
   },

@@ -36,7 +36,7 @@ All tables below match `docs/data-dictionary.md` exactly. Drizzle schema files l
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | PK | |
-| userId | uuid | FK → users.id, unique | 1:1 with users |
+| userId | uuid | FK → users.id, unique, nullable | 1:1 with users; null for admin-entered legacy alumni (spec 3.3-B) |
 | fullName | text | required | |
 | studentId | text | unique when set, nullable | SID — required for current students (app/Zod level), null for legacy alum with no SID |
 | batchNumber | integer | required | Dynamic dropdown up to CURRENT_BATCH |
@@ -65,10 +65,10 @@ All tables below match `docs/data-dictionary.md` exactly. Drizzle schema files l
 - P-002: studentId must be unique across all profiles where set (nullable for legacy alum with no SID)
 - P-003: Batch number must be ≤ admin-configurable CURRENT_BATCH
 - P-004: Editing an approved profile resets status to pending
-- P-005: Rate limit: 1 profile edit per hour per user
+- P-005: Rate limit: profile upserts (creation AND edits, treated as the same action) capped at 1 per hour total per user — fixed window, `retryAfter` returned in seconds (spec R-021)
 
 **Approval Lifecycle**: pending → (approved | rejected) via admin.
-When `isAlumni` is toggled on an approved profile without changing other fields, no re-approval is needed.
+Toggling `isAlumni` on an approved profile re-enters the regular approval workflow — the alumni status/company claim is admin-only approved (no moderator exception, no no-re-approval path). See spec 3.3-A and tasks T019.
 
 ---
 
@@ -128,6 +128,8 @@ When `isAlumni` is toggled on an approved profile without changing other fields,
 | createdAt | timestamp | default now |
 
 **Lifecycle**: pending → (accepted | declined) via alumnus action.
+
+> **Note**: Documented exception to the universal approval pattern — this is peer-to-peer accept/decline by the alumnus, not admin-moderated publish-content, so the `status/approvedBy/approvedAt` columns do not apply (spec §3.3-C / Key Entities note; justification in plan.md). Modeled for Phase 3 (Alumni Network), not implemented in Foundation.
 
 ---
 
@@ -254,7 +256,7 @@ When `isAlumni` is toggled on an approved profile without changing other fields,
 
 > **Note**: This table is derived from the research clarifications, not from `data-dictionary.md`. It supports the in-app notification bell system. Add to dictionary on next update.
 
-**Behavior**: Notifications auto-delete after 30 days (via cron job or cleanup on read query).
+**Behavior**: Notifications auto-delete after 30 days (via cron job or cleanup on read query). **Deferred in Foundation — cleanup-on-read-query is the intended lightweight approach when built (tasks T045b, spec R-016).**
 
 ---
 
@@ -275,9 +277,8 @@ When `isAlumni` is toggled on an approved profile without changing other fields,
 [Profile is approved, isAlumni=false]
   └── Student toggles "I am an alumnus"
         └── isAlumni=true, currentCompany/jobPosition editable
-              └── Profile appears in both directory and alumni network
-              └── If existing fields unchanged: no re-approval needed
-              └── If profile content changed: re-enters approval workflow
+              └── Profile re-enters the regular approval workflow (admin-only)
+              └── Once re-approved: appears in both directory and alumni network
 ```
 
 ### Career Guidance Request

@@ -50,11 +50,11 @@ const routePermissions: Record<string, Role[]> = {
   "/cgpa-calculator":       ["user", "moderator", "admin"],
   "/blood-donor":           ["user", "moderator", "admin"],
 
-  // Moderator-accessible
-  "/approve/questions":     ["moderator", "admin"],
-
-  // Admin-accessible
-  "/approve/profiles":      ["admin"],
+  // Unified approval dashboard — single route serving moderators and admins.
+  // Role-filtered server-side via visibleResourceTypes (moderators see question/project,
+  // admins additionally see profiles). Formerly split into /approve/questions and
+  // /approve/profiles — consolidated to /approve (see plan.md + tasks T040/T042).
+  "/approve":               ["moderator", "admin"],
   "/manage/roles":          ["admin"],
   "/manage/faculty":        ["admin"],
   "/manage/clubs":          ["admin"],
@@ -92,3 +92,7 @@ async session({ session, token }) {
   return session;
 }
 ```
+
+## JWT Role-Change Limitation
+
+Role changes (e.g., a moderator demoted to user) take effect on the next token refresh, not instantly within an active session — accepted limitation of the JWT session strategy (CHK032, spec Assumptions).

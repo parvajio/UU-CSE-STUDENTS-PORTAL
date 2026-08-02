@@ -51,6 +51,8 @@ Build the CSE Students Portal as a single Next.js 15 App Router application with
 | Technology Constraints | ✅ PASS | No MongoDB, no separate backend, batch numbers dynamic, data dictionary as schema source |
 | Build Order | ✅ PASS | Phased delivery: Phase 1 (Foundation) → Phase 2 (Core) → Phase 3 (Community) → Phase 4 (Engagement) → Phase 5 (Extras) |
 
+**Documented exception**: `career_guidance_requests` (spec §3.3-C) intentionally does not follow the universal approval pattern (Constitution Principle III). It is peer-to-peer, not moderated publish-content — the alumnus accepts/declines a guidance request, and there is no admin/moderator approval or content-visibility gate, so the `status/approvedBy/approvedAt` columns do not apply. Modeled for Phase 3 (Alumni Network), not implemented in Foundation. All other user-submitted resources follow the universal pattern.
+
 **Gate**: ✅ PASS — no violations. Proceed to Phase 0.
 
 ## Project Structure
@@ -90,10 +92,9 @@ src/
 │   │   ├── profile/
 │   │   ├── upload-question/
 │   │   └── my-submissions/
-│   ├── (moderator)/                # Moderator routes
-│   │   └── approve/                #   Unified approval dashboard (moderator view)
+│   ├── (moderator)/                # Moderator routes (no separate approve page — shared /approve route)
 │   ├── (admin)/                    # Admin-only routes
-│   │   ├── approve/                #   Unified approval dashboard (full view)
+│   │   ├── approve/                #   Unified approval dashboard — single /approve route serving moderators + admins, role-filtered via visibleResourceTypes; a separate (moderator)/approve would collide at the same URL (see T040/T042 merge)
 │   │   ├── manage/
 │   │   │   ├── roles/
 │   │   │   ├── faculty/

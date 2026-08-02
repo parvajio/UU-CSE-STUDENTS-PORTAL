@@ -29,7 +29,7 @@
 
 A visitor who hasn't logged in lands on the directory and wants to find students with a particular skill. They type a search term and see a list of matching profiles. Each result card shows only the student's fullName, batchNumber, and skill tags — no contact info, no detail beyond those three fields.
 
-**Independent Test**: Open the portal in a private browsing session (no login). Search by a skill name. Confirm the result cards display only fullName, batchNumber, and skill tag names. Confirm whatsappNumber, facebookUrl, linkedinUrl, portfolioUrl, and githubUrl are absent from both search results and any profile detail view.
+**Independent Test**: Open the portal in a private browsing session (no login). Search by a skill name. Confirm the result cards display only fullName, batchNumber, and skill tag names. Confirm whatsappNumber, facebookUrl, linkedinUrl, portfolioUrl, and githubUrl are absent from search results. (Foundation ships a cards-only guest directory — no guest profile detail route is planned.)
 
 **Acceptance Scenarios**:
 
@@ -101,15 +101,15 @@ A guest, logged-in student, moderator, or admin navigates to the Faculty Directo
 
 #### Story 3.2-B — Admin manages faculty records (Priority: P2)
 
-An admin logs in and accesses faculty management. They can add a new faculty member (with fullName, designation, email, optionally phone, researchInterests, officeRoom, photoUrl), edit existing records, or remove a faculty entry. Changes appear immediately with no approval workflow.
+An admin logs in and accesses faculty management. They can add a new faculty member (with fullName, designation, email, optionally phone, researchInterests, officeRoom, photoUrl), edit existing records, or remove a faculty entry. Changes appear within the SC-004 window (≤5s) with no approval workflow.
 
 **Independent Test**: Log in as admin, add a new faculty member, log out, and confirm the new member appears in the guest-visible faculty directory.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am an admin, **When** I fill in the "Add Faculty" form with fullName, designation, email, and optional fields and submit, **Then** the faculty member appears in the directory immediately — no approval needed.
-2. **Given** I am an admin, **When** I edit an existing faculty member's email or officeRoom, **Then** the change is visible immediately on the public directory.
-3. **Given** I am an admin, **When** I delete a faculty record, **Then** it disappears from the public directory immediately.
+1. **Given** I am an admin, **When** I fill in the "Add Faculty" form with fullName, designation, email, and optional fields and submit, **Then** the faculty member appears in the directory within the SC-004 window (≤5s) — no approval needed.
+2. **Given** I am an admin, **When** I edit an existing faculty member's email or officeRoom, **Then** the change is visible on the public directory within the SC-004 window (≤5s).
+3. **Given** I am an admin, **When** I delete a faculty record, **Then** it disappears from the public directory within the SC-004 window (≤5s).
 
 ---
 
@@ -117,27 +117,27 @@ An admin logs in and accesses faculty management. They can add a new faculty mem
 
 #### Story 3.3-A — Student marks own profile as alumni (Priority: P2)
 
-A student with an existing approved profile toggles the "I am an alumnus" setting on their profile. This sets `isAlumni = true` on their profile record and reveals additional fields: currentCompany, jobPosition. The student fills these in and submits. The profile now also appears in the Alumni Career Network directory alongside the Student Expert Directory. Since the profile is already approved, the alumnus status takes effect immediately — no re-approval is needed unless profile content changed.
+A student with an existing approved profile toggles the "I am an alumnus" setting on their profile. This sets `isAlumni = true` on their profile record and reveals additional fields: currentCompany, jobPosition. The student fills these in and submits. The change re-enters the regular profile approval workflow — verifying the alumni status/company claim is as trust-sensitive as verifying a new student profile, so it is admin-only (no moderator exception). Once an admin re-approves the profile, it appears in the Alumni Career Network directory alongside the Student Expert Directory.
 
-**Independent Test**: Log in as a student with an approved profile, toggle the alumni setting, fill in company/position, and confirm the profile appears in both the student directory and the alumni directory.
+**Independent Test**: Log in as a student with an approved profile, toggle the alumni setting, fill in company/position, and confirm the profile re-enters pending and, after admin re-approval, appears in both the student directory and the alumni directory.
 
 **Acceptance Scenarios**:
 
-1. **Given** I have an approved profile, **When** I toggle "I am an alumnus" and fill in currentCompany and jobPosition, **Then** my profile appears in both the Student Expert Directory and the Alumni Career Network.
-2. **Given** I toggle the alumni setting without changing any existing fields, **When** I save, **Then** no re-approval is required — the existing approval covers the alumni visibility.
+1. **Given** I have an approved profile, **When** I toggle "I am an alumnus" and fill in currentCompany and jobPosition, **Then** my profile re-enters the approval workflow and, once an admin re-approves it, appears in both the Student Expert Directory and the Alumni Career Network.
+2. **Given** I toggle the alumni setting without changing any existing fields, **When** I save, **Then** my profile still reverts to `status = pending` — the alumni-flag change requires regular admin-only re-approval (there is no no-re-approval path or moderator exception).
 3. **Given** I do not have a portal account, **When** I try to add an alumni-only record, **Then** I must first sign up and create a student profile (or an admin can enter me directly).
 
 ---
 
 #### Story 3.3-B — Admin enters an alumni record directly (Priority: P2)
 
-An admin wants to add an alumnus who may not have a portal account. They fill out the same alumni fields (fullName, batchNumber, currentCompany, jobPosition, linkedinUrl, facebookUrl, contactInfo). Since the admin is entering it, the record can be inserted directly with `status = approved` and `userId = null`, appearing immediately in the alumni directory.
+An admin wants to add an alumnus who may not have a portal account. They fill out the alumni fields on the profiles entity (fullName, batchNumber, currentCompany, jobPosition, linkedinUrl, facebookUrl). Since the admin is entering it, the record can be inserted directly with `status = approved` and `userId = null`, appearing in the alumni directory within the SC-004 window (≤5s).
 
 **Independent Test**: Log in as admin, enter an alumni record directly, and confirm it appears in the public alumni directory without any approval step.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am an admin, **When** I add an alumni record directly (without linking to a user account), **Then** the record is automatically `approved` and appears in the public alumni directory immediately.
+1. **Given** I am an admin, **When** I add an alumni record directly (without linking to a user account), **Then** the record is automatically `approved` and appears in the public alumni directory within the SC-004 window (≤5s).
 2. **Given** an admin-added alumni record has `userId = null`, **When** the alumnus later creates a portal account, **Then** the admin can link the existing alumni record to the user's account.
 
 ---
@@ -145,6 +145,8 @@ An admin wants to add an alumnus who may not have a portal account. They fill ou
 #### Story 3.3-C — Student requests career guidance (Priority: P3)
 
 A logged-in student finds an alumnus in the alumni directory and clicks "Request Career Guidance." They compose a message (the `message` field on a `career_guidance_requests` record) and send it. The request is created with `status = pending`. The alumnus sees it in their inbox and can accept (`status = accepted`) or decline (`status = declined`). The requesting student is notified of the outcome.
+
+> **Scope note**: Module 3.3 (Alumni Network) — including career guidance — is modeled for Phase 3 (per the constitution build order), not implemented in Foundation. `career_guidance_requests` is the documented exception to the universal approval pattern: it is peer-to-peer (the alumnus accepts/declines), not admin-moderated publish-content, so the `status/approvedBy/approvedAt` moderation columns do not apply. Justification recorded in plan.md.
 
 **Independent Test**: Log in as a student, send a guidance request to an alumnus. Log in as that alumnus, accept the request. Confirm the student receives a notification.
 
@@ -188,13 +190,13 @@ A logged-in student searches the question bank by subject, course, batch, examTy
 
 #### Story 3.4-C — Moderator approves a question (Priority: P1)
 
-A moderator opens the approval dashboard and sees pending questions alongside other low-sensitivity items. They review a question's details (title, subject, course, batch, examType, file preview), and approve or reject it. Profile approvals are not visible to moderators — only admins see those.
+A moderator opens the approval dashboard and sees pending questions alongside other moderator-eligible items (projects). They review a question's details (title, subject, course, batch, examType, file preview), and approve or reject it. Profile approvals are not visible to moderators — only admins see those.
 
 **Independent Test**: Log in as a moderator, confirm the approval dashboard shows pending questions but not pending profiles. Approve a question, then confirm it appears in the public question bank.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am a moderator, **When** I open the approval dashboard, **Then** I see pending questions (and other low-sensitivity items) but NOT pending profiles or other admin-only items.
+1. **Given** I am a moderator, **When** I open the approval dashboard, **Then** I see pending questions (and other moderator-eligible items, e.g. projects) but NOT pending profiles or other admin-only items.
 2. **Given** I review a pending question, **When** I click "Approve", **Then** the question's `status` becomes `approved` and it appears in the public question bank.
 3. **Given** I am a moderator, **When** I try to navigate to profile management or role assignment, **Then** I receive an access-denied message.
 
@@ -224,7 +226,7 @@ An admin accesses club management. They can create a new club with name, descrip
 
 **Acceptance Scenarios**:
 
-1. **Given** I am an admin, **When** I create a club with name, description, and logo, **Then** the club's page is immediately visible to all users — no approval needed.
+1. **Given** I am an admin, **When** I create a club with name, description, and logo, **Then** the club's page is visible to all users within the SC-004 window (≤5s) — no approval needed.
 2. **Given** I am an admin editing a club, **When** I add a member with roleInClub set to `executive` and position "Secretary", **Then** the member appears in the executive committee section of the club page.
 3. **Given** I am an admin, **When** I remove a club, **Then** the club's page is no longer accessible.
 
@@ -266,13 +268,13 @@ A logged-in student navigates to the Learning Academy and sees a list of availab
 
 #### Story 3.8-A — Student finds a senior for support (Priority: P3)
 
-A logged-in student navigates to the Student Helpline section. They see a curated directory of approximately 20 senior students who are available for academic, career, or emergency support. Each entry shows the senior's fullName, batchNumber, and contact information (whatsappNumber, facebookUrl). This is a fast-access directory — smaller and more targeted than the full Student Expert Directory.
+A logged-in student navigates to the Student Helpline section. They see a curated directory of up to 20 senior students (admin-curated) who are available for academic, career, or emergency support. Each entry shows the senior's fullName, batchNumber, and contact information (whatsappNumber, facebookUrl). This is a fast-access directory — smaller and more targeted than the full Student Expert Directory.
 
-**Independent Test**: Log in as a student, open the Helpline, verify you see approximately 20 senior student profiles with their contact info.
+**Independent Test**: Log in as a student, open the Helpline, verify you see up to 20 senior student profiles with their contact info.
 
 **Acceptance Scenarios**:
 
-1. **Given** I am a logged-in student, **When** I navigate to the Student Helpline, **Then** I see a curated list of senior students with their fullName, batchNumber, and direct contact info (WhatsApp, Facebook).
+1. **Given** I am a logged-in student, **When** I navigate to the Student Helpline, **Then** I see a curated list of up to 20 senior students with their fullName, batchNumber, and direct contact info (WhatsApp, Facebook).
 2. **Given** I am a guest, **When** I try to access the Student Helpline, **Then** I am prompted to log in — the Helpline requires authentication.
 3. **Given** the Helpline directory has fewer than 20 seniors, **When** I view it, **Then** I see only the available seniors with no empty filler entries.
 
@@ -289,7 +291,7 @@ Any user (guest or logged in) visits the Notice Board and sees a chronological l
 **Acceptance Scenarios**:
 
 1. **Given** I am any user (guest, student, moderator, admin), **When** I visit the Notice Board, **Then** I see a list of notices ordered by most recent first, each showing title, body, and published date.
-2. **Given** I am a moderator or admin, **When** I create a notice with a title and body, **Then** the notice appears immediately on the public Notice Board.
+2. **Given** I am a moderator or admin, **When** I create a notice with a title and body, **Then** the notice appears on the public Notice Board within the SC-004 window (≤5s).
 
 ---
 
@@ -343,7 +345,7 @@ The following table governs what each user type can see and do across all module
 | View full profile details (contact info, social links, portfolio) | ❌ | ✅ | ✅ | ✅ |
 | Download question papers | ❌ | ✅ | ✅ | ✅ |
 | Submit a profile, question, project, or other resource | ❌ | ✅ (goes to pending) | ✅ (goes to pending) | ✅ (can skip pending) |
-| Approve/reject questions and low-sensitivity submissions | ❌ | ❌ | ✅ | ✅ |
+| Approve/reject questions and projects | ❌ | ❌ | ✅ | ✅ |
 | Approve/reject profiles and sensitive submissions | ❌ | ❌ | ❌ | ✅ |
 | Manage roles (promote/demote moderators) | ❌ | ❌ | ❌ | ✅ |
 | Manage faculty, club, and alumni records directly | ❌ | ❌ | ❌ | ✅ |
@@ -357,12 +359,12 @@ The following table governs what each user type can see and do across all module
 Every submittable resource type (profiles, questions, alumni self-submissions, projects, lost & found posts, research papers, resource-sharing entries) follows the same approval pipeline:
 
 1. **Submission**: A user (or moderator) fills in the required fields and submits.
-2. **Pending**: The resource is created with `status = pending`. It is NOT visible to guests or other users. Only the submitter and reviewers can see it.
+2. **Pending**: The resource is created with `status = pending`. It is NOT visible to guests or other users. Only the submitter and the role-eligible reviewers for that resource type can see it — moderators for moderator-eligible types, admins for all types (CHK020).
 3. **Review**: Moderators and/or admins see the pending item in the unified approval dashboard. They can view the full submission data.
 4. **Decision**:
-   - **Approved** → `status = approved`, `approvedBy` set to reviewer's user ID, `approvedAt` set to current timestamp. Resource becomes immediately publicly visible.
+   - **Approved** → `status = approved`, `approvedBy` set to reviewer's user ID, `approvedAt` set to current timestamp. Resource becomes publicly visible within the SC-004 window (≤5s).
    - **Rejected** → `status = rejected`. Reviewer may provide a reason. Submitter is notified with the reason and can edit and resubmit.
-5. **Post-approval edits**: If an approved resource is edited by its owner, it reverts to `status = pending` and must be re-approved.
+5. **Post-approval edits**: If an approved resource is edited by its owner, it reverts to `status = pending` and must be re-approved — canonical rule: R-017.
 
 ---
 
@@ -370,19 +372,20 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 
 - **Duplicate submission attempts**: A user with an existing approved profile cannot submit a second profile — one profile per user.
 - **Empty state — no data yet**: Modules with no approved content show friendly empty states ("No profiles found yet — check back after students join") rather than error pages.
-- **Concurrent moderation**: Two moderators open the same pending item. The first click (approve or reject) succeeds. The second sees a "This item was already processed" notice.
+- **Concurrent moderation**: Two moderators open the same pending item. The first click (approve or reject) succeeds. The second sees a "This item was already processed" notice — enforced by a conditional UPDATE (`WHERE id = ? AND status = 'pending'`) on the decision action, never a silent no-op.
 - **Unsupported file type**: Question paper uploads reject non-PDF/non-image files with a clear error before the upload starts.
-- **Guest accessing protected routes**: A guest who tries to navigate to a user-only page (e.g., profile submission) is redirected to the login page.
-- **Moderator overreach**: A moderator who attempts to approve a profile (admin-only) receives an access-denied response at the permission level.
+- **Guest accessing protected routes**: A guest who tries to navigate to a user-only page (e.g., profile submission) is redirected to the login page (`/login`, preserving a `callbackUrl`). Logged-in users whose role is below the route's requirement receive a 403 access-denied response instead — the redirect-if-unauthenticated vs 403-if-wrong-role distinction is enforced by middleware (CHK028).
+- **Moderator overreach**: A moderator who attempts to approve a profile (admin-only) receives an access-denied (403) response at the permission level.
 - **Batch rollover**: When the admin updates `CURRENT_BATCH`, existing profiles retain their original `batchNumber`. New profile submissions see an extended dropdown.
-- **Submission rate limiting**: A user who exceeds 5 content submissions per hour or 1 profile edit per hour sees a rate-limit error with a retry-after time. Moderators and admins have no rate limits.
+- **Submission rate limiting**: A user who exceeds the profile-upsert limit (1/hour, creation and edits combined) or the shared content-submission limit (5/hour) sees a rate-limit error returning a quantified `retryAfter` in seconds (fixed window). Moderators and admins have no rate limits.
+- **Deleted resource before notification read**: N/A in Foundation — no delete operations exist anywhere in Foundation scope. Revisit when deletes are introduced (CHK031).
 
 ## Requirements *(mandatory)*
 
 ### What Each Role Must Be Able to Do
 
 - **R-001**: Guests can search and browse the Student Expert Directory, Faculty Directory, Question Bank (metadata only without download), Club pages, Event Gallery, Notice Board, Alumni Network (approved profiles only), and Achievement Hall of Fame.
-- **R-002**: Guests see only fullName, batchNumber, and skill tags on profile views — never bio, avatarUrl, section, contact info, social links, portfolio, or GitHub URLs.
+- **R-002**: Guests see ONLY these fields on profile views: fullName, batchNumber, and skill tag names/colors. All other fields — bio, avatarUrl, section, contact info, social links, portfolio, or GitHub URLs — are never shown to guests. In Foundation this surface is cards-only (no guest profile detail route is planned; the constraint applies to whatever guest-facing profile surface exists).
 - **R-003**: Guests cannot download question paper files or see download buttons.
 - **R-004**: Users (logged-in students) can submit, view, and edit their own profile with fields matching the profiles table (fullName, studentId — required for current students, nullable for legacy alum — batchNumber, section, avatarUrl, bio, facebookUrl, linkedinUrl, whatsappNumber, portfolioUrl, githubUrl).
 - **R-005**: Users can submit question papers with title, subject, course, batch, examType (previous_year/midterm/final/lab/viva), file upload, and optional tags.
@@ -390,7 +393,7 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 - **R-007**: Users can download approved question papers.
 - **R-008**: Users can browse and search approved alumni, faculty, clubs, events, notices, and hall of fame.
 - **R-009**: Users can request career guidance from alumni via a message.
-- **R-010**: Moderators can do everything a User can, plus approve/reject questions and other low-sensitivity submissions from the unified approval dashboard.
+- **R-010**: Moderators can do everything a User can, plus approve/reject the explicitly moderator-eligible resource types — `question` and `project` — from the unified approval dashboard. Everything else is admin-only by default; a resource type becomes moderator-eligible only when a future phase explicitly decides so while building that module.
 - **R-011**: Moderators cannot see or approve profiles, manage roles, manage faculty/clubs directly, manage alumni-status profiles, or perform other admin-only actions.
 - **R-012**: Admins can do everything — approve/reject any pending resource, manage faculty/clubs and alumni-status profiles directly, assign roles, manage events and achievements, and publish notices.
 - **R-013**: The approval dashboard shows pending items across all resource types in a single unified queue, filterable by type.
@@ -400,8 +403,8 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 - **R-017**: Editing an approved resource resets it to `status = pending` for re-approval.
 - **R-018**: Each user can have at most one profile; duplicate profiles are prevented.
 - **R-019**: Batch numbers in profile forms are rendered as a dynamic dropdown, not a hardcoded list, generated based on an admin-configurable current batch value.
-- **R-020**: Faculty, clubs, and notices managed by admins appear immediately without any approval workflow.
-- **R-021**: Submission rate limits are enforced — users may submit at most 5 content items (questions, projects, etc.) per hour and 1 profile edit per hour. Moderators and admins are exempt from rate limits.
+- **R-020**: Faculty, clubs, and notices managed by admins appear publicly within the SC-004 window (≤5 seconds) of the admin's change, with no approval workflow.
+- **R-021**: Submission rate limits are enforced. Profile upserts — creation AND edits, treated as the same action — are capped at 1 per hour total per user (not a separate count per action type); all other content submissions (questions, projects, etc.) use a shared 5-per-hour default wrapper. Rate-limit windows are fixed windows (not sliding), and the user-facing error returns a `retryAfter` value in seconds (CHK011). Moderators and admins are exempt from rate limits. Career-guidance request limits are TBD — decided when Module 3.3 (Alumni Network) is actually built.
 
 ### Key Entities
 
@@ -411,7 +414,7 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 - **Question**: A past exam upload — title, subject, course, batch, examType, fileUrl, tags (via question_tags) — with the same approval lifecycle as profiles.
 - **Faculty**: An admin-managed directory entry with fullName, designation, email, phone, researchInterests, officeRoom, photoUrl — no approval workflow.
 - **Alumnus**: A graduate record. For users who signed up as students, this is their profile with `isAlumni=true`. For legacy graduates with no account, an admin creates a `profiles` row (with a matching `unclaimed` `users` row) directly, leaving `studentId` null.
-- **Career Guidance Request**: A message from a student to an alumnus (studentProfileId, alumniProfileId, message) with status pending/accepted/declined.
+- **Career Guidance Request**: A message from a student to an alumnus (studentProfileId, alumniProfileId, message) with status pending/accepted/declined. Documented exception to the universal approval pattern: guidance requests are peer-to-peer — the alumnus accepts/declines rather than an admin/moderator — so the `status/approvedBy/approvedAt` moderation columns do not apply. Modeled for Phase 3 (Alumni Network), not implemented in Foundation.
 - **Club**: A student organization with name, description, logoUrl, and members (club_members with roleInClub and position).
 - **Notice**: A time-sensitive announcement (title, body, createdBy) published by moderators/admins — always visible.
 - **Event**: A scheduled or past program with date, media, description, and optional registration link.
@@ -420,14 +423,16 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 
 ## Success Criteria *(mandatory)*
 
-- **SC-001**: A guest browsing any module sees only the fields that role is permitted to see — confirmed by automated queries that verify no contact data leaks through the data layer.
-- **SC-002**: A user can complete and submit a profile with all fields from the data-dictionary in under 5 minutes.
-- **SC-003**: A moderator or admin can locate, review, and approve/reject a pending item from the unified dashboard in under 30 seconds.
+- **SC-001**: A guest browsing any module sees only the fields that role is permitted to see — verified by the automated guest-field SELECT-clause check (T053) proving no contact data leaks through the data layer.
+- **SC-002**: A user can complete and submit a profile with all fields from the data-dictionary in under 5 minutes. (Post-launch manual metric — not an automated Foundation assertion.)
+- **SC-003**: A moderator or admin can locate, review, and approve/reject a pending item from the unified dashboard in under 30 seconds. (Post-launch manual metric — not an automated Foundation assertion.)
 - **SC-004**: An approved resource becomes publicly visible within 5 seconds of the approval action.
-- **SC-005**: All submittable resource types (profiles, questions, projects, etc.) use exactly the same `status/approvedBy/approvedAt` columns — verified by a single schema check.
-- **SC-006**: Role-based access rules are enforced at the data-access level for every resource type — zero cases of a guest accessing contact data or a moderator approving a profile.
-- **SC-007**: Every module listed in overview.md §3 is navigable and displays its data according to the access rules — none are missing or throw errors.
+- **SC-005**: All submittable resource types (profiles, questions, projects, etc.) use exactly the same `status/approvedBy/approvedAt` columns — verified by a single schema check. (Fully verifiable once Phase 2/3 ship the questions and projects schemas; Foundation covers profiles.)
+- **SC-006**: Role-based access rules are enforced at the data-access level for every resource type — zero cases of a moderator approving a profile (admin-only action).
+- **SC-007**: Every module listed in overview.md §3 is navigable and displays its data according to the access rules — none are missing or throw errors. (Unverifiable in Foundation by design — modules 3.2–3.9 are deferred; verified incrementally as each phase ships.)
 - **SC-008**: Search results across profiles and questions return within 2 seconds for up to 5,000 profiles and 10,000 questions.
+- **SC-009**: A notification for an approval or rejection decision appears in the recipient's inbox within one bell poll cycle (≤30 seconds) of the decision.
+- **SC-010**: A rate-limited submission returns an error that quantifies `retryAfter` in seconds.
 
 ## Assumptions
 
@@ -438,4 +443,6 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 - The Learning Academy (Module 3.7) and Extras supporting features (Module 3.9 items beyond the notice board and project showcase) are Phase 5 / lowest priority and will be built only after core modules are stable.
 - The "Top students per skill" feature mentioned in overview.md §3.1 is deferred — the directory uses simple search/filter in v1.
 - Batch numbers have a new value approximately every 4 months; the dropdown is dynamic based on an admin-configurable `CURRENT_BATCH` setting.
-- The Student Helpline directory of ~20 seniors is admin-curated — there is no self-nomination flow.
+- The Student Helpline directory of up to 20 seniors is admin-curated — there is no self-nomination flow.
+- The unclaimed-account claim flow (a legacy alumnus claiming an admin-created placeholder account) is explicitly deferred to the Extras phase — placeholder accounts stay locked in Foundation (CHK008/CHK030).
+- JWT session strategy: role changes take effect on the next token refresh, not instantly within an active session — accepted limitation (CHK032).
