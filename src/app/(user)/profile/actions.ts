@@ -10,8 +10,8 @@ import { checkRateLimit } from "@/lib/rate-limit"
 import { getCurrentBatch } from "@/lib/db/queries/site-config"
 import { SECTIONS } from "../../../../config/site"
 
-const PROFILE_EDIT_MAX = 1
-const PROFILE_EDIT_WINDOW_MS = 60 * 60 * 1000
+const PROFILE_UPSERT_MAX = 1
+const PROFILE_UPSERT_WINDOW_MS = 60 * 60 * 1000
 
 function formatRetry(retryAfterSeconds: number): string {
   const minutes = Math.ceil(retryAfterSeconds / 60)
@@ -55,6 +55,22 @@ export async function upsertProfile(
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
   const userId = session.user.id
+
+  // R-021 / HIGH-1: 1 profile upsert per hour per user — creation AND edits
+  // share one counter. Runs unconditionally before the create/edit branch,
+  // so a first-time profile creation consumes the same single attempt as an edit.
+  const limit = checkRateLimit(
+    `profile-upsert:${userId}`,
+    PROFILE_UPSERT_MAX,
+    PROFILE_UPSERT_WINDOW_MS
+  )
+  if (!limit.allowed) {
+    return {
+      success: false,
+      error: `You've reached the profile submission limit. Try again in ${formatRetry(limit.retryAfter)}.`,
+      retryAfter: limit.retryAfter,
+    }
+  }
 
   const fullName = input.fullName?.trim()
   if (!fullName) return fail("Full name is required.")
@@ -126,22 +142,6 @@ export async function upsertProfile(
     columns: { id: true, status: true },
   })
 
-  // T048: 1 profile edit per hour per user (creation is not rate-limited).
-  if (existing) {
-    const limit = checkRateLimit(
-      `profile-upsert:${userId}`,
-      PROFILE_EDIT_MAX,
-      PROFILE_EDIT_WINDOW_MS
-    )
-    if (!limit.allowed) {
-      return {
-        success: false,
-        error: `You've reached the profile edit limit. Try again in ${formatRetry(limit.retryAfter)}.`,
-        retryAfter: limit.retryAfter,
-      }
-    }
-  }
-
   // T046: only an APPROVED profile loses its approval on edit. Pending and
   // rejected profiles are already not approved (approval columns already
   // null), so their status/approval fields stay untouched. Every save
@@ -206,7 +206,7 @@ export type MyProfileSkill = {
 
 export type MyProfile = {
   id: string
-  userId: string
+  userId: string | null
   fullName: string
   studentId: string | null
   batchNumber: number

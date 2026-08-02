@@ -18,7 +18,7 @@ Build the CSE Students Portal as a single Next.js 15 App Router application with
 - next@15, react@19, react-dom@19 (framework)
 - tailwindcss@4, @tailwindcss/postcss (styling)
 - next-auth@5 (auth)
-- drizzle-orm@0.38 + @neondatabase/serverless (database)
+- drizzle-orm@^0.45 + @neondatabase/serverless (database)
 - drizzle-kit (migrations)
 - @radix-ui/*, lucide-react, class-variance-authority, clsx, tailwind-merge (shadcn/ui prerequisites)
 - uploadthing/react or @s3-lib/client (file uploads)
@@ -33,7 +33,7 @@ Build the CSE Students Portal as a single Next.js 15 App Router application with
 
 **Performance Goals**: Search results under 2s for up to 5,000 profiles and 10,000 questions. Approval action reflects publicly within 5s. Page loads under 3s (LCP).
 
-**Constraints**: PostgreSQL-only (no MongoDB — constitution principle). No hardcoded skill enums. Approval pattern identical across all submittable tables. Glassmorphism restricted to navbar, hero, modals, featured cards only — never on tables or forms.
+**Constraints**: PostgreSQL-only (no MongoDB — constitution principle). No hardcoded skill enums. Approval pattern identical across all submittable tables (documented exception: `career_guidance_requests` — peer-to-peer, see below). Glassmorphism restricted to navbar, hero, modals, featured cards only — never on tables or forms.
 
 **Scale/Scope**: Single CSE department (~1,000 students, ~50 faculty, ~20 clubs). Concurrent users: ~200 peak.
 

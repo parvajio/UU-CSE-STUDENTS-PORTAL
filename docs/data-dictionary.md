@@ -23,7 +23,7 @@ Shared pattern used across every user-submitted table: `status`, `approvedBy`, `
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | PK | |
-| userId | uuid | FK → users.id, unique | 1:1 with users |
+| userId | uuid | FK → users.id, unique, nullable | 1:1 with users; null for admin-entered legacy alumni (spec 3.3-B) |
 | fullName | text | required | |
 | studentId | text | unique when set, nullable | "SID" — required for current students (enforced at app/Zod level, not a DB constraint); left null for a legacy alum an admin adds who has no SID on file |
 | batchNumber | integer | required | e.g. `61`, `68` — new batch every ~4 months, so render as a dropdown generated dynamically up to the current max (an admin-configurable `CURRENT_BATCH` value), not a hardcoded option list |
