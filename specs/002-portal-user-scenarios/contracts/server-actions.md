@@ -24,10 +24,8 @@ async function upsertProfile(data: {
   jobPosition?: string;
 }): Promise<{ success: boolean; profileId: string; status: ApprovalStatus }>
 
-// Toggle alumni status (no re-approval needed if other fields unchanged)
-async function toggleAlumniStatus(): Promise<{ success: boolean; isAlumni: boolean }>
-
-// Get own profile (always returns full data for the owner)
+// Toggle alumni status: NOT a separate action. Alumni-flag changes flow through
+// upsertProfile (isAlumni field) and re-enter the regular admin-only approval workflow.
 async function getMyProfile(): Promise<ProfileFull | null>
 
 // Get directory profiles (role-aware — different shape per role)
