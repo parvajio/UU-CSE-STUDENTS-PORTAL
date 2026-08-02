@@ -37,6 +37,8 @@ Build the CSE Students Portal as a single Next.js 15 App Router application with
 
 **Scale/Scope**: Single CSE department (~1,000 students, ~50 faculty, ~20 clubs). Concurrent users: ~200 peak.
 
+**Rate limiting**: `src/lib/rate-limit.ts` uses an in-memory `Map` store — per-instance and ephemeral on Vercel serverless, so limits are approximate across concurrent instances and reset on cold starts. Accepted for the MVP at ~200 peak concurrent users. Revisit if concurrent users regularly exceed ~500, or if Vercel scaling introduces multiple concurrent instances under normal (non-spike) load — then move to an external store (e.g. Upstash/KV or a Neon-backed table).
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*

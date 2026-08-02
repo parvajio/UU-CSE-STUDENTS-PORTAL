@@ -83,7 +83,7 @@ Admin-managed directly — no `status`/submission flow (per your spec: faculty d
 
 ## Alumni (merged into `profiles`, no separate table)
 
-Superseded decision — kept here for history: an earlier version of this doc had `alumni` as its own table. Revised during spec-kit `/clarify`: most alumni were students on this portal already, so an alumnus is just a `profiles` row with `isAlumni = true`, `currentCompany`, and `jobPosition` set — not a duplicate entity. For a legacy alum with no prior account, an admin creates a `profiles` row (with a matching `unclaimed` `users` row) directly, leaving `studentId` null.
+Superseded decision — kept here for history: an earlier version of this doc had `alumni` as its own table. Revised during spec-kit `/clarify`: most alumni were students on this portal already, so an alumnus is just a `profiles` row with `isAlumni = true`, `currentCompany`, and `jobPosition` set — not a duplicate entity. The admin-entry path for legacy alumni follows the authoritative pattern in spec §3.3-B (`userId = null`, optionally paired with a matching `unclaimed` `users` row).
 
 ## career_guidance_requests
 | Field | Type | Constraints | Notes |

@@ -131,7 +131,7 @@ A student with an existing approved profile toggles the "I am an alumnus" settin
 
 #### Story 3.3-B — Admin enters an alumni record directly (Priority: P2)
 
-An admin wants to add an alumnus who may not have a portal account. They fill out the alumni fields on the profiles entity (fullName, batchNumber, currentCompany, jobPosition, linkedinUrl, facebookUrl). Since the admin is entering it, the record can be inserted directly with `status = approved` and `userId = null`, appearing in the alumni directory within the SC-004 window (≤5s).
+An admin wants to add an alumnus who may not have a portal account. They fill out the alumni fields on the profiles entity (fullName, batchNumber, currentCompany, jobPosition, linkedinUrl, facebookUrl). Since the admin is entering it, the record can be inserted directly with `status = approved` and `userId = null`, appearing in the alumni directory within the SC-004 window (≤5s). **Authoritative admin-entry pattern for legacy alumni**: the `profiles` row is created with `userId = null` (no linked account yet) and may be paired with a matching `unclaimed` `users` row (Key Entities) so the record can later be linked to the alumnus's account when they claim one. Other docs reference this story rather than re-describing the pattern.
 
 **Independent Test**: Log in as admin, enter an alumni record directly, and confirm it appears in the public alumni directory without any approval step.
 
@@ -399,7 +399,7 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 - **R-013**: The approval dashboard shows pending items across all resource types in a single unified queue, filterable by type.
 - **R-014**: Every approved resource records `approvedBy` (the reviewer's ID) and `approvedAt` (the approval timestamp).
 - **R-015**: Rejected submissions include an optional reason visible to the submitter.
-- **R-016**: Submitters are notified in-app when their resource is approved or rejected — a bell icon in the navbar shows an unread count badge; clicking it opens a dropdown of recent notifications; clicking a notification navigates to the relevant resource. Notifications older than 30 days auto-clear.
+- **R-016**: Submitters are notified in-app when their resource is approved or rejected — a bell icon in the navbar shows an unread count badge; clicking it opens a dropdown of recent notifications; clicking a notification navigates to the relevant resource. Notifications older than 30 days auto-clear. Admin-entered legacy-alum profiles (`userId = null`) have no linked account, so no notification is sent on their approval — intentional, not a bug.
 - **R-017**: Editing an approved resource resets it to `status = pending` for re-approval.
 - **R-018**: Each user can have at most one profile; duplicate profiles are prevented.
 - **R-019**: Batch numbers in profile forms are rendered as a dynamic dropdown, not a hardcoded list, generated based on an admin-configurable current batch value.
@@ -413,7 +413,7 @@ Every submittable resource type (profiles, questions, alumni self-submissions, p
 - **Skill**: A hierarchical category or subskill (name, slug, parentSkillId, colorKey) linked to profiles via profile_skills.
 - **Question**: A past exam upload — title, subject, course, batch, examType, fileUrl, tags (via question_tags) — with the same approval lifecycle as profiles.
 - **Faculty**: An admin-managed directory entry with fullName, designation, email, phone, researchInterests, officeRoom, photoUrl — no approval workflow.
-- **Alumnus**: A graduate record. For users who signed up as students, this is their profile with `isAlumni=true`. For legacy graduates with no account, an admin creates a `profiles` row (with a matching `unclaimed` `users` row) directly, leaving `studentId` null.
+- **Alumnus**: A graduate record. For users who signed up as students, this is their profile with `isAlumni=true`. For legacy graduates with no account, an admin enters them directly per the authoritative admin-entry pattern in §3.3-B (`profiles.userId = null`, optionally paired with a matching `unclaimed` `users` row); `studentId` stays null.
 - **Career Guidance Request**: A message from a student to an alumnus (studentProfileId, alumniProfileId, message) with status pending/accepted/declined. Documented exception to the universal approval pattern: guidance requests are peer-to-peer — the alumnus accepts/declines rather than an admin/moderator — so the `status/approvedBy/approvedAt` moderation columns do not apply. Modeled for Phase 3 (Alumni Network), not implemented in Foundation.
 - **Club**: A student organization with name, description, logoUrl, and members (club_members with roleInClub and position).
 - **Notice**: A time-sensitive announcement (title, body, createdBy) published by moderators/admins — always visible.
