@@ -73,15 +73,17 @@ const decisionHandlers: Partial<Record<ResourceType, DecisionHandler>> = {
       return { success: false, error: "This item was already processed." }
     }
 
-    await db.insert(notifications).values(
-      buildNotification(kind, {
-        userId: row.userId,
-        label: row.fullName,
-        reason: ctx.reason,
-        resourceType: "profile",
-        resourceId,
-      })
-    )
+    if (row.userId) {
+      await db.insert(notifications).values(
+        buildNotification(kind, {
+          userId: row.userId,
+          label: row.fullName,
+          reason: ctx.reason,
+          resourceType: "profile",
+          resourceId,
+        })
+      )
+    }
 
     return { success: true }
   },

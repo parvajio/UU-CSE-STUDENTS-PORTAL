@@ -26,10 +26,7 @@ const routePermissions: Record<string, Role[]> = {
   "/cgpa-calculator": ["user", "moderator", "admin"],
   "/blood-donor": ["user", "moderator", "admin"],
 
-  "/approve/questions": ["moderator", "admin"],
   "/approve": ["moderator", "admin"],
-
-  "/approve/profiles": ["admin"],
   "/manage/roles": ["admin"],
   "/manage/faculty": ["admin"],
   "/manage/clubs": ["admin"],

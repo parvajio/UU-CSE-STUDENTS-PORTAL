@@ -18,7 +18,7 @@
 ### Session 2026-07-27
 
 - Q: How does a current student's profile transition to an alumni record when they graduate? → A: Students self-mark their own profile as alumni by toggling an `isAlumni` flag. The profile then also serves as the alumni directory entry — no separate alumni record needed for existing users. Alumni-specific fields (currentCompany, jobPosition) appear on the profile form when the toggle is enabled.
-- Q: What rate limits should prevent spam and moderation queue flooding? → A: Tiered rate limits — users: 5 content submissions (questions, projects, etc.) per hour, 1 profile edit per hour. Moderators and admins are exempt.
+- Q: What rate limits should prevent spam and moderation queue flooding? → A: Tiered rate limits — users: 5 content submissions (questions, projects, etc.) per hour, 1 profile upsert per hour (creation and edits combined). Moderators and admins are exempt.
 - Q: How do users interact with in-app notifications? → A: Simple notification inbox — bell icon in navbar shows unread count badge, dropdown of recent notifications, clicking a notification navigates to the relevant resource. Notifications older than 30 days auto-clear.
 
 ## User Scenarios & Testing *(mandatory)*
