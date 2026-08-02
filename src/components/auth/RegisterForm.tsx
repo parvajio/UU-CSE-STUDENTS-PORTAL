@@ -4,6 +4,7 @@ import { useState, useTransition, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
+import { safeCallbackUrl } from "@/lib/auth/safe-callback-url"
 import { Loader2, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,6 +21,7 @@ import { registerUser } from "@/app/(auth)/register/actions"
 
 export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
   const router = useRouter()
+  const target = safeCallbackUrl(callbackUrl)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
@@ -56,7 +58,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
         return
       }
 
-      router.push(callbackUrl)
+      router.push(target)
       router.refresh()
     })
   }

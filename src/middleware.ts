@@ -59,7 +59,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const token = await getToken({ req: request, secret })
+  const token = await getToken({
+    req: request,
+    secret,
+    secureCookie: request.nextUrl.protocol === "https:",
+  })
   if (!token) {
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("callbackUrl", `${pathname}${search}`)
