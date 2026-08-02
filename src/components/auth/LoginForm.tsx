@@ -4,6 +4,7 @@ import { useState, useTransition, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
+import { safeCallbackUrl } from "@/lib/auth/safe-callback-url"
 import { Loader2, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -44,6 +45,7 @@ function GoogleIcon() {
 export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const target = safeCallbackUrl(callbackUrl)
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -62,7 +64,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         setError("Invalid email or password.")
         return
       }
-      router.push(callbackUrl)
+      router.push(target)
       router.refresh()
     })
   }
@@ -135,7 +137,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
           variant="outline"
           className="w-full"
           disabled={isPending}
-          onClick={() => signIn("google", { callbackUrl })}
+          onClick={() => signIn("google", { callbackUrl: target })}
         >
           <GoogleIcon />
           Sign in with Google
