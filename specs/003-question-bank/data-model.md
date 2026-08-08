@@ -23,7 +23,7 @@ Curated top-level categories for the question bank. Seeded from `uu-cse-courses-
 
 ## courses
 
-Curated courses, one per subject. Seeded with dedupe-by-`code` (keep one row under the course's real subject; `_CHECK`-flagged rows excluded).
+Curated courses, one per subject. Seeded with dedupe-by-`code` (keep one row under the course's real subject); the seed's former `_CHECK` rows were resolved 2026-08-09 (true duplicate `CSE0613307` dropped, the other 3 kept with stated credits) — 7 subjects / 70 courses.
 
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
