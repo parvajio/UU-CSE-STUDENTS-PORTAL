@@ -5,7 +5,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
-import { notifications, profiles } from "@/lib/db/schema"
+import { notifications, profiles, questions } from "@/lib/db/schema"
 import { canApprove, type ResourceType } from "@/lib/auth/permissions"
 
 type DecisionKind = "approved" | "rejected"
@@ -87,6 +87,43 @@ const decisionHandlers: Partial<Record<ResourceType, DecisionHandler>> = {
 
     return { success: true }
   },
+  question: async (kind, resourceId, ctx) => {
+    const row = await db.query.questions.findFirst({
+      where: eq(questions.id, resourceId),
+      columns: { title: true, uploadedBy: true },
+    })
+    if (!row) {
+      return { success: false, error: "Item not found." }
+    }
+
+    const updated = await db
+      .update(questions)
+      .set({
+        status: kind,
+        approvedBy: ctx.approvedBy,
+        approvedAt: ctx.approvedAt,
+      })
+      .where(and(eq(questions.id, resourceId), eq(questions.status, "pending")))
+      .returning({ id: questions.id })
+
+    if (updated.length === 0) {
+      return { success: false, error: "This item was already processed." }
+    }
+
+    if (row.uploadedBy) {
+      await db.insert(notifications).values(
+        buildNotification(kind, {
+          userId: row.uploadedBy,
+          label: row.title,
+          reason: ctx.reason,
+          resourceType: "question",
+          resourceId,
+        })
+      )
+    }
+
+    return { success: true }
+  },
 }
 
 async function decideItem(
@@ -117,6 +154,8 @@ async function decideItem(
   revalidatePath("/approve")
   revalidatePath("/directory")
   revalidatePath("/my-submissions")
+  revalidateTag("question-bank")
+  revalidatePath("/question-bank")
 
   return { success: true }
 }
