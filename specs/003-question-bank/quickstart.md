@@ -35,7 +35,7 @@ npm run dev   # http://localhost:3000
 ### Scenario A: Seed correctness (SC-004a/FR-005a)
 
 1. Open `psql` and `select count(*) from subjects` → 7 (no `diploma-exempted`).
-2. `select count(*) from courses` → 71 rows, `select count(*) from (select code from courses group by code having count(*)>1)` → 0.
+2. `select count(*) from courses` → 70 rows, `select count(*) from (select code from courses group by code having count(*)>1)` → 0.
 3. `select count(*) from courses where subject_id in (select id from subjects where slug='cse-core')` > 0; `select count(*) from courses where code in ('PHY0533101','ECO0311101')` = 1 each (dedup kept one code).
 
 ### Scenario 2: Upload → pending (FR-001..004, FR-013, US-1)

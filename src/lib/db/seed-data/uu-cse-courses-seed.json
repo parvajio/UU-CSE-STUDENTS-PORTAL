@@ -1,5 +1,5 @@
 {
-  "note": "Diploma-Exempted removed as a subject (2026-08-08): diploma is now a per-question program flag on questions, so the seed produces 7 subjects. Course codes are de-duplicated by code — one row per code, kept under the course's real subject. 4 rows still flagged _CHECK below — confirm against the actual syllabus book before seeding.",
+  "note": "Diploma-Exempted removed as a subject (2026-08-08): diploma is now a per-question program flag on questions, so the seed produces 7 subjects. Course codes are de-duplicated by code — one row per code, kept under the course's real subject. Resolved 2026-08-09: of the 4 former _CHECK rows, CSE0613307 was a true duplicate of CSE0613210 (same title/credits) and is dropped; the other 3 (CSE0613206, CSE0612303, CSE0612401) are kept as-is with their stated credit hours. Final count: 7 subjects / 70 courses.",
   "subjects": [
     { "slug": "language-culture", "name": "Language, History and Cultures" },
     { "slug": "general-education", "name": "General Education" },
@@ -51,7 +51,7 @@
     { "code": "CSE0613312", "title": "Artificial Intelligence Lab", "creditHours": 1, "subjectSlug": "cse-core" },
     { "code": "CSE0612301", "title": "Database Management System", "creditHours": 3, "subjectSlug": "cse-core" },
     { "code": "CSE0612302", "title": "Database Management System Lab", "creditHours": 1, "subjectSlug": "cse-core" },
-    { "code": "CSE0613206", "title": "Operating System Lab", "creditHours": 1, "subjectSlug": "cse-core", "_CHECK": "duplicate row in source — appeared twice, kept once" },
+    { "code": "CSE0613206", "title": "Operating System Lab", "creditHours": 1, "subjectSlug": "cse-core" },
     { "code": "CSE0613309", "title": "Software Engineering", "creditHours": 3, "subjectSlug": "cse-core" },
     { "code": "CSE0613310", "title": "Software Engineering Lab", "creditHours": 1, "subjectSlug": "cse-core" },
     { "code": "CSE0613303", "title": "Systems Analysis and Design", "creditHours": 3, "subjectSlug": "cse-core" },
@@ -62,11 +62,10 @@
     { "code": "CSE0611201", "title": "Computer Architecture", "creditHours": 3, "subjectSlug": "cse-core" },
     { "code": "CSE0613209", "title": "Microprocessor Assembly Programming", "creditHours": 3, "subjectSlug": "cse-core" },
     { "code": "CSE0613210", "title": "Microprocessor Assembly Programming Lab", "creditHours": 1, "subjectSlug": "cse-core" },
-    { "code": "CSE0613307", "title": "Microprocessor Assembly Programming Lab", "creditHours": 1, "subjectSlug": "cse-core", "_CHECK": "same title as CSE0613210 — confirm this is a real second entry, not a duplicate/typo" },
     { "code": "CSE0612305", "title": "Computer Networking", "creditHours": 3, "subjectSlug": "cse-core" },
     { "code": "CSE0612306", "title": "Computer Networking Lab", "creditHours": 1, "subjectSlug": "cse-core" },
-    { "code": "CSE0612303", "title": "Data Communication", "creditHours": 1, "subjectSlug": "cse-core", "_CHECK": "1 credit hour looks low for a non-lab course — confirm it isn't 3" },
-    { "code": "CSE0612401", "title": "Switching and Routing", "creditHours": 1, "subjectSlug": "cse-core", "_CHECK": "1 credit hour looks low for a non-lab course — confirm it isn't 3" },
+    { "code": "CSE0612303", "title": "Data Communication", "creditHours": 1, "subjectSlug": "cse-core" },
+    { "code": "CSE0612401", "title": "Switching and Routing", "creditHours": 1, "subjectSlug": "cse-core" },
 
     { "code": "CSE0613405", "title": "Machine Learning", "creditHours": 3, "subjectSlug": "cse-elective" },
     { "code": "CSE0611405", "title": "Bioinformatics", "creditHours": 3, "subjectSlug": "cse-elective" },
