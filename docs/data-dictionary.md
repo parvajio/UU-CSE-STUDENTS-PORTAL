@@ -146,12 +146,14 @@ Curated reference table for the question bank (added 2026-08-08). Seeded from th
 **Classification rule**: filters read `courseId` as the primary path (grouped by subject), with any `customCourse` entries surfaced as a secondary "Other" filter group.
 
 ## question_tags (join table, for flexible multi-tag filtering)
-| Field | Type |
-|---|---|
-| questionId | uuid, FK → questions.id |
-| tag | text |
+| Field | Type | Constraints |
+|---|---|---|
+| id | uuid | PK, default random |
+| questionId | uuid | FK → questions.id, required, indexed |
+| tag | text | required |
+| createdAt | timestamp | default now |
 
-Recommend a join table over a text array — lets you filter/search by tag with a normal indexed join instead of array containment queries.
+Composite unique `(questionId, tag)` prevents duplicate tags on the same question; btree index on `tag` supports tag filtering. Recommend a join table over a text array — lets you filter/search by tag with a normal indexed join instead of array containment queries.
 
 ---
 
