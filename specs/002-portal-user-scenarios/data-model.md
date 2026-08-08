@@ -135,13 +135,18 @@ Toggling `isAlumni` on an approved profile re-enters the regular approval workfl
 
 ## questions
 
+> **Updated 2026-08-08** (spec/003): superseded by the curated catalog — `subject`/`course`/`batch` free-text are gone. Course is a `courseId` FK; `customSubject`/`customCourse` fall back for courses not in the catalog; diploma is a per-question `program` flag, not a subject. `docs/data-dictionary.md` is the authoritative shape.
+
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | PK | |
 | title | text | required | |
-| subject | text | required | |
-| course | text | required | Course code |
-| batch | text | required | |
+| courseId | uuid | FK → courses.id, nullable | null when using custom course |
+| customSubject | text | nullable | Only if no matching catalog course |
+| customCourse | text | nullable | Course code/title when not in catalog |
+| batchNumber | integer | required | Validated against `site_config.currentBatch` |
+| program | enum | `regular` \| `diploma` | Default `regular` |
+| evening | boolean | default false | Evening/MSc runs |
 | examType | enum | `previous_year` \| `midterm` \| `final` \| `lab` \| `viva` | |
 | fileUrl | text | required | PDF or image via upload service |
 | uploadedBy | uuid | FK → users.id | |

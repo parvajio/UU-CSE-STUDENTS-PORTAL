@@ -105,20 +105,45 @@ Rate limit for career-guidance requests: **TBD, decided during Phase 3's own `/s
 
 ---
 
+## subjects
+Curated reference table for the question bank (added 2026-08-08 via the Digital Question Bank `/specify` amendment). Seeded from `src/lib/db/seed-data/uu-cse-courses-seed.json`'s `subjects` array, **excluding `diploma-exempted`** (clarified 2026-08-08: diploma is a per-question `program` flag on `questions`, not a subject — so the seed produces 7 subjects).
+
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| slug | text | unique, required | e.g. `cse-core` |
+| name | text | required | e.g. "CSE Core" |
+
+## courses
+Curated reference table for the question bank (added 2026-08-08). Seeded from the same JSON's `courses` array; the JSON's `_CHECK`-flagged rows and cross-subject duplicate codes are de-duplicated by `code` at seed time (**keep one code, remove the duplicate** — surviving row stays under the course's real subject; `diploma-exempted` entries are excluded since diploma is a program flag, not a subject) so the unique rule holds.
+
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| code | text | unique, required | e.g. `CSE0612301` |
+| title | text | required | e.g. "Database Management System" |
+| creditHours | numeric | required | e.g. 3 |
+| subjectId | uuid | FK → subjects.id | a course belongs to exactly one subject |
+
 ## questions
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | PK | |
 | title | text | required | |
-| subject | text | required | |
-| course | text | required | e.g. course code |
-| batch | text | required | |
+| courseId | uuid | FK → courses.id, nullable | **primary classification path** — points at the curated course |
+| customSubject | text | nullable | free-text fallback when the course isn't curated yet; used together with `customCourse` |
+| customCourse | text | nullable | free-text "other" course name; mutually exclusive with `courseId` (a question uses exactly one of courseId OR customSubject/customCourse, never both) |
+| batchNumber | integer | required | dynamic dropdown up to `CURRENT_BATCH` — same pattern as `profiles.batchNumber` (was a free-text `batch` before the 2026-08-08 amendment) |
+| program | enum | `regular` \| `diploma`, default `regular` | per-question flag replacing the removed `diploma-exempted` subject — indicates the paper's program |
+| evening | boolean | default `false` | per-question flag for evening-batch papers |
 | examType | enum | `previous_year` \| `midterm` \| `final` \| `lab` \| `viva` | |
 | fileUrl | text | required | PDF or image, via R2/UploadThing |
 | uploadedBy | uuid | FK → users.id | |
 | status | enum | `pending` \| `approved` \| `rejected` | |
 | approvedBy / approvedAt | | nullable | |
 | createdAt | timestamp | | |
+
+**Classification rule**: filters read `courseId` as the primary path (grouped by subject), with any `customCourse` entries surfaced as a secondary "Other" filter group.
 
 ## question_tags (join table, for flexible multi-tag filtering)
 | Field | Type |
@@ -219,3 +244,4 @@ Added late in Foundation (T056, admin-configurable `CURRENT_BATCH`) — a generi
 6. **Alumni approval stays inside the universal pattern, admin-only** — no separate moderator-approvable "alumni" resource type, no no-approval-needed toggle. An `isAlumni` change is just a profile edit, subject to the same admin-only approval as everything else on `profiles`.
 7. **`career_guidance_requests` is a deliberate, documented exception** to the universal status/approvedBy/approvedAt pattern (peer accept/decline, not admin moderation) — justified in `plan.md`, not treated as a gap to close.
 8. **Notifications and rate-limiting conventions** are documented above as their own sections, added after the original doc was written — see those sections for the shared-wrapper pattern and the accepted in-memory-store limitation.
+9. **Question bank course/subject classification is a curated catalog** (2026-08-08): `subjects` + `courses` reference tables seeded from `uu-cse-courses-seed.json`; `questions.courseId` is the primary path with `customSubject`/`customCourse` as a free-text "other" fallback (a question uses exactly one of the two, never both). `questions.batch` became `batchNumber` (integer) reusing the `profiles` dynamic-dropdown pattern. Seed dedupe rule: **keep one code, remove the duplicate** (surviving row under the course's real subject). **Diploma is a per-question `program` flag** (`regular`|`diploma`, default `regular`) plus an `evening` boolean — **not** a subject; `diploma-exempted` is excluded from the seed (7 subjects). Deferred decision I4 (course classification) is resolved by this amendment. See `specs/003-question-bank/spec.md` Clarifications 2026-08-08.
