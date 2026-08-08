@@ -40,8 +40,8 @@
 
 **⚠️ CRITICAL**: No user story UI can render until these exist.
 
-- [ ] T010 Create `src/types/question-bank.ts` — `SubjectOption` (id, slug, name), `CourseOption` (id, code, title, creditHours, subjectId), `QuestionCard` (id, title, batchNumber, program, evening, examType, courseTitle?, courseCode?, subjectName?, customCourse?, tags[], and `fileUrl` only for non-guest variant), `QuestionDetail`, `MyQuestionRow`, `ExamType`, `QuestionProgram`, `QuestionFilterParams`
-- [ ] T011 Create `src/lib/db/queries/catalog.ts` — `getSubjectsWithCourses(): Promise<Array<SubjectOption & { courses: CourseOption[] }>>` (subjects with their courses, ordered by name) for the upload form cascade and the Story 3 course filter; export `getCatalog()` used by `/upload-question` and `/question-bank` pages
+- [X] T010 Create `src/types/question-bank.ts` — `SubjectOption` (id, slug, name), `CourseOption` (id, code, title, creditHours, subjectId), `QuestionCard` (id, title, batchNumber, program, evening, examType, courseTitle?, courseCode?, subjectName?, customCourse?, tags[], and `fileUrl` only for non-guest variant), `QuestionDetail`, `MyQuestionRow`, `ExamType`, `QuestionProgram`, `QuestionFilterParams`
+- [X] T011 Create `src/lib/db/queries/catalog.ts` — `getSubjectsWithCourses(): Promise<Array<SubjectOption & { courses: CourseOption[] }>>` (subjects with their courses, ordered by name) for the upload form cascade and the Story 3 course filter; export `getCatalog()` used by `/upload-question` and `/question-bank` pages
 
 **Checkpoint**: Shared types + catalog query ready; user stories can be built in parallel.
 
