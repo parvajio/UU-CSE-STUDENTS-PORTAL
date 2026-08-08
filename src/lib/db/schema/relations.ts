@@ -5,6 +5,10 @@ import { skills } from "./skills"
 import { profileSkills } from "./profile-skills"
 import { notifications } from "./notifications"
 import { siteConfig } from "./site-config"
+import { subjects } from "./subjects"
+import { courses } from "./courses"
+import { questions } from "./questions"
+import { questionTags } from "./question-tags"
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
@@ -13,6 +17,12 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   notifications: many(notifications),
   siteConfigs: many(siteConfig),
+  uploadedQuestions: many(questions, {
+    relationName: "uploadedQuestions",
+  }),
+  approvedQuestions: many(questions, {
+    relationName: "approvedQuestions",
+  }),
 }))
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -61,5 +71,41 @@ export const siteConfigRelations = relations(siteConfig, ({ one }) => ({
   updater: one(users, {
     fields: [siteConfig.updatedBy],
     references: [users.id],
+  }),
+}))
+
+export const subjectsRelations = relations(subjects, ({ many }) => ({
+  courses: many(courses),
+}))
+
+export const coursesRelations = relations(courses, ({ one }) => ({
+  subject: one(subjects, {
+    fields: [courses.subjectId],
+    references: [subjects.id],
+  }),
+}))
+
+export const questionsRelations = relations(questions, ({ one, many }) => ({
+  course: one(courses, {
+    fields: [questions.courseId],
+    references: [courses.id],
+  }),
+  uploader: one(users, {
+    fields: [questions.uploadedBy],
+    references: [users.id],
+    relationName: "uploadedQuestions",
+  }),
+  approver: one(users, {
+    fields: [questions.approvedBy],
+    references: [users.id],
+    relationName: "approvedQuestions",
+  }),
+  questionTags: many(questionTags),
+}))
+
+export const questionTagsRelations = relations(questionTags, ({ one }) => ({
+  question: one(questions, {
+    fields: [questionTags.questionId],
+    references: [questions.id],
   }),
 }))
