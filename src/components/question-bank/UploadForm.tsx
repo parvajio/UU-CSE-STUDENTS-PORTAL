@@ -27,11 +27,8 @@ import {
 import { cn } from "@/lib/utils"
 import type { OurFileRouter } from "@/lib/uploadthing"
 import type { CatalogEntry, ExamType } from "@/types/question-bank"
-import {
-  createQuestion,
-  EXAM_TYPES,
-  type CreateQuestionInput,
-} from "@/app/(user)/upload-question/actions"
+import { EXAM_TYPES, type CreateQuestionInput } from "@/lib/question-bank/validation"
+import { createQuestion } from "@/app/(user)/upload-question/actions"
 
 const OTHER_COURSE = "__other__"
 
