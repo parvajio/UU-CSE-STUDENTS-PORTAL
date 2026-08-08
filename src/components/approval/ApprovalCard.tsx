@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Check, Loader2, X } from "lucide-react"
+import Link from "next/link"
+import { Check, FileText, Loader2, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { approveItem, rejectItem } from "@/app/(admin)/approve/actions"
 import { capitalize, formatDate } from "@/lib/utils"
 import { SkillTag } from "@/components/directory/SkillTag"
-import type { PendingItem } from "@/lib/db/queries/approval"
+import type { PendingItem, QuestionDetails } from "@/lib/db/queries/approval"
 
 type ProfileSkill = {
   id: string
@@ -66,6 +67,73 @@ function SocialLink({ label, value }: { label: string; value: string }) {
   )
 }
 
+const EXAM_TYPE_LABELS: Record<string, string> = {
+  previous_year: "Previous Year",
+  midterm: "Midterm",
+  final: "Final",
+  lab: "Lab",
+  viva: "Viva",
+}
+
+function QuestionReview({
+  details,
+  resourceId,
+}: {
+  details: QuestionDetails
+  resourceId: string
+}) {
+  const classification = details.courseTitle
+    ? details.subjectName
+      ? `${details.subjectName} · ${details.courseCode} ${details.courseTitle}`
+      : `${details.courseCode} ${details.courseTitle}`
+    : `Custom · ${details.customSubject ?? "—"} / ${details.customCourse ?? "—"}`
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <h4 className="truncate font-heading text-lg font-semibold text-foreground">
+          {details.title}
+        </h4>
+        <p className="text-sm text-muted-foreground">{classification}</p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="outline">Batch {details.batchNumber}</Badge>
+        <Badge variant="outline">
+          {EXAM_TYPE_LABELS[details.examType] ?? details.examType}
+        </Badge>
+        {details.program === "diploma" ? (
+          <Badge variant="outline">Diploma</Badge>
+        ) : null}
+        {details.evening ? <Badge variant="outline">Evening</Badge> : null}
+      </div>
+
+      {details.tags.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {details.tags.map((tag) => (
+            <span key={tag} className="soft-tag soft-tag--default">
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <div>
+        <Button asChild variant="outline" size="sm">
+          <Link
+            href={`/api/questions/${resourceId}/download`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <FileText className="size-4" strokeWidth={1.5} />
+            Review file
+          </Link>
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export function ApprovalCard({ item }: { item: PendingItem }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -75,6 +143,8 @@ export function ApprovalCard({ item }: { item: PendingItem }) {
   const [isPending, startTransition] = useTransition()
 
   const details = item.details as ProfileDetails
+  const questionDetails = item.details as QuestionDetails
+  const isQuestion = item.resourceType === "question"
 
   const socials: Array<{ label: string; value: string }> = [
     ...(details.linkedinUrl ? [{ label: "LinkedIn", value: details.linkedinUrl }] : []),
@@ -134,67 +204,89 @@ export function ApprovalCard({ item }: { item: PendingItem }) {
 
           <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Review {item.submitterName}&apos;s profile</DialogTitle>
+              <DialogTitle>
+                {isQuestion ? (
+                  <>Review question &ldquo;{item.title}&rdquo;</>
+                ) : (
+                  <>Review {item.submitterName}&apos;s profile</>
+                )}
+              </DialogTitle>
               <DialogDescription>
-                Submitted {formatDate(item.submittedAt)}. Approving makes it visible
-                in the directory immediately.
+                Submitted {formatDate(item.submittedAt)}.{" "}
+                {isQuestion
+                  ? "Approving makes it visible in the question bank immediately."
+                  : "Approving makes it visible in the directory immediately."}
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex flex-col gap-5">
-              <div className="flex items-start gap-4">
-                <Avatar className="size-14">
-                  {details.avatarUrl ? (
-                    <AvatarImage src={details.avatarUrl} alt={details.fullName ?? ""} />
-                  ) : null}
-                  <AvatarFallback className="text-base">
-                    {initials(item.submitterName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <h4 className="truncate font-heading text-lg font-semibold text-foreground">
-                    {details.fullName ?? item.submitterName}
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Batch {details.batchNumber ?? "—"}
-                    {details.section ? ` · Section ${details.section}` : ""}
-                  </p>
-                  {details.studentId ? (
-                    <p className="text-sm text-muted-foreground">
-                      Student ID: {details.studentId}
+            {isQuestion ? (
+              <QuestionReview
+                details={questionDetails}
+                resourceId={item.resourceId}
+              />
+            ) : (
+              <>
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="size-14">
+                      {details.avatarUrl ? (
+                        <AvatarImage
+                          src={details.avatarUrl}
+                          alt={details.fullName ?? ""}
+                        />
+                      ) : null}
+                      <AvatarFallback className="text-base">
+                        {initials(item.submitterName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="truncate font-heading text-lg font-semibold text-foreground">
+                        {details.fullName ?? item.submitterName}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        Batch {details.batchNumber ?? "—"}
+                        {details.section ? ` · Section ${details.section}` : ""}
+                      </p>
+                      {details.studentId ? (
+                        <p className="text-sm text-muted-foreground">
+                          Student ID: {details.studentId}
+                        </p>
+                      ) : null}
+                      {details.isAlumni ? (
+                        <p className="text-sm text-muted-foreground">
+                          {details.currentCompany ?? "Alumnus"}
+                          {details.jobPosition
+                            ? ` · ${details.jobPosition}`
+                            : ""}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {details.bio ? (
+                    <p className="whitespace-pre-line text-sm text-foreground">
+                      {details.bio}
                     </p>
                   ) : null}
-                  {details.isAlumni ? (
-                    <p className="text-sm text-muted-foreground">
-                      {details.currentCompany ?? "Alumnus"}
-                      {details.jobPosition ? ` · ${details.jobPosition}` : ""}
-                    </p>
+
+                  {details.skills && details.skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {details.skills.map((skill) => (
+                        <SkillTag key={skill.id} skill={skill} />
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {socials.length > 0 ? (
+                    <div className="flex flex-col gap-1.5">
+                      {socials.map((social) => (
+                        <SocialLink key={social.label} {...social} />
+                      ))}
+                    </div>
                   ) : null}
                 </div>
-              </div>
-
-              {details.bio ? (
-                <p className="whitespace-pre-line text-sm text-foreground">
-                  {details.bio}
-                </p>
-              ) : null}
-
-              {details.skills && details.skills.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {details.skills.map((skill) => (
-                    <SkillTag key={skill.id} skill={skill} />
-                  ))}
-                </div>
-              ) : null}
-
-              {socials.length > 0 ? (
-                <div className="flex flex-col gap-1.5">
-                  {socials.map((social) => (
-                    <SocialLink key={social.label} {...social} />
-                  ))}
-                </div>
-              ) : null}
-            </div>
+              </>
+            )}
 
             {rejecting ? (
               <div className="grid gap-2">

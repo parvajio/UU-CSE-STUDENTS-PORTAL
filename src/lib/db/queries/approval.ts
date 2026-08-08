@@ -1,10 +1,25 @@
 import { count, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { profiles } from "@/lib/db/schema"
+import { profiles, questions } from "@/lib/db/schema"
 import { canApprove, type ResourceType } from "@/lib/auth/permissions"
 import type { Role } from "@/lib/auth/types"
 
 export const APPROVAL_PAGE_SIZE = 20
+
+export type QuestionDetails = {
+  title: string
+  courseTitle: string | null
+  courseCode: string | null
+  subjectName: string | null
+  customSubject: string | null
+  customCourse: string | null
+  batchNumber: number
+  program: "regular" | "diploma"
+  evening: boolean
+  examType: "previous_year" | "midterm" | "final" | "lab" | "viva"
+  fileUrl: string
+  tags: string[]
+}
 
 export type PendingItem = {
   id: string
@@ -75,6 +90,70 @@ const approvalQueries: Partial<Record<ResourceType, ApprovalQuery>> = {
         .select({ value: count() })
         .from(profiles)
         .where(eq(profiles.status, "pending"))
+      return rows[0]?.value ?? 0
+    },
+  },
+  question: {
+    async fetchPending(page, pageSize) {
+      const offset = (Math.max(page, 1) - 1) * pageSize
+      const [rows, countRows] = await Promise.all([
+        db.query.questions.findMany({
+          where: eq(questions.status, "pending"),
+          with: {
+            questionTags: { columns: { tag: true } },
+            course: {
+              columns: { code: true, title: true },
+              with: { subject: { columns: { name: true } } },
+            },
+            uploader: {
+              with: { profile: { columns: { fullName: true } } },
+            },
+          },
+          orderBy: (table, { desc }) => [desc(table.createdAt)],
+          offset,
+          limit: pageSize,
+        }),
+        db
+          .select({ value: count() })
+          .from(questions)
+          .where(eq(questions.status, "pending")),
+      ])
+      const total = countRows[0]?.value ?? 0
+      return {
+        items: rows.map((row) => {
+          const { questionTags: joinRows, course, uploader } = row
+          return {
+            id: row.id,
+            resourceType: "question" as const,
+            resourceId: row.id,
+            title: row.title,
+            submitterName: uploader?.profile?.fullName ?? "Unknown",
+            submittedAt: row.createdAt,
+            status: "pending" as const,
+            details: {
+              title: row.title,
+              courseTitle: course?.title ?? null,
+              courseCode: course?.code ?? null,
+              subjectName: course?.subject.name ?? null,
+              customSubject: row.customSubject,
+              customCourse: row.customCourse,
+              batchNumber: row.batchNumber,
+              program: row.program,
+              evening: row.evening,
+              examType: row.examType,
+              fileUrl: row.fileUrl,
+              tags: joinRows.map((j) => j.tag),
+            },
+          }
+        }),
+        total,
+      }
+    },
+    async countPending() {
+      const rows = await db
+        .select({ value: count() })
+        .from(questions)
+        .where(eq(questions.status, "pending"))
       return rows[0]?.value ?? 0
     },
   },
