@@ -28,7 +28,7 @@ export function QuestionCard({
         variant === "list" && "w-full"
       )}
     >
-      <Card className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+      <Card className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--card-shadow-hover)] motion-reduce:translate-y-0 motion-reduce:transition-none">
         <CardContent
           className={cn(
             "p-5",

@@ -15,6 +15,13 @@
   --color-primary-hover: #4A4DDB;
   --color-secondary: #8B5CF6;
 
+  /* Spark — rare accent only (featured badges / achievements / the one standout CTA) */
+  --color-spark: #F97066;
+
+  /* Card shadows — colored (primary tint), never gray */
+  --card-shadow: 0 2px 12px rgba(91, 95, 239, 0.06), 0 1px 2px rgba(91, 95, 239, 0.04);
+  --card-shadow-hover: 0 8px 24px rgba(91, 95, 239, 0.12), 0 2px 6px rgba(91, 95, 239, 0.08);
+
   /* Text */
   --color-foreground: #1A1B2E;
   --color-muted-foreground: #6B6E85;
@@ -62,6 +69,13 @@
   --color-primary-hover: #A5A5FF;
   --color-secondary: #A78BFA;
 
+  /* Spark — lightened for dark-bg contrast */
+  --color-spark: #FB8A80;
+
+  /* Card shadows — colored (secondary tint, lighter base so it reads on dark surfaces) */
+  --card-shadow: 0 2px 12px rgba(167, 139, 250, 0.10), 0 1px 2px rgba(167, 139, 250, 0.06);
+  --card-shadow-hover: 0 8px 24px rgba(167, 139, 250, 0.20), 0 2px 6px rgba(167, 139, 250, 0.12);
+
   /* Text */
   --color-foreground: #F2F2F7;
   --color-muted-foreground: #9A9CB5;
@@ -106,6 +120,7 @@
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
   --color-secondary: var(--color-secondary);
+  --color-spark: var(--color-spark);
 
   --color-foreground: var(--color-foreground);
   --color-muted-foreground: var(--color-muted-foreground);
