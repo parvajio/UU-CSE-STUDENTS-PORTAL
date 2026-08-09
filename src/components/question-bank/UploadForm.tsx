@@ -4,8 +4,7 @@ import { useState, useTransition, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { generateUploadDropzone } from "@uploadthing/react"
-import "@uploadthing/react/styles.css"
-import { Loader2, X } from "lucide-react"
+import { Loader2, UploadCloud, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -259,6 +258,24 @@ export function UploadForm({
             <Label>Upload file</Label>
             <UploadDropzone
               endpoint="questionFile"
+              className="rounded-xl border-dashed border-border bg-muted/40 transition-colors hover:bg-muted/60"
+              appearance={{
+                container: ({ isDragActive }) =>
+                  isDragActive ? "border-primary bg-primary/5" : "",
+                uploadIcon: "mx-auto block h-12 w-12 text-muted-foreground",
+                label:
+                  "mt-4 w-fit cursor-pointer text-sm font-semibold leading-6 text-foreground hover:text-primary",
+                allowedContent: "m-0 text-xs leading-5 text-muted-foreground",
+                button:
+                  "focus-visible:ring-primary bg-primary text-primary-foreground hover:bg-primary/90 data-[state=ready]:bg-primary data-[state=ready]:text-primary-foreground data-[state=readying]:opacity-70",
+              }}
+              content={{
+                uploadIcon: <UploadCloud className="h-12 w-12" strokeWidth={1.5} />,
+                label: "Choose a file or drag and drop",
+                button: ({ isUploading, uploadProgress }) =>
+                  isUploading ? `${Math.round(uploadProgress)}%` : "Choose a file",
+                allowedContent: "PDF or image, up to 10 MB",
+              }}
               onUploadBegin={() => {
                 setIsUploading(true)
                 setUploadError(null)
