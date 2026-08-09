@@ -17,7 +17,7 @@ export function ProfileCard({ profile }: { profile: ProfileCardData }) {
   const isAuthed = "avatarUrl" in profile
 
   return (
-    <Card className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
+    <Card className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--card-shadow-hover)] motion-reduce:translate-y-0 motion-reduce:transition-none">
       <CardContent className="flex items-start gap-4 p-5">
         {isAuthed && profile.avatarUrl ? (
           <Avatar className="mt-0.5">

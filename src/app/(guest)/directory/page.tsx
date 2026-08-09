@@ -52,7 +52,7 @@ export default async function DirectoryPage({
           description="Try a different name or skill, or clear your search."
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => (
             <ProfileCard key={profile.id} profile={profile} />
           ))}

@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
-const links = [
+export const NAV_LINKS = [
   { href: "/directory", label: "Directory" },
   { href: "/faculty", label: "Faculty" },
   { href: "/question-bank", label: "Question Bank" },
@@ -17,7 +17,7 @@ export function NavLinks() {
 
   return (
     <nav className="hidden items-center gap-1 md:flex">
-      {links.map((link) => {
+      {NAV_LINKS.map((link) => {
         const active = pathname === link.href || pathname.startsWith(`${link.href}/`)
         return (
           <Link

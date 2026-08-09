@@ -159,7 +159,7 @@ export function QuestionSearch({
       aria-label="Filter question papers"
       className="rounded-xl border border-border bg-muted/40 p-4"
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div className="grid gap-1.5">
           <Label htmlFor="q-search">Search</Label>
           <Input
