@@ -8,6 +8,14 @@ export const EXAM_TYPES = [
   "viva",
 ] as const
 
+export const EXAM_TYPE_LABELS: Record<(typeof EXAM_TYPES)[number], string> = {
+  previous_year: "Previous year",
+  midterm: "Midterm",
+  final: "Final",
+  lab: "Lab",
+  viva: "Viva/Seminar",
+}
+
 export const PROGRAMS = ["regular", "diploma"] as const
 
 export const MAX_TAGS = 10

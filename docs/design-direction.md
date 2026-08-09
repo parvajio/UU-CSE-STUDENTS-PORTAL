@@ -38,6 +38,15 @@ Clean and minimal first, decorative second. The glass/neumorphic touches are sea
 ### Gradient (for hero sections / glass backdrops)
 `linear-gradient(135deg, #5B5FEF 0%, #8B5CF6 100%)` — used sparingly as a backdrop behind glass panels, never as a full-page background.
 
+### Spark accent (new — for personality, used very sparingly)
+A warm color deliberately outside the blue/violet family, so it actually reads as a pop instead of just another shade of the same hue. Two colors from the same family (blue + violet) don't create contrast, they create sameness — this is likely part of why the palette read as flat.
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `spark` | `#F97066` (coral) | `#FB8A80` | Featured/highlighted badges, achievement or streak indicators, the ONE most-important CTA on a screen if it needs to stand out from routine primary buttons |
+
+Rule: **one `spark` use per screen, maximum.** This isn't a new primary color — it's a deliberately rare accent. If it shows up more than once per screen, it stops popping and starts looking arbitrary.
+
 ### Status colors (for the approval-workflow tags — same soft-tag treatment everywhere)
 | Status | Text/Border | Background (low opacity) |
 |---|---|---|
@@ -101,7 +110,32 @@ box-shadow: 0 1px 2px rgba(0,0,0,0.04),
 
 ## 6. Cards, Buttons, Inputs
 
-- **Cards:** `surface` background, `border` 1px, `border-radius: 16px`, shadow only on hover (`0 4px 16px rgba(0,0,0,0.06)`) — flat at rest, slightly lifts on hover for interactivity cues without constant visual noise.
+- **Cards — revised, this is the fix for "too plain/generic":** the earlier spec made cards flat at rest with shadow only on hover — that produced exactly the generic default-shadcn look being reported. Cards now carry a signature at rest, not just on interaction:
+```css
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 16px;
+position: relative;
+overflow: hidden;
+/* colored shadow, not gray — this alone reads as "designed" rather than default */
+box-shadow: 0 2px 12px rgba(91, 95, 239, 0.06), 0 1px 2px rgba(91, 95, 239, 0.04);
+```
+Plus a thin gradient accent bar along the top edge (the card's one signature element — don't also add glass or a heavy border on top of this, one distinguishing treatment per card):
+```css
+/* ::before pseudo-element */
+content: "";
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 3px;
+background: linear-gradient(90deg, var(--primary), var(--secondary));
+```
+Hover: shadow deepens and colors stay tinted, not just darker gray:
+```css
+box-shadow: 0 8px 24px rgba(91, 95, 239, 0.12), 0 2px 6px rgba(91, 95, 239, 0.08);
+transform: translateY(-2px);
+```
+Dark mode: same structure, shadow color shifts to use `secondary`'s hex at the same low opacities (a colored shadow needs a lighter base color to read against a dark surface — pure `primary`'s dark-mode value works fine here too, test both).
+
 - **Buttons:** solid `primary` fill for main actions, radius `12px`, no harsh drop shadow — a soft `0 2px 8px rgba(91,95,239,0.25)` glow under primary buttons only.
 - **Inputs:** `surface` background, `border` 1px, focus ring `primary` at 40% opacity — no glass/neumorphism on form inputs, they need to read as clearly interactive and legible above all else.
 
