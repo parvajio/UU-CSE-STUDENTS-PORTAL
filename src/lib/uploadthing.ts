@@ -12,8 +12,8 @@ const TEN_MB = "10MB" as FileSize
 
 export const ourFileRouter = {
   questionFile: f({
+    image: { maxFileSize: TEN_MB, maxFileCount: 5 },
     pdf: { maxFileSize: TEN_MB, maxFileCount: 1 },
-    image: { maxFileSize: TEN_MB, maxFileCount: 1 },
   })
     .middleware(async () => {
       const session = await auth()

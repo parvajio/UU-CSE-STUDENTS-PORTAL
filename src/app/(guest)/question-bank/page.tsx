@@ -73,7 +73,7 @@ export default async function QuestionBankPage({
   ])
 
   const params = parseQuestionFilters(raw)
-  const result = await searchQuestions(params, viewerRole)
+  const result = await searchQuestions(params, viewerRole, session?.user?.id)
   const page = params.page ?? 1
   const totalPages = Math.max(
     1,
