@@ -1,11 +1,11 @@
 "use server"
 
 import { eq } from "drizzle-orm"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
-import { courses, questionTags, questions } from "@/lib/db/schema"
+import { courses, questionFiles, questionTags, questions } from "@/lib/db/schema"
 import { enforceSubmissionLimit } from "@/lib/rate-limit"
 import { getCurrentBatch } from "@/lib/db/queries/site-config"
 import { createQuestionInputSchema } from "@/lib/question-bank/validation"
@@ -48,14 +48,13 @@ export async function createQuestion(
     }
   }
 
-  if (data.courseId) {
-    const course = await db.query.courses.findFirst({
-      where: eq(courses.id, data.courseId),
-      columns: { id: true },
-    })
-    if (!course) {
-      return { success: false, error: "The selected course no longer exists." }
-    }
+  // Q-001: combobox-only classification — courseId is required and must exist.
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.id, data.courseId),
+    columns: { id: true },
+  })
+  if (!course) {
+    return { success: false, error: "The selected course no longer exists." }
   }
 
   const isStaff = session.user.role === "moderator" || session.user.role === "admin"
@@ -86,17 +85,24 @@ export async function createQuestion(
     db.insert(questions).values({
       id: questionId,
       title: data.title,
-      courseId: data.courseId ?? null,
-      customSubject: data.customSubject || null,
-      customCourse: data.customCourse || null,
+      courseId: data.courseId,
       batchNumber: data.batchNumber,
-      program: data.program,
-      evening: data.evening,
+      programType: data.programType,
+      season: data.season,
+      year: data.year,
+      teacherName: data.teacherName ?? null,
       examType: data.examType,
-      fileUrl: data.fileUrl,
       uploadedBy: userId,
       status: "pending",
     }),
+    db.insert(questionFiles).values(
+      data.files.map((file) => ({
+        questionId,
+        fileUrl: file.fileUrl,
+        fileType: file.fileType,
+        order: file.order,
+      }))
+    ),
     ...(tags.length > 0
       ? [db.insert(questionTags).values(tags.map((tag) => ({ questionId, tag })))]
       : []),
@@ -106,6 +112,8 @@ export async function createQuestion(
 
   revalidatePath("/my-submissions")
   revalidatePath("/upload-question")
+  revalidatePath("/question-bank")
+  revalidateTag("question-bank")
 
   return { success: true, questionId, status: "pending" }
 }
