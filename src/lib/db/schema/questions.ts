@@ -1,11 +1,18 @@
 import { sql } from "drizzle-orm"
-import { customType, pgTable, pgEnum, uuid, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core"
+import { customType, pgTable, pgEnum, uuid, text, integer, timestamp, index } from "drizzle-orm/pg-core"
 import { courses } from "./courses"
 import { users } from "./users"
 
-export const questionProgramEnum = pgEnum("question_program", [
+export const questionProgramTypeEnum = pgEnum("question_program_type", [
   "regular",
   "diploma",
+  "evening",
+])
+
+export const questionSeasonEnum = pgEnum("question_season", [
+  "summer",
+  "fall",
+  "spring",
 ])
 
 export const questionExamTypeEnum = pgEnum("question_exam_type", [
@@ -38,15 +45,18 @@ export const questions = pgTable(
     titleTsv: tsvector("title_tsv")
       .generatedAlwaysAs(sql`to_tsvector('english', "title")`)
       .notNull(),
+    // Required + restrict (004 revision): classification is combobox-only, exactly one courseId.
     courseId: uuid("course_id")
+      .notNull()
       .references(() => courses.id, { onDelete: "restrict" }),
-    customSubject: text("custom_subject"),
-    customCourse: text("custom_course"),
     batchNumber: integer("batch_number").notNull(),
-    program: questionProgramEnum("program").notNull().default("regular"),
-    evening: boolean("evening").notNull().default(false),
+    programType: questionProgramTypeEnum("program_type").notNull().default("regular"),
+    season: questionSeasonEnum("season"),
+    year: integer("year"),
+    teacherName: text("teacher_name"),
     examType: questionExamTypeEnum("exam_type").notNull(),
-    fileUrl: text("file_url").notNull(),
+    viewCount: integer("view_count").notNull().default(0),
+    downloadCount: integer("download_count").notNull().default(0),
     // Nullable + SET NULL (resolved 2026-08-08): question row survives user deletion,
     // uploaded_by becomes NULL. Deviation from data-model.md's "required" uploadedBy.
     uploadedBy: uuid("uploaded_by")
@@ -67,8 +77,6 @@ export const questions = pgTable(
       .on(table.courseId),
     examTypeIdx: index("idx_questions_exam_type")
       .on(table.examType),
-    programEveningIdx: index("idx_questions_program_evening")
-      .on(table.program, table.evening),
     uploadedByIdx: index("idx_questions_uploaded_by")
       .on(table.uploadedBy),
   }),
