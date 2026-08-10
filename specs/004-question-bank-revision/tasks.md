@@ -77,8 +77,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Rework the `question` entry in `approvalQueries` (`src/lib/db/queries/approval.ts`) — `fetchPending` details: courseCode/courseTitle (flat join), batchNumber, programType, season, year, teacherName, examType, tags, and `files` (fileUrl + fileType + order from `questionFiles`); `countPending` unchanged
-- [ ] T023 [US2] Extend `src/components/approval/ApprovalCard.tsx` — question branch renders the new fields (programType soft tag, season/year, teacher) + a "Review files" list (per-file link to `/api/questions/[id]/download?file=<order>` — authed reviewer dashboard); profile branch untouched; `decisionHandlers` in `src/app/(admin)/approve/actions.ts` need no change (fields are cosmetic)
+- [X] T022 [US2] Rework the `question` entry in `approvalQueries` (`src/lib/db/queries/approval.ts`) — `fetchPending` details: courseCode/courseTitle (flat join), batchNumber, programType, season, year, teacherName, examType, tags, and `files` (fileUrl + fileType + order from `questionFiles`); `countPending` unchanged
+- [X] T023 [US2] Extend `src/components/approval/ApprovalCard.tsx` — question branch renders the new fields (programType soft tag, season/year, teacher) + a "Review files" list (per-file link to `/api/questions/[id]/download?file=<order>` — authed reviewer dashboard); profile branch untouched; `decisionHandlers` in `src/app/(admin)/approve/actions.ts` need no change (fields are cosmetic)
 
 **Checkpoint**: US1 + US2 work independently — approvals carry the full revised metadata/files and notifications still fire.
 
