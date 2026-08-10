@@ -4,7 +4,6 @@ import { db } from "./index"
 import { users } from "./schema/users"
 import { skills } from "./schema/skills"
 import { siteConfig } from "./schema/site-config"
-import { subjects } from "./schema/subjects"
 import { courses } from "./schema/courses"
 import uuCseCoursesSeed from "./seed-data/uu-cse-courses-seed.json"
 import { CURRENT_BATCH } from "../../../config/site"
@@ -80,23 +79,9 @@ async function seedCurrentBatch() {
 }
 
 async function seedQuestionBank() {
-  let subjectInserted = 0
+  // 004 revision: `subjects` is removed — the flat `courses` catalog is seeded
+  // directly (idempotent by `code`, dedupe rule unchanged).
   let courseInserted = 0
-
-  for (const subject of uuCseCoursesSeed.subjects) {
-    const existing = await db.query.subjects.findFirst({
-      where: eq(subjects.slug, subject.slug),
-    })
-    if (existing) {
-      console.log(`[seed] Subject already exists, skipping: ${subject.slug}`)
-      continue
-    }
-    await db.insert(subjects).values({
-      slug: subject.slug,
-      name: subject.name,
-    })
-    subjectInserted++
-  }
 
   for (const course of uuCseCoursesSeed.courses) {
     const existing = await db.query.courses.findFirst({
@@ -106,34 +91,27 @@ async function seedQuestionBank() {
       console.log(`[seed] Course already exists, skipping: ${course.code}`)
       continue
     }
-    const subject = await db.query.subjects.findFirst({
-      where: eq(subjects.slug, course.subjectSlug),
-    })
-    if (!subject) {
-      throw new Error(`[seed] Subject not found for course: ${course.code} → ${course.subjectSlug}`)
-    }
     await db.insert(courses).values({
       code: course.code,
       title: course.title,
       creditHours: course.creditHours.toString(),
-      subjectId: subject.id,
     })
     courseInserted++
   }
 
   console.log(
-    `[seed] subjects: ${subjectInserted}, courses: ${courseInserted}`
+    `[seed] subjects: removed, courses: ${courseInserted}`
   )
-  return { subjectInserted, courseInserted }
+  return { courseInserted }
 }
 
 async function seed() {
   const adminCount = await seedAdmin()
   const skillCount = await seedSkills()
   const batchCount = await seedCurrentBatch()
-  const { subjectInserted, courseInserted } = await seedQuestionBank()
+  const { courseInserted } = await seedQuestionBank()
   console.log(
-    `[seed] Done. admin inserted: ${adminCount}, skills inserted: ${skillCount}, currentBatch inserted: ${batchCount}, subjects inserted: ${subjectInserted}, courses inserted: ${courseInserted}`
+    `[seed] Done. admin inserted: ${adminCount}, skills inserted: ${skillCount}, currentBatch inserted: ${batchCount}, subjects: removed, courses inserted: ${courseInserted}`
   )
 }
 
