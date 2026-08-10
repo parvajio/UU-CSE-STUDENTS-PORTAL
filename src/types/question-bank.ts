@@ -1,47 +1,71 @@
 export type ExamType = "previous_year" | "midterm" | "final" | "lab" | "viva"
 
-export type QuestionProgram = "regular" | "diploma"
+export type ProgramType = "regular" | "diploma" | "evening"
+
+export type Season = "summer" | "fall" | "spring"
+
+export type QuestionFileType = "image" | "pdf"
 
 export type QuestionStatus = "pending" | "approved" | "rejected"
-
-export type SubjectOption = {
-  id: string
-  slug: string
-  name: string
-}
 
 export type CourseOption = {
   id: string
   code: string
   title: string
   creditHours: string
-  subjectId: string
 }
 
-export type CatalogEntry = SubjectOption & { courses: CourseOption[] }
+export type QuestionFile = {
+  fileUrl: string
+  fileType: QuestionFileType
+  order: number
+}
+
+export type QuestionFileDraft = QuestionFile
+
+export type TopCourseChip = {
+  courseId: string
+  code: string
+  title: string
+  count: number
+}
+
+export type TopBatchChip = {
+  batchNumber: number
+  count: number
+}
+
+export type TopChips = {
+  topCourses: TopCourseChip[]
+  topBatches: TopBatchChip[]
+}
 
 export type QuestionCardBase = {
   id: string
   title: string
   batchNumber: number
-  program: QuestionProgram
-  evening: boolean
+  programType: ProgramType
+  season: Season | null
+  year: number | null
+  teacherName: string | null
   examType: ExamType
-  subjectName: string | null
-  courseTitle: string | null
-  courseCode: string | null
-  customCourse: string | null
+  courseCode: string
+  courseTitle: string
   tags: string[]
+  likeCount: number
+  viewCount: number
+  downloadCount: number
 }
 
 export type GuestQuestionCard = QuestionCardBase
 
 export type QuestionCard = QuestionCardBase & {
-  fileUrl: string
+  isLikedByViewer: boolean
+  files: QuestionFileDraft[]
 }
 
 export type QuestionDetailBase = QuestionCardBase & {
-  customSubject: string | null
+  creditHours: string
   submitterName: string | null
   createdAt: string
   updatedAt: string
@@ -50,7 +74,8 @@ export type QuestionDetailBase = QuestionCardBase & {
 export type GuestQuestionDetail = QuestionDetailBase
 
 export type QuestionDetail = QuestionDetailBase & {
-  fileUrl: string
+  isLikedByViewer: boolean
+  files: QuestionFileDraft[]
 }
 
 export type MyQuestionRow = QuestionCard & {
@@ -61,12 +86,12 @@ export type MyQuestionRow = QuestionCard & {
 
 export type QuestionFilterParams = {
   query?: string
-  subjectId?: string
   courseId?: string
   batchNumber?: number
   examType?: ExamType
-  program?: QuestionProgram
-  evening?: boolean
+  programType?: ProgramType
+  season?: Season
+  year?: number
   tags?: string[]
   page?: number
   pageSize?: number

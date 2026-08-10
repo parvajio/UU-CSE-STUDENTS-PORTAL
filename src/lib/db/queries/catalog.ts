@@ -1,35 +1,22 @@
 import { asc } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { subjects } from "@/lib/db/schema"
-import type { CatalogEntry } from "@/types/question-bank"
+import { courses } from "@/lib/db/schema"
+import type { CourseOption } from "@/types/question-bank"
 
-export async function getSubjectsWithCourses(): Promise<CatalogEntry[]> {
-  const rows = await db.query.subjects.findMany({
+export async function getCourses(): Promise<CourseOption[]> {
+  const rows = await db.query.courses.findMany({
     columns: {
       id: true,
-      slug: true,
-      name: true,
+      code: true,
+      title: true,
+      creditHours: true,
     },
-    with: {
-      courses: {
-        columns: {
-          id: true,
-          code: true,
-          title: true,
-          creditHours: true,
-          subjectId: true,
-        },
-      },
-    },
-    orderBy: [asc(subjects.name)],
+    orderBy: [asc(courses.title)],
   })
 
-  return rows.map(({ courses, ...subject }) => ({
-    ...subject,
-    courses: [...courses].sort((a, b) => a.title.localeCompare(b.title)),
-  }))
+  return rows
 }
 
-export function getCatalog(): Promise<CatalogEntry[]> {
-  return getSubjectsWithCourses()
+export function getCatalog(): Promise<CourseOption[]> {
+  return getCourses()
 }

@@ -10,29 +10,28 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 import {
   ALL_FILTER,
-  EVENING_FALSE,
-  EVENING_TRUE,
-  OTHER_COURSE,
+  PROGRAM_TYPE_LABELS,
   QUESTION_BANK_PAGE_SIZE,
+  SEASON_LABELS,
 } from "@/lib/question-bank/constants"
 import { EXAM_TYPE_LABELS, EXAM_TYPES } from "@/lib/question-bank/validation"
-import type { CatalogEntry } from "@/types/question-bank"
+import type { CourseOption } from "@/types/question-bank"
+import { CourseCombobox } from "@/components/question-bank/CourseCombobox"
 
 const BATCH = "batch"
 const COURSE = "course"
-const EVENING = "evening"
 const EXAM = "exam"
 const PAGE = "page"
-const PROGRAM = "program"
+const PROGRAM_TYPE = "programType"
 const QUERY = "q"
-const SUBJECT = "subject"
+const SEASON = "season"
 const TAGS = "tags"
+const YEAR = "year"
 
 function toValue(entries: URLSearchParams, key: string): string {
   return entries.get(key) ?? ""
@@ -44,7 +43,7 @@ export function QuestionSearch({
   total,
   pageSize = QUESTION_BANK_PAGE_SIZE,
 }: {
-  catalog: CatalogEntry[]
+  catalog: CourseOption[]
   currentBatch: number
   total: number
   pageSize?: number
@@ -53,37 +52,21 @@ export function QuestionSearch({
   const pathname = usePathname()
   const router = useRouter()
 
-  const subjectId = toValue(searchParams, SUBJECT)
   const courseChoice = toValue(searchParams, COURSE)
   const batchChoice = toValue(searchParams, BATCH)
   const examChoice = toValue(searchParams, EXAM)
-  const programChoice = toValue(searchParams, PROGRAM)
-  const eveningChoice = toValue(searchParams, EVENING)
+  const programTypeChoice = toValue(searchParams, PROGRAM_TYPE)
+  const seasonChoice = toValue(searchParams, SEASON)
+  const yearChoice = toValue(searchParams, YEAR)
   const tags = (toValue(searchParams, TAGS) || "").split(",").filter(Boolean)
   const pageRaw = Number(searchParams.get(PAGE))
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
-  const activeSubject =
-    subjectId && subjectId !== ALL_FILTER
-      ? catalog.find((subject) => subject.id === subjectId)
-      : undefined
-
-  // When a course is set without a subject (e.g. cleared subject), keep its
-  // parent subject's course list in the dropdown so the selection stays valid.
-  const courseParent =
-    catalog.find((subject) =>
-      subject.courses.some((course) => course.id === courseChoice)
-    ) ?? activeSubject
-
   const batchOptions = Array.from({ length: currentBatch }, (_, i) => i + 1)
 
-  const [searchText, setSearchText] = useState(
-    toValue(searchParams, QUERY)
-  )
-  const [previousQuery, setPreviousQuery] = useState(
-    toValue(searchParams, QUERY)
-  )
+  const [searchText, setSearchText] = useState(toValue(searchParams, QUERY))
+  const [previousQuery, setPreviousQuery] = useState(toValue(searchParams, QUERY))
   const [tagInput, setTagInput] = useState("")
 
   // External URL changes (Clear all, browser back, pagination) reset the
@@ -152,7 +135,6 @@ export function QuestionSearch({
   }
 
   const hasFilters = searchParams.toString() !== ""
-  const isOtherCourse = courseChoice === OTHER_COURSE
 
   return (
     <section
@@ -172,63 +154,14 @@ export function QuestionSearch({
           />
         </div>
 
-        <div className="grid gap-1.5">
-          <Label htmlFor="subject-filter">Subject</Label>
-          <Select
-            value={subjectId || ALL_FILTER}
-            onValueChange={(value) =>
-              updateParams({ [SUBJECT]: value === ALL_FILTER ? null : value, [COURSE]: null })
-            }
-          >
-            <SelectTrigger id="subject-filter" aria-label="Subject">
-              <SelectValue placeholder="All subjects" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_FILTER}>All subjects</SelectItem>
-              {catalog.map((subject) => (
-                <SelectItem key={subject.id} value={subject.id}>
-                  {subject.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid gap-1.5 sm:col-span-2 lg:col-span-1">
-          <Label htmlFor="course-filter">Course</Label>
-          <Select
-            value={courseChoice || ALL_FILTER}
-            onValueChange={(value) => {
-              if (value === OTHER_COURSE) {
-                // "Other" is a global bucket — a custom course has no subject.
-                updateParams({ [COURSE]: value, [SUBJECT]: null })
-              } else if (value === ALL_FILTER) {
-                updateParams({ [COURSE]: null })
-              } else {
-                const parent = catalog.find((subject) =>
-                  subject.courses.some((course) => course.id === value)
-                )
-                updateParams({
-                  [COURSE]: value,
-                  [SUBJECT]: parent?.id ?? null,
-                })
-              }
-            }}
-          >
-            <SelectTrigger id="course-filter" aria-label="Course">
-              <SelectValue placeholder="All courses" />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              <SelectItem value={ALL_FILTER}>All courses</SelectItem>
-              {(courseParent ?? activeSubject)?.courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title} ({course.code})
-                </SelectItem>
-              ))}
-              <SelectSeparator />
-              <SelectItem value={OTHER_COURSE}>Other papers</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="grid gap-1.5 lg:col-span-2">
+          <Label htmlFor="course-filter">Subject/course</Label>
+          <CourseCombobox
+            id="course-filter"
+            courses={catalog}
+            value={courseChoice || undefined}
+            onValueChange={(value) => updateParams({ [COURSE]: value })}
+          />
         </div>
 
         <div className="grid gap-1.5">
@@ -236,9 +169,7 @@ export function QuestionSearch({
           <Select
             value={batchChoice || ALL_FILTER}
             onValueChange={(value) =>
-              updateParams({
-                [BATCH]: value === ALL_FILTER ? null : value,
-              })
+              updateParams({ [BATCH]: value === ALL_FILTER ? null : value })
             }
           >
             <SelectTrigger id="batch-filter" aria-label="Batch">
@@ -280,9 +211,9 @@ export function QuestionSearch({
         <div className="grid gap-1.5">
           <Label htmlFor="program-filter">Program</Label>
           <Select
-            value={programChoice || ALL_FILTER}
+            value={programTypeChoice || ALL_FILTER}
             onValueChange={(value) =>
-              updateParams({ [PROGRAM]: value === ALL_FILTER ? null : value })
+              updateParams({ [PROGRAM_TYPE]: value === ALL_FILTER ? null : value })
             }
           >
             <SelectTrigger id="program-filter" aria-label="Program">
@@ -290,29 +221,49 @@ export function QuestionSearch({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL_FILTER}>All programs</SelectItem>
-              <SelectItem value="regular">Regular</SelectItem>
-              <SelectItem value="diploma">Diploma</SelectItem>
+              {Object.entries(PROGRAM_TYPE_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="grid gap-1.5">
-          <Label htmlFor="evening-filter">Shift</Label>
+          <Label htmlFor="season-filter">Season</Label>
           <Select
-            value={eveningChoice || ALL_FILTER}
+            value={seasonChoice || ALL_FILTER}
             onValueChange={(value) =>
-              updateParams({ [EVENING]: value === ALL_FILTER ? null : value })
+              updateParams({ [SEASON]: value === ALL_FILTER ? null : value })
             }
           >
-            <SelectTrigger id="evening-filter" aria-label="Shift">
-              <SelectValue placeholder="All shifts" />
+            <SelectTrigger id="season-filter" aria-label="Season">
+              <SelectValue placeholder="All seasons" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_FILTER}>All shifts</SelectItem>
-              <SelectItem value={EVENING_FALSE}>Regular shift</SelectItem>
-              <SelectItem value={EVENING_TRUE}>Evening shift</SelectItem>
+              <SelectItem value={ALL_FILTER}>All seasons</SelectItem>
+              {Object.entries(SEASON_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="grid gap-1.5">
+          <Label htmlFor="year-filter">Year</Label>
+          <Input
+            id="year-filter"
+            type="number"
+            min={2000}
+            max={2100}
+            value={yearChoice}
+            onChange={(e) => updateParams({ [YEAR]: e.target.value })}
+            placeholder="e.g. 2024"
+            aria-label="Year"
+          />
         </div>
 
         <div className="grid gap-1.5 sm:col-span-2 lg:col-span-1">
@@ -350,9 +301,7 @@ export function QuestionSearch({
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground" aria-live="polite">
-          {total.toLocaleString()}{" "}
-          {total === 1 ? "paper" : "papers"}
-          {courseChoice === OTHER_COURSE ? " under Other" : ""}
+          {total.toLocaleString()} {total === 1 ? "paper" : "papers"}
         </p>
         {hasFilters ? (
           <Button
