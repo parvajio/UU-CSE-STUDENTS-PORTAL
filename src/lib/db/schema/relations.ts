@@ -5,9 +5,10 @@ import { skills } from "./skills"
 import { profileSkills } from "./profile-skills"
 import { notifications } from "./notifications"
 import { siteConfig } from "./site-config"
-import { subjects } from "./subjects"
 import { courses } from "./courses"
 import { questions } from "./questions"
+import { questionFiles } from "./question-files"
+import { questionLikes } from "./question-likes"
 import { questionTags } from "./question-tags"
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -23,6 +24,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   approvedQuestions: many(questions, {
     relationName: "approvedQuestions",
   }),
+  questionLikes: many(questionLikes),
 }))
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -74,17 +76,6 @@ export const siteConfigRelations = relations(siteConfig, ({ one }) => ({
   }),
 }))
 
-export const subjectsRelations = relations(subjects, ({ many }) => ({
-  courses: many(courses),
-}))
-
-export const coursesRelations = relations(courses, ({ one }) => ({
-  subject: one(subjects, {
-    fields: [courses.subjectId],
-    references: [subjects.id],
-  }),
-}))
-
 export const questionsRelations = relations(questions, ({ one, many }) => ({
   course: one(courses, {
     fields: [questions.courseId],
@@ -100,7 +91,27 @@ export const questionsRelations = relations(questions, ({ one, many }) => ({
     references: [users.id],
     relationName: "approvedQuestions",
   }),
+  questionFiles: many(questionFiles),
+  questionLikes: many(questionLikes),
   questionTags: many(questionTags),
+}))
+
+export const questionFilesRelations = relations(questionFiles, ({ one }) => ({
+  question: one(questions, {
+    fields: [questionFiles.questionId],
+    references: [questions.id],
+  }),
+}))
+
+export const questionLikesRelations = relations(questionLikes, ({ one }) => ({
+  question: one(questions, {
+    fields: [questionLikes.questionId],
+    references: [questions.id],
+  }),
+  user: one(users, {
+    fields: [questionLikes.userId],
+    references: [users.id],
+  }),
 }))
 
 export const questionTagsRelations = relations(questionTags, ({ one }) => ({
