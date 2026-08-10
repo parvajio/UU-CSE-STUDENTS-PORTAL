@@ -1,8 +1,14 @@
-import { count, eq } from "drizzle-orm"
+import { asc, count, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { profiles, questions } from "@/lib/db/schema"
 import { canApprove, type ResourceType } from "@/lib/auth/permissions"
 import type { Role } from "@/lib/auth/types"
+import type {
+  ExamType,
+  ProgramType,
+  QuestionFile,
+  Season,
+} from "@/types/question-bank"
 
 export const APPROVAL_PAGE_SIZE = 20
 
@@ -10,14 +16,13 @@ export type QuestionDetails = {
   title: string
   courseTitle: string | null
   courseCode: string | null
-  subjectName: string | null
-  customSubject: string | null
-  customCourse: string | null
   batchNumber: number
-  program: "regular" | "diploma"
-  evening: boolean
-  examType: "previous_year" | "midterm" | "final" | "lab" | "viva"
-  fileUrl: string
+  programType: ProgramType
+  season: Season | null
+  year: number | null
+  teacherName: string | null
+  examType: ExamType
+  files: QuestionFile[]
   tags: string[]
 }
 
@@ -99,11 +104,23 @@ const approvalQueries: Partial<Record<ResourceType, ApprovalQuery>> = {
       const [rows, countRows] = await Promise.all([
         db.query.questions.findMany({
           where: eq(questions.status, "pending"),
+          columns: {
+            id: true,
+            title: true,
+            batchNumber: true,
+            programType: true,
+            season: true,
+            year: true,
+            teacherName: true,
+            examType: true,
+            createdAt: true,
+          },
           with: {
             questionTags: { columns: { tag: true } },
-            course: {
-              columns: { code: true, title: true },
-              with: { subject: { columns: { name: true } } },
+            course: { columns: { code: true, title: true } },
+            questionFiles: {
+              columns: { fileUrl: true, fileType: true, order: true },
+              orderBy: (table, { asc }) => [asc(table.order)],
             },
             uploader: {
               with: { profile: { columns: { fullName: true } } },
@@ -121,7 +138,12 @@ const approvalQueries: Partial<Record<ResourceType, ApprovalQuery>> = {
       const total = countRows[0]?.value ?? 0
       return {
         items: rows.map((row) => {
-          const { questionTags: joinRows, course, uploader } = row
+          const {
+            questionTags: joinRows,
+            course,
+            uploader,
+            questionFiles: fileRows,
+          } = row
           return {
             id: row.id,
             resourceType: "question" as const,
@@ -134,14 +156,17 @@ const approvalQueries: Partial<Record<ResourceType, ApprovalQuery>> = {
               title: row.title,
               courseTitle: course?.title ?? null,
               courseCode: course?.code ?? null,
-              subjectName: course?.subject.name ?? null,
-              customSubject: row.customSubject,
-              customCourse: row.customCourse,
               batchNumber: row.batchNumber,
-              program: row.program,
-              evening: row.evening,
+              programType: row.programType,
+              season: row.season,
+              year: row.year,
+              teacherName: row.teacherName,
               examType: row.examType,
-              fileUrl: row.fileUrl,
+              files: fileRows.map((file) => ({
+                fileUrl: file.fileUrl,
+                fileType: file.fileType,
+                order: file.order,
+              })),
               tags: joinRows.map((j) => j.tag),
             },
           }

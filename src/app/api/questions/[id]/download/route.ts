@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { questions } from "@/lib/db/schema"
+import { questionFiles, questions } from "@/lib/db/schema"
 import { auth } from "@/lib/auth/auth"
 import { safeCallbackUrl } from "@/lib/auth/safe-callback-url"
 
@@ -24,7 +24,7 @@ export async function GET(
 
   const { id } = await params
   const row = await db.query.questions.findFirst({
-    columns: { id: true, status: true, uploadedBy: true, fileUrl: true },
+    columns: { id: true, status: true, uploadedBy: true },
     where: eq(questions.id, id),
   })
 
@@ -35,7 +35,24 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  return NextResponse.redirect(row.fileUrl, {
+  const fileParam = request.nextUrl.searchParams.get("file")
+  const parsedOrder = fileParam ? Number.parseInt(fileParam, 10) : 0
+  const order =
+    Number.isInteger(parsedOrder) && parsedOrder >= 0 ? parsedOrder : 0
+
+  const file = await db.query.questionFiles.findFirst({
+    columns: { fileUrl: true },
+    where: and(
+      eq(questionFiles.questionId, id),
+      eq(questionFiles.order, order)
+    ),
+  })
+
+  if (!file) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  return NextResponse.redirect(file.fileUrl, {
     headers: { "Cache-Control": "no-store" },
   })
 }

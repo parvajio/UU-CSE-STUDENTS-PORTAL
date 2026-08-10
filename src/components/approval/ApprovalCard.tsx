@@ -21,6 +21,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { approveItem, rejectItem } from "@/app/(admin)/approve/actions"
 import { capitalize, formatDate } from "@/lib/utils"
 import { SkillTag } from "@/components/directory/SkillTag"
+import {
+  FILE_TYPE_LABELS,
+  PROGRAM_TYPE_LABELS,
+  SEASON_LABELS,
+} from "@/lib/question-bank/constants"
 import type { PendingItem, QuestionDetails } from "@/lib/db/queries/approval"
 
 type ProfileSkill = {
@@ -82,11 +87,16 @@ function QuestionReview({
   details: QuestionDetails
   resourceId: string
 }) {
-  const classification = details.courseTitle
-    ? details.subjectName
-      ? `${details.subjectName} · ${details.courseCode} ${details.courseTitle}`
-      : `${details.courseCode} ${details.courseTitle}`
-    : `Custom · ${details.customSubject ?? "—"} / ${details.customCourse ?? "—"}`
+  const classification =
+    details.courseCode || details.courseTitle
+      ? `${details.courseCode ?? "—"} ${details.courseTitle ?? ""}`.trim()
+      : "—"
+
+  const seasonYear = details.season
+    ? `${SEASON_LABELS[details.season]}${
+        details.year ? ` ${details.year}` : ""
+      }`
+    : null
 
   return (
     <div className="flex flex-col gap-4">
@@ -102,10 +112,15 @@ function QuestionReview({
         <Badge variant="outline">
           {EXAM_TYPE_LABELS[details.examType] ?? details.examType}
         </Badge>
-        {details.program === "diploma" ? (
-          <Badge variant="outline">Diploma</Badge>
+        <span className="soft-tag soft-tag--default px-2 py-0.5 text-xs">
+          {PROGRAM_TYPE_LABELS[details.programType]}
+        </span>
+        {seasonYear ? <Badge variant="outline">{seasonYear}</Badge> : null}
+        {details.teacherName ? (
+          <span className="text-sm text-muted-foreground">
+            · {details.teacherName}
+          </span>
         ) : null}
-        {details.evening ? <Badge variant="outline">Evening</Badge> : null}
       </div>
 
       {details.tags.length > 0 ? (
@@ -119,16 +134,36 @@ function QuestionReview({
       ) : null}
 
       <div>
-        <Button asChild variant="outline" size="sm">
-          <Link
-            href={`/api/questions/${resourceId}/download`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <FileText className="size-4" strokeWidth={1.5} />
-            Review file
-          </Link>
-        </Button>
+        <p className="mb-2 text-sm font-medium text-foreground">
+          Review files
+        </p>
+        {details.files.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {details.files.map((file) => (
+              <li key={`${file.order}-${file.fileUrl}`}>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="h-auto w-full justify-start"
+                >
+                  <Link
+                    href={`/api/questions/${resourceId}/download?file=${file.order}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <FileText className="size-4 shrink-0" strokeWidth={1.5} />
+                    {FILE_TYPE_LABELS[file.fileType]} · #{file.order + 1}
+                  </Link>
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No files attached to this question.
+          </p>
+        )}
       </div>
     </div>
   )
