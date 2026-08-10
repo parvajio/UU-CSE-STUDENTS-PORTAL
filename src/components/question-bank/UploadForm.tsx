@@ -4,7 +4,14 @@ import { useState, useTransition, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { generateUploadDropzone } from "@uploadthing/react"
-import { Loader2, UploadCloud, X } from "lucide-react"
+import {
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Loader2,
+  UploadCloud,
+  X,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -25,57 +32,148 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import type { OurFileRouter } from "@/lib/uploadthing"
-import type { CatalogEntry, ExamType } from "@/types/question-bank"
-import { EXAM_TYPES, type CreateQuestionInput } from "@/lib/question-bank/validation"
+import type {
+  CourseOption,
+  ExamType,
+  ProgramType,
+  QuestionFileDraft,
+  Season,
+} from "@/types/question-bank"
+import {
+  EXAM_TYPES,
+  EXAM_TYPE_LABELS,
+  SEASONS,
+  type CreateQuestionInput,
+} from "@/lib/question-bank/validation"
+import { PROGRAM_TYPE_LABELS, SEASON_LABELS } from "@/lib/question-bank/constants"
+import { CourseCombobox } from "@/components/question-bank/CourseCombobox"
+import { BatchCombobox } from "@/components/question-bank/BatchCombobox"
 import { createQuestion } from "@/app/(user)/upload-question/actions"
 
-const OTHER_COURSE = "__other__"
-
-const EXAM_TYPE_LABELS: Record<ExamType, string> = {
-  previous_year: "Previous year",
-  midterm: "Midterm",
-  final: "Final",
-  lab: "Lab",
-  viva: "Viva/Seminar",
-}
+const CURRENT_YEAR = new Date().getFullYear()
+const YEAR_MIN = 2000
 
 const UploadDropzone = generateUploadDropzone<OurFileRouter>()
+
+type ClassifiedType = "image" | "pdf" | null
+
+function classifyFile(file: File): ClassifiedType {
+  const name = file.name.toLowerCase()
+  if (file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif)$/.test(name)) {
+    return "image"
+  }
+  if (file.type === "application/pdf" || /\.pdf$/.test(name)) {
+    return "pdf"
+  }
+  return null
+}
+
+function validateFileSet(types: ClassifiedType[]): string | null {
+  const images = types.filter((type) => type === "image").length
+  const pdfs = types.filter((type) => type === "pdf").length
+
+  if (images > 0 && pdfs > 0) {
+    return "Attach images or a PDF — not both."
+  }
+  if (pdfs > 1) {
+    return "A PDF paper is a single file — attach exactly one PDF."
+  }
+  if (types.some((type) => type === null)) {
+    return "Accepted file types: PDF, PNG, JPEG and WebP images (up to 10 MB each)."
+  }
+  if (images > 5) {
+    return "You can attach a maximum of 5 images."
+  }
+  return null
+}
 
 export function UploadForm({
   catalog,
   currentBatch,
 }: {
-  catalog: CatalogEntry[]
+  catalog: CourseOption[]
   currentBatch: number
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [formError, setFormError] = useState<string | null>(null)
 
-  const [subjectId, setSubjectId] = useState(catalog[0]?.id ?? "")
-  const [courseChoice, setCourseChoice] = useState("")
-  const isOther = courseChoice === OTHER_COURSE
-  const [customSubject, setCustomSubject] = useState("")
-  const [customCourse, setCustomCourse] = useState("")
-  const [title, setTitle] = useState("")
-  const [batchNumber, setBatchNumber] = useState(currentBatch)
-  const [program, setProgram] = useState<"regular" | "diploma">("regular")
-  const [evening, setEvening] = useState(false)
+  const [courseId, setCourseId] = useState<string | undefined>(undefined)
+  const [batchNumber, setBatchNumber] = useState<number>(currentBatch)
+  const [programType, setProgramType] = useState<ProgramType>("regular")
+  const [season, setSeason] = useState<Season | "">("")
+  const [year, setYear] = useState("")
+  const [teacherName, setTeacherName] = useState("")
   const [examType, setExamType] = useState<ExamType | "">("")
+  const [title, setTitle] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
 
-  const [fileUrl, setFileUrl] = useState("")
+  const [files, setFiles] = useState<QuestionFileDraft[]>([])
+  const [filesVersion, setFilesVersion] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
 
-  const activeSubject = catalog.find((subject) => subject.id === subjectId)
-  const batchOptions = Array.from({ length: currentBatch }, (_, i) => i + 1)
+  function normalize(list: QuestionFileDraft[]): QuestionFileDraft[] {
+    return list.map((file, index) => ({ ...file, order: index }))
+  }
 
-  function selectSubject(nextSubjectId: string) {
-    setSubjectId(nextSubjectId)
-    setCourseChoice("")
+  function removeFile(index: number) {
+    setFiles((prev) => normalize(prev.filter((_, i) => i !== index)))
+    setFilesVersion((version) => version + 1)
+    setFileError(null)
+  }
+
+  function moveFile(index: number, direction: -1 | 1) {
+    setFiles((prev) => {
+      const target = index + direction
+      if (target < 0 || target >= prev.length) return prev
+      const next = [...prev]
+      ;[next[index], next[target]] = [next[target], next[index]]
+      return normalize(next)
+    })
+    setFileError(null)
+  }
+
+  function resetFiles() {
+    setFiles([])
+    setFilesVersion((version) => version + 1)
+    setFileError(null)
+  }
+
+  function classifyUploaded(res: { name: string; type: string }): "image" | "pdf" {
+    if (
+      res.type.startsWith("image/") ||
+      /\.(png|jpe?g|webp|gif)$/i.test(res.name)
+    ) {
+      return "image"
+    }
+    return "pdf"
+  }
+
+  function handleBeforeUpload(pending: File[]): File[] {
+    const nextTypes: ClassifiedType[] = pending.map(classifyFile)
+    const existing: ClassifiedType[] = files.map((file) => file.fileType)
+    const error = validateFileSet([...existing, ...nextTypes])
+    if (error) {
+      setFileError(error)
+      return []
+    }
+    setFileError(null)
+    return pending
+  }
+
+  function handleUploadComplete(res: { ufsUrl: string; name: string; type: string }[]) {
+    const uploaded: QuestionFileDraft[] = res.map((item, index) => ({
+      fileUrl: item.ufsUrl,
+      fileType: classifyUploaded(item),
+      order: index,
+    }))
+    setFiles((prev) => normalize([...prev, ...uploaded]))
+    setFilesVersion((version) => version + 1)
+    setIsUploading(false)
+    setFileError(null)
   }
 
   function addTag() {
@@ -107,34 +205,48 @@ export function UploadForm({
       setFormError("Please enter a title for the question paper.")
       return
     }
+    if (!courseId) {
+      setFormError("Please choose a subject/course from the list.")
+      return
+    }
     if (!examType) {
       setFormError("Please choose an exam type.")
       return
     }
-    if (isOther) {
-      if (!customSubject.trim() || !customCourse.trim()) {
-        setFormError("Please fill in both the custom subject and course.")
-        return
-      }
-    } else if (!courseChoice) {
-      setFormError("Please choose a course, or pick Other to add a custom one.")
+    if (!season) {
+      setFormError("Please choose a season.")
       return
     }
-    if (!fileUrl) {
-      setFormError("Please upload the question paper file first.")
+    const yearValue = Number(year)
+    if (
+      !year.trim() ||
+      !Number.isInteger(yearValue) ||
+      yearValue < YEAR_MIN ||
+      yearValue > CURRENT_YEAR
+    ) {
+      setFormError(`Please enter a valid year (${YEAR_MIN}–${CURRENT_YEAR}).`)
+      return
+    }
+    if (files.length === 0) {
+      setFormError("Please upload the paper file(s) first.")
+      return
+    }
+    const setError = validateFileSet(files.map((file) => file.fileType))
+    if (setError) {
+      setFormError(setError)
       return
     }
 
     const payload: CreateQuestionInput = {
       title: title.trim(),
-      courseId: isOther ? null : courseChoice,
-      customSubject: isOther ? customSubject.trim() : null,
-      customCourse: isOther ? customCourse.trim() : null,
+      courseId,
       batchNumber,
-      program,
-      evening,
+      programType,
+      season,
+      year: yearValue,
+      teacherName: teacherName.trim() || null,
       examType,
-      fileUrl,
+      files,
       tags,
     }
 
@@ -191,151 +303,33 @@ export function UploadForm({
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label>Subject</Label>
-            <Select value={subjectId} onValueChange={selectSubject}>
-              <SelectTrigger aria-label="Subject">
-                <SelectValue placeholder="Select a subject" />
-              </SelectTrigger>
-              <SelectContent>
-                {catalog.map((subject) => (
-                  <SelectItem key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Course</Label>
-            <Select
-              value={courseChoice}
-              onValueChange={setCourseChoice}
-            >
-              <SelectTrigger aria-label="Course">
-                <SelectValue placeholder="Select a course" />
-              </SelectTrigger>
-              <SelectContent>
-                {activeSubject?.courses.map((course) => (
-                  <SelectItem key={course.id} value={course.id}>
-                    {course.title} ({course.code})
-                  </SelectItem>
-                ))}
-                <SelectItem value={OTHER_COURSE}>
-                  Other (custom subject/course)
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {isOther ? (
-            <>
-              <div className="grid gap-2">
-                <Label htmlFor="customSubject">Custom subject</Label>
-                <Input
-                  id="customSubject"
-                  value={customSubject}
-                  onChange={(e) => setCustomSubject(e.target.value)}
-                  placeholder="e.g. Emerging Technologies"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="customCourse">Custom course</Label>
-                <Input
-                  id="customCourse"
-                  value={customCourse}
-                  onChange={(e) => setCustomCourse(e.target.value)}
-                  placeholder="e.g. Cloud Computing Lab"
-                  required
-                />
-              </div>
-            </>
-          ) : null}
-
           <div className="grid gap-2 sm:col-span-2">
-            <Label>Upload file</Label>
-            <UploadDropzone
-              endpoint="questionFile"
-              className="rounded-xl border-dashed border-border bg-muted/40 transition-colors hover:bg-muted/60"
-              appearance={{
-                container: ({ isDragActive }) =>
-                  isDragActive ? "border-primary bg-primary/5" : "",
-                uploadIcon: "mx-auto block h-12 w-12 text-muted-foreground",
-                label:
-                  "mt-4 w-fit cursor-pointer text-sm font-semibold leading-6 text-foreground hover:text-primary",
-                allowedContent: "m-0 text-xs leading-5 text-muted-foreground",
-                button:
-                  "focus-visible:ring-primary bg-primary text-primary-foreground hover:bg-primary/90 data-[state=ready]:bg-primary data-[state=ready]:text-primary-foreground data-[state=readying]:opacity-70",
-              }}
-              content={{
-                uploadIcon: <UploadCloud className="h-12 w-12" strokeWidth={1.5} />,
-                label: "Choose a file or drag and drop",
-                button: ({ isUploading, uploadProgress }) =>
-                  isUploading ? `${Math.round(uploadProgress)}%` : "Choose a file",
-                allowedContent: "PDF or image, up to 10 MB",
-              }}
-              onUploadBegin={() => {
-                setIsUploading(true)
-                setUploadError(null)
-              }}
-              onClientUploadComplete={(res) => {
-                setFileUrl(res[0]?.ufsUrl ?? "")
-                setIsUploading(false)
-              }}
-              onUploadError={(error) => {
-                setUploadError(error.message)
-                setIsUploading(false)
-              }}
+            <Label htmlFor="course">Subject/course</Label>
+            <CourseCombobox
+              id="course"
+              courses={catalog}
+              value={courseId}
+              onValueChange={setCourseId}
             />
-            <p className="text-xs text-muted-foreground">
-              PDF or image, up to 10 MB.
-            </p>
-            {uploadError ? (
-              <p
-                role="alert"
-                className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-              >
-                {uploadError}
-              </p>
-            ) : null}
-            {fileUrl ? (
-              <p
-                role="status"
-                className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground"
-              >
-                File uploaded — ready to submit.
-              </p>
-            ) : null}
           </div>
 
           <div className="grid gap-2">
-            <Label>Batch</Label>
-            <Select
-              value={String(batchNumber)}
-              onValueChange={(value) => setBatchNumber(Number(value))}
-            >
-              <SelectTrigger aria-label="Batch">
-                <SelectValue placeholder="Select a batch" />
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                {batchOptions.map((batch) => (
-                  <SelectItem key={batch} value={String(batch)}>
-                    {batch}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="batch">Batch</Label>
+            <BatchCombobox
+              id="batch"
+              max={currentBatch}
+              value={batchNumber}
+              onValueChange={(value) => setBatchNumber(value ?? currentBatch)}
+            />
           </div>
 
           <div className="grid gap-2">
-            <Label>Exam type</Label>
+            <Label htmlFor="examType">Exam type</Label>
             <Select
               value={examType || ""}
               onValueChange={(value) => setExamType(value as ExamType)}
             >
-              <SelectTrigger aria-label="Exam type">
+              <SelectTrigger id="examType" aria-label="Exam type">
                 <SelectValue placeholder="Select an exam type" />
               </SelectTrigger>
               <SelectContent>
@@ -351,45 +345,66 @@ export function UploadForm({
           <div className="grid gap-2 sm:col-span-2">
             <Label>Program</Label>
             <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                aria-pressed={program === "regular"}
-                onClick={() => setProgram("regular")}
-                className={cn(
-                  "justify-start",
-                  program === "regular" &&
-                    "border-primary bg-primary/10 text-primary"
-                )}
-              >
-                Regular
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                aria-pressed={program === "diploma"}
-                onClick={() => setProgram("diploma")}
-                className={cn(
-                  "justify-start",
-                  program === "diploma" &&
-                    "border-primary bg-primary/10 text-primary"
-                )}
-              >
-                Diploma
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                aria-pressed={evening}
-                onClick={() => setEvening((v) => !v)}
-                className={cn(
-                  "justify-start",
-                  evening && "border-primary bg-primary/10 text-primary"
-                )}
-              >
-                Evening shift
-              </Button>
+              {Object.entries(PROGRAM_TYPE_LABELS).map(([key, label]) => (
+                <Button
+                  key={key}
+                  type="button"
+                  variant="outline"
+                  aria-pressed={programType === key}
+                  onClick={() => setProgramType(key as ProgramType)}
+                  className={cn(
+                    "justify-start",
+                    programType === key &&
+                      "border-primary bg-primary/10 text-primary"
+                  )}
+                >
+                  {label}
+                </Button>
+              ))}
             </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="season">Season</Label>
+            <Select
+              value={season || ""}
+              onValueChange={(value) => setSeason(value as Season)}
+            >
+              <SelectTrigger id="season" aria-label="Season">
+                <SelectValue placeholder="Select a season" />
+              </SelectTrigger>
+              <SelectContent>
+                {SEASONS.map((seasonKey) => (
+                  <SelectItem key={seasonKey} value={seasonKey}>
+                    {SEASON_LABELS[seasonKey]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="year">Year</Label>
+            <Input
+              id="year"
+              type="number"
+              min={YEAR_MIN}
+              max={CURRENT_YEAR}
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              placeholder="e.g. 2025"
+              aria-label="Year the paper is from"
+            />
+          </div>
+
+          <div className="grid gap-2 sm:col-span-2">
+            <Label htmlFor="teacherName">Teacher name (optional)</Label>
+            <Input
+              id="teacherName"
+              value={teacherName}
+              onChange={(e) => setTeacherName(e.target.value)}
+              placeholder="e.g. Dr. A. Rahman"
+            />
           </div>
 
           <div className="grid gap-2 sm:col-span-2">
@@ -430,6 +445,133 @@ export function UploadForm({
             </p>
           </div>
 
+          <div className="grid gap-2 sm:col-span-2">
+            <Label>Question paper file(s)</Label>
+            <UploadDropzone
+              key={`question-files-${filesVersion}`}
+              endpoint="questionFile"
+              className="rounded-xl border-dashed border-border bg-muted/40 transition-colors hover:bg-muted/60"
+              appearance={{
+                container: ({ isDragActive }) =>
+                  isDragActive ? "border-primary bg-primary/5" : "",
+                uploadIcon: "mx-auto block h-12 w-12 text-muted-foreground",
+                label:
+                  "mt-4 w-fit cursor-pointer text-sm font-semibold leading-6 text-foreground hover:text-primary",
+                allowedContent: "m-0 text-xs leading-5 text-muted-foreground",
+                button:
+                  "focus-visible:ring-primary bg-primary text-primary-foreground hover:bg-primary/90 data-[state=ready]:bg-primary data-[state=ready]:text-primary-foreground data-[state=readying]:opacity-70",
+              }}
+              content={{
+                uploadIcon: <UploadCloud className="h-12 w-12" strokeWidth={1.5} />,
+                label: "Choose files or drag and drop",
+                button: ({ isUploading, uploadProgress }) =>
+                  isUploading ? `${Math.round(uploadProgress)}%` : "Choose files",
+                allowedContent: "PDF or up to 5 images, 10 MB each",
+              }}
+              onBeforeUploadBegin={handleBeforeUpload}
+              onUploadBegin={() => {
+                setIsUploading(true)
+                setFileError(null)
+              }}
+              onClientUploadComplete={handleUploadComplete}
+              onUploadError={(error) => {
+                setFileError(error.message)
+                setIsUploading(false)
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Attach 1–5 images of the paper, or exactly one PDF — never a mix.
+              Images can be reordered with the arrows.
+            </p>
+
+            {files.length > 0 ? (
+              <ul className="mt-1 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {files.map((file, index) => (
+                  <li
+                    key={`${file.fileUrl}-${index}`}
+                    className="rounded-lg border border-border bg-muted/40 p-2"
+                  >
+                    {file.fileType === "image" ? (
+                      <div className="relative aspect-square w-full overflow-hidden rounded-md border border-border bg-background">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={file.fileUrl}
+                          alt={`Uploaded question image ${index + 1}`}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex min-h-20 w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-2 text-center">
+                        <FileText
+                          className="size-5 shrink-0 text-muted-foreground"
+                          strokeWidth={1.5}
+                        />
+                        <span className="text-xs font-medium text-foreground">
+                          PDF file
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="mt-2 flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        aria-label={`Move image ${index + 1} up`}
+                        disabled={index === 0 || file.fileType !== "image"}
+                        onClick={() => moveFile(index, -1)}
+                        className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40 disabled:hover:bg-transparent"
+                      >
+                        <ChevronUp className="size-4" strokeWidth={1.5} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Move image ${index + 1} down`}
+                        disabled={
+                          index === files.length - 1 || file.fileType !== "image"
+                        }
+                        onClick={() => moveFile(index, 1)}
+                        className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40 disabled:hover:bg-transparent"
+                      >
+                        <ChevronDown className="size-4" strokeWidth={1.5} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Remove file"
+                        onClick={() => removeFile(index)}
+                        className="rounded p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <X className="size-4" strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            {files.length > 0 ? (
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetFiles}
+                  className="text-muted-foreground"
+                >
+                  Clear files
+                </Button>
+              </div>
+            ) : null}
+
+            {fileError ? (
+              <p
+                role="alert"
+                className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              >
+                {fileError}
+              </p>
+            ) : null}
+          </div>
+
           {formError ? (
             <p
               role="alert"
@@ -441,10 +583,7 @@ export function UploadForm({
         </CardContent>
 
         <CardFooter>
-          <Button
-            type="submit"
-            disabled={isPending || isUploading || !fileUrl}
-          >
+          <Button type="submit" disabled={isPending || isUploading}>
             {isPending ? (
               <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
             ) : null}

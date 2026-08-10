@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
-import { getCatalog } from "@/lib/db/queries/catalog"
+import { getCourses } from "@/lib/db/queries/catalog"
 import { getCurrentBatch } from "@/lib/db/queries/site-config"
 import { UploadForm } from "@/components/question-bank/UploadForm"
 
@@ -14,7 +14,7 @@ export default async function UploadQuestionPage() {
   if (!session?.user?.id) redirect("/login")
 
   const [catalog, currentBatch] = await Promise.all([
-    getCatalog(),
+    getCourses(),
     getCurrentBatch(),
   ])
 
