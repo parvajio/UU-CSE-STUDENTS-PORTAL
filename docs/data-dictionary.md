@@ -105,17 +105,12 @@ Rate limit for career-guidance requests: **TBD, decided during Phase 3's own `/s
 
 ---
 
-## subjects
-Curated reference table for the question bank (added 2026-08-08 via the Digital Question Bank `/specify` amendment). Seeded from `src/lib/db/seed-data/uu-cse-courses-seed.json`'s `subjects` array, **excluding `diploma-exempted`** (clarified 2026-08-08: diploma is a per-question `program` flag on `questions`, not a subject — so the seed produces 7 subjects).
+## subjects (superseded — removed by the 004 revision)
 
-| Field | Type | Constraints | Notes |
-|---|---|---|---|
-| id | uuid | PK | |
-| slug | text | unique, required | e.g. `cse-core` |
-| name | text | required | e.g. "CSE Core" |
+Superseded decision — kept here for history: an earlier revision (2026-08-08, Digital Question Bank `/specify` amendment) curated question-bank classification as a `subjects` + `courses` reference hierarchy seeded from `uu-cse-courses-seed.json` (7 subjects), with `courses.subject_id` linking each course to exactly one subject. **Reversed 2026-08-10 by the 004 revision**: the hierarchy was deemed unnecessary overhead — `subjects` is dropped (migration `0005`), `courses` is flattened (no `subjectId`), and classification is a combobox over the flat `courses` catalog only. Seeding no longer touches subjects. Mirror of the alumni-history note — not a silent delete. Authoritative wording lives in `specs/004-question-bank-revision/spec.md` (FR-029).
 
 ## courses
-Curated reference table for the question bank (added 2026-08-08). Seeded from the same JSON's `courses` array; the JSON's `_CHECK`-flagged rows and cross-subject duplicate codes are de-duplicated by `code` at seed time (**keep one code, remove the duplicate** — surviving row stays under the course's real subject; `diploma-exempted` entries are excluded since diploma is a program flag, not a subject) so the unique rule holds.
+Flat, admin-managed reference catalog for the question bank (revised 2026-08-10 — no `subjectId`). Seeded from `uu-cse-courses-seed.json`'s `courses` array; the JSON's duplicate codes are de-duplicated by `code` at seed time (**keep one code, remove the duplicate**) so the unique rule holds. `diploma-exempted` entries are excluded (diploma is a per-question `programType`, not a subject).
 
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
@@ -123,27 +118,59 @@ Curated reference table for the question bank (added 2026-08-08). Seeded from th
 | code | text | unique, required | e.g. `CSE0612301` |
 | title | text | required | e.g. "Database Management System" |
 | creditHours | numeric | required | e.g. 3 |
-| subjectId | uuid | FK → subjects.id | a course belongs to exactly one subject |
+| createdAt | timestamp | default now | |
+
+**Admin add/edit (FR-030)**: admins add a course (`code` unique, `title`, `creditHours`) and edit `title`/`creditHours`. Deletion of a course referenced by ≥1 question is blocked by the FK `restrict` on `questions.courseId` — no delete action exists.
 
 ## questions
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | PK | |
 | title | text | required | |
-| courseId | uuid | FK → courses.id, nullable | **primary classification path** — points at the curated course |
-| customSubject | text | nullable | free-text fallback when the course isn't curated yet; used together with `customCourse` |
-| customCourse | text | nullable | free-text "other" course name; mutually exclusive with `courseId` (a question uses exactly one of courseId OR customSubject/customCourse, never both) |
-| batchNumber | integer | required | dynamic dropdown up to `CURRENT_BATCH` — same pattern as `profiles.batchNumber` (was a free-text `batch` before the 2026-08-08 amendment) |
-| program | enum | `regular` \| `diploma`, default `regular` | per-question flag replacing the removed `diploma-exempted` subject — indicates the paper's program |
-| evening | boolean | default `false` | per-question flag for evening-batch papers |
+| titleTsv | tsvector | generated (`to_tsvector('english', "title")`) | Postgres-maintained, no app writes |
+| courseId | uuid | FK → courses.id, **required**, `onDelete: restrict` | **combobox-only classification** — exactly one `courseId`, no free-text fallback (004 revision) |
+| batchNumber | integer | required | dynamic dropdown up to `CURRENT_BATCH` — same pattern as `profiles.batchNumber` |
+| programType | enum | `regular` \| `diploma` \| `evening`, default + required `regular` | replaces `program` + `evening` (004 revision) |
+| season | enum | `summer` \| `fall` \| `spring` | required at app layer; DB nullable (backfill-unaware at migration) — `profiles.studentId` precedent |
+| year | integer | | required at app layer; DB nullable (same precedent) |
+| teacherName | text | nullable | free text; no FK (Faculty Directory not built) |
 | examType | enum | `previous_year` \| `midterm` \| `final` \| `lab` \| `viva` | |
-| fileUrl | text | required | PDF or image, via R2/UploadThing |
-| uploadedBy | uuid | FK → users.id | |
+| viewCount | integer | default `0`, required | atomic increment on detail page reach |
+| downloadCount | integer | default `0`, required | atomic increment per download click |
+| uploadedBy | uuid | FK → users.id, nullable, `onDelete: SET NULL` | |
 | status | enum | `pending` \| `approved` \| `rejected` | |
 | approvedBy / approvedAt | | nullable | |
-| createdAt | timestamp | | |
+| createdAt / updatedAt | timestamp | `updatedAt` via Drizzle `$onUpdate` | |
 
-**Classification rule**: filters read `courseId` as the primary path (grouped by subject), with any `customCourse` entries surfaced as a secondary "Other" filter group.
+**Dropped columns (migration `0005`)**: `customSubject`, `customCourse`, `program`, `evening`, `fileUrl` (replaced by `question_files`).
+
+**File rule (Q-004)**: each question has 1–5 `image` `question_files` rows **XOR** exactly 1 `pdf` row, never both/zero — enforced at the validation layer (Zod + server action), not as a DB constraint (XOR isn't expressible cleanly).
+
+## question_files (NEW — 004 revision)
+A question's paper files; replaces `questions.fileUrl`.
+
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| questionId | uuid | FK → questions.id, `onDelete: CASCADE` | |
+| fileUrl | text | required | UploadThing CDN URL (public ACL, never disclosed to guests) |
+| fileType | enum | `image` \| `pdf` | one row = one stored object |
+| order | integer | required | display order 0..n for images; pdf always 0 — SQL column `order_` (reserved word) |
+| createdAt | timestamp | default now | |
+
+Index: btree `(questionId, order)`.
+
+## question_likes (NEW — 004 revision)
+Engagement toggle.
+
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| questionId | uuid | FK → questions.id, `onDelete: CASCADE` | |
+| userId | uuid | FK → users.id, `onDelete: CASCADE` | |
+| createdAt | timestamp | default now | |
+
+Index: unique `(questionId, userId)` — double-like prevention. Toggle requires login; self-likes allowed; not rate-limited.
 
 ## question_tags (join table, for flexible multi-tag filtering)
 | Field | Type | Constraints |
@@ -246,4 +273,5 @@ Added late in Foundation (T056, admin-configurable `CURRENT_BATCH`) — a generi
 6. **Alumni approval stays inside the universal pattern, admin-only** — no separate moderator-approvable "alumni" resource type, no no-approval-needed toggle. An `isAlumni` change is just a profile edit, subject to the same admin-only approval as everything else on `profiles`.
 7. **`career_guidance_requests` is a deliberate, documented exception** to the universal status/approvedBy/approvedAt pattern (peer accept/decline, not admin moderation) — justified in `plan.md`, not treated as a gap to close.
 8. **Notifications and rate-limiting conventions** are documented above as their own sections, added after the original doc was written — see those sections for the shared-wrapper pattern and the accepted in-memory-store limitation.
-9. **Question bank course/subject classification is a curated catalog** (2026-08-08): `subjects` + `courses` reference tables seeded from `uu-cse-courses-seed.json`; `questions.courseId` is the primary path with `customSubject`/`customCourse` as a free-text "other" fallback (a question uses exactly one of the two, never both). `questions.batch` became `batchNumber` (integer) reusing the `profiles` dynamic-dropdown pattern. Seed dedupe rule: **keep one code, remove the duplicate** (surviving row under the course's real subject). **Diploma is a per-question `program` flag** (`regular`|`diploma`, default `regular`) plus an `evening` boolean — **not** a subject; `diploma-exempted` is excluded from the seed (7 subjects). Deferred decision I4 (course classification) is resolved by this amendment. See `specs/003-question-bank/spec.md` Clarifications 2026-08-08.
+9. **Question bank course/subject classification was a curated catalog (2026-08-08):** `subjects` + `courses` reference tables seeded from `uu-cse-courses-seed.json`; `questions.courseId` was the primary path with `customSubject`/`customCourse` as a free-text "other" fallback (a question uses exactly one of the two, never both). `questions.batch` became `batchNumber` (integer) reusing the `profiles` dynamic-dropdown pattern. Seed dedupe rule: **keep one code, remove the duplicate**. Diploma was a per-question `program` flag (`regular`|`diploma`, default `regular`) plus an `evening` boolean — **not** a subject. **Superseded by decision 10 (004 revision).**
+10. **Question bank revision — classification combobox-only (2026-08-10, 004):** the subject/course hierarchy is reversed: `subjects` is dropped (migration `0005`), `courses` is flattened (no `subjectId`), and every question has **exactly one `courseId`** — no `customSubject`/`customCourse` "Other" fallback (spec SC-013/Q-001). `program`+`evening` are replaced by a single `programType` enum (`regular|diploma|evening`); `questions` gains `season`/`year`/`teacherName`/`viewCount`/`downloadCount` and drops `fileUrl` in favor of the new `question_files` (1–5 images XOR 1 pdf) and `question_likes` (unique `(questionId, userId)`) tables. Admin course management ships in scope (**FR-030**: add `code`/`title`/`creditHours`, edit `title`/`creditHours`, no delete for referenced courses). Downloads are per-image plus a client-side ZIP bundle. Season/year are nullable-at-DB + app-required (backfill-unaware — the `profiles.studentId` precedent), and the `0005` migration preserves the single pre-existing question row via a two-step `file_url` → `question_files` data move (like the `pg_trgm` precedent). See `specs/004-question-bank-revision/spec.md` and `data-model.md`.
