@@ -33,6 +33,7 @@ const routePermissions: Record<string, Role[]> = {
   "/manage/alumni": ["admin"],
   "/manage/events": ["admin"],
   "/manage/skills": ["admin"],
+  "/manage/courses": ["admin"],
   "/manage/settings": ["admin"],
 }
 
