@@ -13,17 +13,19 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) {
     const loginUrl = new URL("/login", request.url)
+    // Send the user back to the paper they tried to download, not the API
+    // path — same safeCallbackUrl discipline as every other login CTA.
     loginUrl.searchParams.set(
       "callbackUrl",
-      safeCallbackUrl(request.nextUrl.pathname)
+      safeCallbackUrl(`/question-bank/${id}`)
     )
     return NextResponse.redirect(loginUrl)
   }
 
-  const { id } = await params
   const row = await db.query.questions.findFirst({
     columns: { id: true, status: true, uploadedBy: true },
     where: eq(questions.id, id),
@@ -46,6 +48,24 @@ export async function GET(
   // reviewer browsing files doesn't inflate the public counter.
   if (request.nextUrl.searchParams.get("kind") === "file") {
     await incrementDownloadCount(id)
+  }
+
+  // `kind=file` without a `file=` param means the single PDF paper — a
+  // question can only ever be 1 pdf XOR 1-5 images, so resolve the pdf row
+  // directly rather than relying on the implicit order-0 fallthrough.
+  if (fileParam === null) {
+    const pdf = await db.query.questionFiles.findFirst({
+      columns: { fileUrl: true },
+      where: and(
+        eq(questionFiles.questionId, id),
+        eq(questionFiles.fileType, "pdf")
+      ),
+    })
+    if (pdf) {
+      return NextResponse.redirect(pdf.fileUrl, {
+        headers: { "Cache-Control": "no-store" },
+      })
+    }
   }
 
   const file = await db.query.questionFiles.findFirst({
