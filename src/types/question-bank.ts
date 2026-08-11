@@ -30,14 +30,14 @@ export type TopCourseChip = {
   count: number
 }
 
-export type TopBatchChip = {
+export type RecentBatchChip = {
   batchNumber: number
   count: number
 }
 
-export type TopChips = {
-  topCourses: TopCourseChip[]
-  topBatches: TopBatchChip[]
+export type PopularTagChip = {
+  tag: string
+  count: number
 }
 
 export type QuestionCardBase = {

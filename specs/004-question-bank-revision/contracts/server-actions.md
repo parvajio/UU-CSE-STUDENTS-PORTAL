@@ -39,7 +39,7 @@ async function createQuestion(data: {
 type ViewerRole = "guest" | "user" | "moderator" | "admin";
 
 async function searchQuestions(params: {
-  query?: string;              // text search over title (tsvector)
+  query?: string;              // universal substring search — see buildUniversalTerm
   courseId?: string;           // flat course filter (no subject, no "Other")
   batchNumber?: number;        // quick-searchable
   examType?: ExamType;
@@ -66,14 +66,27 @@ async function searchQuestions(params: {
 
 **Guest rule**: `viewerRole === "guest"` ⇒ `question_files` rows and any file URL are excluded from the payload; counts and metadata included; `isLikedByViewer` absent.
 
-## Top-N chips (new query)
+**Universal search (`buildUniversalTerm`)**: when `query` is present it ORs partial/substring conditions (still ANDed with structured filters): `titleTsv @@ plainto_tsquery(term)` (uses the stored GIN `title_tsv` column), `courses.code`/`courses.title` (EXISTS + `ilike`), `question_tags.tag` (EXISTS + `ilike`), `teacherName` (`ilike`), submitter name via `users.profile.fullName` (EXISTS + `ilike`), season/program enum-value or `SEASON_LABELS`/`PROGRAM_TYPE_LABELS` label match, and for all-digit terms `year = n OR batchNumber = n`. LIKE `%`/`_`/`\` are escaped. `examType` labels are intentionally not matched.
+
+## Quick-select chips (three queries)
+
+The three chip queries plus `getCatalog`/`getCurrentBatch` are **cached** for the page shell via `unstable_cache` (tag `question-bank`, 5-min TTL) — they only re-run on tag invalidation (approve/reject/upload/like → `revalidateTag("question-bank")`) rather than on every filter navigation; filter navigations run only `searchQuestions` (see `page.tsx` shell + `results.tsx` split).
 
 ```typescript
-async function getTopCoursesAndBatches(n: number): Promise<{
-  courses: Array<{ courseId: string; code: string; title: string; count: number }>;
-  batches: Array<{ batchNumber: number; count: number }>;
-}>
-// LIVE aggregates over status='approved' (COUNT + GROUP BY + ORDER BY + LIMIT n), no cache.
+async function getTopCourses(n: number): Promise<
+  Array<{ courseId: string; code: string; title: string; count: number }>
+>
+// Top N courses by upload count over status='approved' (COUNT + GROUP BY + ORDER BY count DESC, latest DESC + LIMIT n), cached (tag `question-bank`).
+
+async function getRecentBatches(n: number): Promise<
+  Array<{ batchNumber: number; count: number }>
+>
+// Most RECENT batches that have approved questions (GROUP BY batchNumber ORDER BY batchNumber DESC LIMIT n) — recency ranking, not popularity. Cached.
+
+async function getPopularTags(n: number): Promise<
+  Array<{ tag: string; count: number }>
+>
+// Top N tags by usage across approved questions (question_tags JOIN approved questions, GROUP BY tag ORDER BY count DESC LIMIT n). Cached.
 ```
 
 ## Get Question Detail (revised)

@@ -5,35 +5,42 @@ import {
   desc,
   eq,
   exists,
+  ilike,
   inArray,
   max,
+  or,
   sql,
   type SQL,
 } from "drizzle-orm"
 import { db } from "@/lib/db"
 import {
   courses,
+  profiles,
   questionFiles,
   questionLikes,
   questionTags,
   questions,
+  users,
 } from "@/lib/db/schema"
-import { buildSearchQuery } from "@/lib/search"
 import {
   QUESTION_BANK_PAGE_SIZE,
+  PROGRAM_TYPE_LABELS,
+  SEASON_LABELS,
   TOP_CHIPS_N,
 } from "@/lib/question-bank/constants"
 import type {
   ExamType,
   GuestQuestionCard,
   GuestQuestionDetail,
+  PopularTagChip,
   ProgramType,
   QuestionCard,
   QuestionDetail,
   QuestionFile,
   QuestionFilterParams,
+  RecentBatchChip,
   Season,
-  TopChips,
+  TopCourseChip,
 } from "@/types/question-bank"
 import type { ViewerRole } from "./directory"
 
@@ -138,12 +145,88 @@ async function loadFilesForQuestions(
   return filesByQuestion
 }
 
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`)
+}
+
+// Universal free-text search: partial/substring match across question title,
+// course code/title, tags, teacher name, submitter name, season/program labels,
+// and (for numeric terms) year + batch number. Still ANDed with structured filters.
+function buildUniversalTerm(term: string): SQL | undefined {
+  const trimmed = term.trim()
+  if (!trimmed) return undefined
+
+  const pattern = `%${escapeLikePattern(trimmed)}%`
+  const lower = trimmed.toLowerCase()
+  const numeric = /^\d+$/.test(trimmed) ? Number(trimmed) : null
+
+  const clauses: SQL[] = [
+    sql`${questions.titleTsv} @@ plainto_tsquery('english', ${trimmed})`,
+    exists(
+      db
+        .select()
+        .from(courses)
+        .where(
+          and(
+            eq(courses.id, questions.courseId),
+            or(ilike(courses.code, pattern), ilike(courses.title, pattern))
+          )
+        )
+    ),
+    exists(
+      db
+        .select()
+        .from(questionTags)
+        .where(
+          and(
+            eq(questionTags.questionId, questions.id),
+            ilike(questionTags.tag, pattern)
+          )
+        )
+    ),
+    ilike(questions.teacherName, pattern),
+    exists(
+      db
+        .select()
+        .from(users)
+        .innerJoin(profiles, eq(profiles.userId, users.id))
+        .where(
+          and(
+            eq(users.id, questions.uploadedBy),
+            ilike(profiles.fullName, pattern)
+          )
+        )
+    ),
+  ]
+
+  const seasonMatch = (Object.keys(SEASON_LABELS) as Season[]).find((season) =>
+    SEASON_LABELS[season].toLowerCase().includes(lower)
+  )
+  if (seasonMatch) clauses.push(eq(questions.season, seasonMatch))
+
+  const programMatch = (Object.keys(PROGRAM_TYPE_LABELS) as ProgramType[]).find(
+    (program) => PROGRAM_TYPE_LABELS[program].toLowerCase().includes(lower)
+  )
+  if (programMatch) clauses.push(eq(questions.programType, programMatch))
+
+  if (numeric !== null) {
+    const yearOrBatch = or(
+      eq(questions.year, numeric),
+      eq(questions.batchNumber, numeric)
+    )
+    if (yearOrBatch) clauses.push(yearOrBatch)
+  }
+
+  return or(...clauses)
+}
+
 function buildWhereClause(params: QuestionFilterParams): SQL[] {
   const conditions: SQL[] = [eq(questions.status, "approved")]
 
   const term = params.query?.trim()
   if (term) {
-    conditions.push(buildSearchQuery(term, [questions.title]))
+    const universal = buildUniversalTerm(term)
+    if (universal) conditions.push(universal)
   }
 
   if (params.courseId) {
@@ -270,35 +353,20 @@ export async function searchQuestions(
   return { items, total }
 }
 
-export async function getTopCoursesAndBatches(
-  n: number = TOP_CHIPS_N
-): Promise<TopChips> {
+export async function getTopCourses(n: number = TOP_CHIPS_N): Promise<TopCourseChip[]> {
   const limit = Math.max(1, n)
 
-  const [courseRows, batchRows] = await Promise.all([
-    db
-      .select({
-        courseId: questions.courseId,
-        count: count(),
-        latest: max(questions.createdAt),
-      })
-      .from(questions)
-      .where(eq(questions.status, "approved"))
-      .groupBy(questions.courseId)
-      .orderBy(desc(count()), desc(max(questions.createdAt)))
-      .limit(limit),
-    db
-      .select({
-        batchNumber: questions.batchNumber,
-        count: count(),
-        latest: max(questions.createdAt),
-      })
-      .from(questions)
-      .where(eq(questions.status, "approved"))
-      .groupBy(questions.batchNumber)
-      .orderBy(desc(count()), desc(max(questions.createdAt)))
-      .limit(limit),
-  ])
+  const courseRows = await db
+    .select({
+      courseId: questions.courseId,
+      count: count(),
+      latest: max(questions.createdAt),
+    })
+    .from(questions)
+    .where(eq(questions.status, "approved"))
+    .groupBy(questions.courseId)
+    .orderBy(desc(count()), desc(max(questions.createdAt)))
+    .limit(limit)
 
   const courseMap = new Map<string, { code: string; title: string }>()
   const courseIds = courseRows.map((row) => row.courseId)
@@ -312,18 +380,57 @@ export async function getTopCoursesAndBatches(
     }
   }
 
-  return {
-    topCourses: courseRows.map((row) => ({
-      courseId: row.courseId,
-      code: courseMap.get(row.courseId)?.code ?? "",
-      title: courseMap.get(row.courseId)?.title ?? "",
-      count: row.count,
-    })),
-    topBatches: batchRows.map((row) => ({
-      batchNumber: row.batchNumber,
-      count: row.count,
-    })),
-  }
+  return courseRows.map((row) => ({
+    courseId: row.courseId,
+    code: courseMap.get(row.courseId)?.code ?? "",
+    title: courseMap.get(row.courseId)?.title ?? "",
+    count: row.count,
+  }))
+}
+
+export async function getRecentBatches(
+  n: number = TOP_CHIPS_N
+): Promise<RecentBatchChip[]> {
+  const limit = Math.max(1, n)
+
+  const rows = await db
+    .select({
+      batchNumber: questions.batchNumber,
+      count: count(),
+    })
+    .from(questions)
+    .where(eq(questions.status, "approved"))
+    .groupBy(questions.batchNumber)
+    .orderBy(desc(questions.batchNumber), desc(count()))
+    .limit(limit)
+
+  return rows.map((row) => ({
+    batchNumber: row.batchNumber,
+    count: row.count,
+  }))
+}
+
+export async function getPopularTags(
+  n: number = TOP_CHIPS_N
+): Promise<PopularTagChip[]> {
+  const limit = Math.max(1, n)
+
+  const rows = await db
+    .select({
+      tag: questionTags.tag,
+      count: count(),
+    })
+    .from(questionTags)
+    .innerJoin(questions, eq(questions.id, questionTags.questionId))
+    .where(eq(questions.status, "approved"))
+    .groupBy(questionTags.tag)
+    .orderBy(desc(count()), asc(questionTags.tag))
+    .limit(limit)
+
+  return rows.map((row) => ({
+    tag: row.tag,
+    count: row.count,
+  }))
 }
 
 export async function incrementViewCount(id: string): Promise<void> {
