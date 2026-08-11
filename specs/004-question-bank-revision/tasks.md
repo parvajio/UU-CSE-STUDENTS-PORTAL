@@ -114,8 +114,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T033 [US4] Rework `src/lib/db/queries/questions-mine.ts` — include new columns (programType, season, year, teacherName, counters), course code/title, `files` (ordered), and `rejectionReason` (latest `notifications` row for the question, as in 003 T027)
-- [ ] T034 [US4] Extend `src/app/(user)/my-submissions/page.tsx` — question rows render the new fields + files count/type + `StatusBadge` + rejection reason; keep edit/re-submit entry points as shipped in 003 (re-submit flow already reuses `createQuestion`; new field/file inputs arrive automatically via UploadForm sync)
+- [X] T033 [US4] Rework `src/lib/db/queries/questions-mine.ts` — include new columns (programType, season, year, teacherName, counters), course code/title, `files` (ordered), and `rejectionReason` (latest `notifications` row for the question, as in 003 T027)
+- [X] T034 [US4] Extend `src/app/(user)/my-submissions/page.tsx` — question rows render the new fields + files count/type + `StatusBadge` + rejection reason; keep edit/re-submit entry points as shipped in 003 (re-submit flow already reuses `createQuestion`; new field/file inputs arrive automatically via UploadForm sync)
 
 **Checkpoint**: All four stories independently functional.
 

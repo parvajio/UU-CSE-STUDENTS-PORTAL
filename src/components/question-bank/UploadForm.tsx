@@ -450,7 +450,8 @@ export function UploadForm({
             <UploadDropzone
               key={`question-files-${filesVersion}`}
               endpoint="questionFile"
-              className="rounded-xl border-dashed border-border bg-muted/40 transition-colors hover:bg-muted/60"
+              config={{ mode: "auto" }}
+              className="rounded-xl border border-dashed border-border bg-muted/40 p-4 transition-colors hover:bg-muted/60"
               appearance={{
                 container: ({ isDragActive }) =>
                   isDragActive ? "border-primary bg-primary/5" : "",
@@ -459,7 +460,7 @@ export function UploadForm({
                   "mt-4 w-fit cursor-pointer text-sm font-semibold leading-6 text-foreground hover:text-primary",
                 allowedContent: "m-0 text-xs leading-5 text-muted-foreground",
                 button:
-                  "focus-visible:ring-primary bg-primary text-primary-foreground hover:bg-primary/90 data-[state=ready]:bg-primary data-[state=ready]:text-primary-foreground data-[state=readying]:opacity-70",
+                  "w-auto! px-5 focus-visible:ring-primary bg-primary text-primary-foreground hover:bg-primary/90 data-[state=ready]:bg-primary data-[state=ready]:text-primary-foreground data-[state=readying]:opacity-70",
               }}
               content={{
                 uploadIcon: <UploadCloud className="h-12 w-12" strokeWidth={1.5} />,
