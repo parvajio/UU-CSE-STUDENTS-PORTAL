@@ -81,7 +81,7 @@ export async function Results({
 
   return (
     <section aria-label="Search results">
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {result.total.toLocaleString()}{" "}
           {result.total === 1 ? "paper" : "papers"}

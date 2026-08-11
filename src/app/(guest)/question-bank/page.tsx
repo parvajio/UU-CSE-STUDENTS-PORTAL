@@ -1,6 +1,10 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { unstable_cache } from "next/cache"
 import { Suspense } from "react"
+import { Plus } from "lucide-react"
+import { auth } from "@/lib/auth/auth"
+import { safeCallbackUrl } from "@/lib/auth/safe-callback-url"
 import { getCatalog } from "@/lib/db/queries/catalog"
 import { getCurrentBatch } from "@/lib/db/queries/site-config"
 import {
@@ -8,6 +12,7 @@ import {
   getRecentBatches,
   getTopCourses,
 } from "@/lib/db/queries/question-bank"
+import { Button } from "@/components/ui/button"
 import { QuestionSearch } from "@/components/question-bank/QuestionSearch"
 import { ResultsGate } from "@/components/question-bank/ResultsGate"
 import { ResultsSkeleton } from "@/components/question-bank/ResultsSkeleton"
@@ -48,6 +53,7 @@ export default async function QuestionBankPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  const session = await auth()
   const [catalog, currentBatch, topCourses, recentBatches, popularTags] =
     await Promise.all([
       cachedCatalog(),
@@ -57,33 +63,53 @@ export default async function QuestionBankPage({
       cachedPopularTags(),
     ])
 
+  const uploadHref = session?.user?.id
+    ? "/upload-question"
+    : `/login?callbackUrl=${encodeURIComponent(
+        safeCallbackUrl("/upload-question")
+      )}`
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-      <div className="mb-8">
-        <h1 className="font-heading text-3xl font-semibold text-foreground">
-          Question Bank
-        </h1>
-        <p className="mt-2 max-w-2xl text-muted-foreground">
-          Search and filter past papers and question papers shared by your
-          department&apos;s students.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-3xl font-semibold text-foreground">
+            Question Bank
+          </h1>
+          <p className="mt-2 max-w-2xl text-muted-foreground">
+            Search and filter past papers and question papers shared by your
+            department&apos;s students.
+          </p>
+        </div>
+        <Button asChild>
+          <Link href={uploadHref}>
+            <Plus className="size-4" strokeWidth={1.5} />
+            Upload question
+          </Link>
+        </Button>
       </div>
 
-      <Suspense fallback={null}>
-        <QuestionSearch
-          catalog={catalog}
-          currentBatch={currentBatch}
-          topCourses={topCourses}
-          recentBatches={recentBatches}
-          popularTags={popularTags}
-        />
-      </Suspense>
+      <div className="mt-8 grid gap-8 md:grid-cols-[300px_minmax(0,1fr)] md:items-start">
+        <aside className="min-w-0 md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:pb-4">
+          <Suspense fallback={null}>
+            <QuestionSearch
+              catalog={catalog}
+              currentBatch={currentBatch}
+              topCourses={topCourses}
+              recentBatches={recentBatches}
+              popularTags={popularTags}
+            />
+          </Suspense>
+        </aside>
 
-      <Suspense fallback={<ResultsSkeleton />}>
-        <ResultsGate>
-          <Results searchParams={searchParams} />
-        </ResultsGate>
-      </Suspense>
+        <div className="min-w-0">
+          <Suspense fallback={<ResultsSkeleton />}>
+            <ResultsGate>
+              <Results searchParams={searchParams} />
+            </ResultsGate>
+          </Suspense>
+        </div>
+      </div>
     </main>
   )
 }
