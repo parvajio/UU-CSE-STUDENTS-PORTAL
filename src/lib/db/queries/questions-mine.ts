@@ -23,6 +23,9 @@ export async function getMyQuestions(userId: string): Promise<MyQuestionRow[]> {
         columns: { fileUrl: true, fileType: true, order: true },
         orderBy: (table, { asc }) => [asc(table.order)],
       },
+      uploader: {
+        with: { profile: { columns: { fullName: true } } },
+      },
     },
     orderBy: (table, { desc }) => [desc(table.createdAt)],
   })
@@ -98,6 +101,7 @@ export async function getMyQuestions(userId: string): Promise<MyQuestionRow[]> {
       season: row.season,
       year: row.year,
       teacherName: row.teacherName,
+      submitterName: row.uploader?.profile?.fullName ?? null,
       examType: row.examType,
       courseCode: row.course?.code ?? "",
       courseTitle: row.course?.title ?? "",

@@ -143,6 +143,7 @@ export function QuestionDetailView({
             </div>
           ) : (
             <QuestionImageGallery
+              questionId={question.id}
               files={files}
               questionTitle={question.title}
             />

@@ -112,7 +112,7 @@ export async function Results({
         <>
           <div
             className={cn(
-              "mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              "mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2"
             )}
           >
             {result.items.map((question) => (

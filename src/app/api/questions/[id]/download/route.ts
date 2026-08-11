@@ -17,8 +17,6 @@ export async function GET(
   const session = await auth()
   if (!session?.user?.id) {
     const loginUrl = new URL("/login", request.url)
-    // Send the user back to the paper they tried to download, not the API
-    // path — same safeCallbackUrl discipline as every other login CTA.
     loginUrl.searchParams.set(
       "callbackUrl",
       safeCallbackUrl(`/question-bank/${id}`)
@@ -27,7 +25,7 @@ export async function GET(
   }
 
   const row = await db.query.questions.findFirst({
-    columns: { id: true, status: true, uploadedBy: true },
+    columns: { id: true, title: true, status: true, uploadedBy: true },
     where: eq(questions.id, id),
   })
 
@@ -43,16 +41,10 @@ export async function GET(
   const order =
     Number.isInteger(parsedOrder) && parsedOrder >= 0 ? parsedOrder : 0
 
-  // Public download only — `kind=file` counts toward `downloadCount`.
-  // Approval-review links (`?file=<order>` only) skip the increment so a
-  // reviewer browsing files doesn't inflate the public counter.
   if (request.nextUrl.searchParams.get("kind") === "file") {
     await incrementDownloadCount(id)
   }
 
-  // `kind=file` without a `file=` param means the single PDF paper — a
-  // question can only ever be 1 pdf XOR 1-5 images, so resolve the pdf row
-  // directly rather than relying on the implicit order-0 fallthrough.
   if (fileParam === null) {
     const pdf = await db.query.questionFiles.findFirst({
       columns: { fileUrl: true },
@@ -62,14 +54,27 @@ export async function GET(
       ),
     })
     if (pdf) {
-      return NextResponse.redirect(pdf.fileUrl, {
-        headers: { "Cache-Control": "no-store" },
-      })
+      try {
+        const fileRes = await fetch(pdf.fileUrl)
+        const blob = await fileRes.blob()
+        const filename = `${row.title?.trim() || "question-paper"}.pdf`
+        return new NextResponse(blob, {
+          headers: {
+            "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+            "Content-Type": "application/pdf",
+            "Cache-Control": "no-store",
+          },
+        })
+      } catch {
+        return NextResponse.redirect(pdf.fileUrl, {
+          headers: { "Cache-Control": "no-store" },
+        })
+      }
     }
   }
 
   const file = await db.query.questionFiles.findFirst({
-    columns: { fileUrl: true },
+    columns: { fileUrl: true, fileType: true },
     where: and(
       eq(questionFiles.questionId, id),
       eq(questionFiles.order, order)
@@ -80,7 +85,21 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  return NextResponse.redirect(file.fileUrl, {
-    headers: { "Cache-Control": "no-store" },
-  })
+  try {
+    const fileRes = await fetch(file.fileUrl)
+    const blob = await fileRes.blob()
+    const ext = file.fileType === "image" ? "png" : "pdf"
+    const filename = `${row.title?.trim() || "question-paper"}-page-${order + 1}.${ext}`
+    return new NextResponse(blob, {
+      headers: {
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+        "Content-Type": file.fileType === "image" ? "image/png" : "application/pdf",
+        "Cache-Control": "no-store",
+      },
+    })
+  } catch {
+    return NextResponse.redirect(file.fileUrl, {
+      headers: { "Cache-Control": "no-store" },
+    })
+  }
 }

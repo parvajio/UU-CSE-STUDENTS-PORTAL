@@ -58,6 +58,7 @@ type QuestionSearchRow = {
   createdAt: string
   questionTags: { tag: string }[]
   course: { code: string; title: string } | null
+  uploader: { profile: { fullName: string } | null } | null
 }
 
 type QuestionDetailRow = QuestionSearchRow & {
@@ -303,6 +304,9 @@ export async function searchQuestions(
       with: {
         questionTags: { columns: { tag: true } },
         course: { columns: { code: true, title: true } },
+        uploader: {
+          with: { profile: { columns: { fullName: true } } },
+        },
       },
       where,
       orderBy: (table, { desc }) => [desc(table.createdAt)],
@@ -334,6 +338,7 @@ export async function searchQuestions(
       season: row.season,
       year: row.year,
       teacherName: row.teacherName,
+      submitterName: row.uploader?.profile?.fullName ?? null,
       examType: row.examType,
       courseCode: row.course?.code ?? "",
       courseTitle: row.course?.title ?? "",
