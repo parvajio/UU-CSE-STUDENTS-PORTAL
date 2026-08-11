@@ -445,22 +445,25 @@ export function UploadForm({
             </p>
           </div>
 
-          <div className="grid gap-2 sm:col-span-2">
+          <div className="grid gap-2 sm:col-span-2 overflow-hidden">
             <Label>Question paper file(s)</Label>
             <UploadDropzone
               key={`question-files-${filesVersion}`}
               endpoint="questionFile"
               config={{ mode: "auto" }}
-              className="rounded-xl border border-dashed border-border bg-muted/40 p-4 transition-colors hover:bg-muted/60"
+              className="w-full max-w-full box-border rounded-xl border border-dashed border-border bg-muted/40 p-4 transition-colors hover:bg-muted/60 overflow-hidden"
               appearance={{
                 container: ({ isDragActive }) =>
-                  isDragActive ? "border-primary bg-primary/5" : "",
+                  cn(
+                    "w-full max-w-full box-border overflow-hidden",
+                    isDragActive ? "border-primary bg-primary/5" : ""
+                  ),
                 uploadIcon: "mx-auto block h-12 w-12 text-muted-foreground",
                 label:
-                  "mt-4 w-fit cursor-pointer text-sm font-semibold leading-6 text-foreground hover:text-primary",
-                allowedContent: "m-0 text-xs leading-5 text-muted-foreground",
+                  "mt-4 w-full max-w-full cursor-pointer text-sm font-semibold leading-6 text-foreground hover:text-primary text-center truncate",
+                allowedContent: "m-0 text-xs leading-5 text-muted-foreground text-center max-w-full",
                 button:
-                  "w-auto! px-5 focus-visible:ring-primary bg-primary text-primary-foreground hover:bg-primary/90 data-[state=ready]:bg-primary data-[state=ready]:text-primary-foreground data-[state=readying]:opacity-70",
+                  "w-auto max-w-full px-5 focus-visible:ring-primary bg-primary text-primary-foreground hover:bg-primary/90 data-[state=ready]:bg-primary data-[state=ready]:text-primary-foreground data-[state=readying]:opacity-70",
               }}
               content={{
                 uploadIcon: <UploadCloud className="h-12 w-12" strokeWidth={1.5} />,
