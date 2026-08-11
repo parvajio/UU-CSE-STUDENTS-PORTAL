@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
-import { Check, ChevronDown, Search } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Check, ChevronDown, Search, X } from "lucide-react"
 import * as Popover from "@radix-ui/react-popover"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -13,12 +13,14 @@ export function CourseCombobox({
   onValueChange,
   id,
   placeholder = "Search by code or title…",
+  clearable = false,
 }: {
   courses: CourseOption[]
   value: string | undefined
   onValueChange: (value: string | undefined) => void
   id?: string
   placeholder?: string
+  clearable?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
@@ -38,7 +40,7 @@ export function CourseCombobox({
   const [activeIndex, setActiveIndex] = useState(0)
   const safeActive = Math.min(activeIndex, Math.max(filtered.length - 1, 0))
 
-  function commit(courseId: string) {
+  function commit(courseId: string | undefined) {
     onValueChange(courseId)
     setOpen(false)
     setQuery("")
@@ -72,21 +74,41 @@ export function CourseCombobox({
           aria-haspopup="listbox"
           aria-expanded={open}
           className={cn(
-            "flex h-9 w-full items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            "flex h-9 w-full items-center justify-between rounded-xl border border-border bg-background px-3 py-2 text-sm font-normal text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             !selected && "text-muted-foreground"
           )}
         >
           <span className="truncate">
             {selected ? `${selected.code} · ${selected.title}` : "Select a course…"}
           </span>
-          <ChevronDown className="size-4 shrink-0 opacity-60" strokeWidth={1.5} />
+          {clearable && selected ? (
+            <span
+              role="button"
+              tabIndex={-1}
+              aria-label="Clear selected course"
+              onMouseDown={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+              }}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                commit(undefined)
+              }}
+              className="flex size-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="size-3.5" strokeWidth={1.5} />
+            </span>
+          ) : (
+            <ChevronDown className="size-4 shrink-0 opacity-60" strokeWidth={1.5} />
+          )}
         </button>
       </Popover.Trigger>
 
       <Popover.Content
         align="start"
         sideOffset={6}
-        className="z-50 w-72 rounded-md border border-border bg-popover p-0 text-popover-foreground shadow-md"
+        className="z-50 w-72 rounded-xl border border-border bg-popover p-0 text-popover-foreground shadow-md"
       >
         <div className="flex items-center gap-2 border-b border-border px-3">
           <Search className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />

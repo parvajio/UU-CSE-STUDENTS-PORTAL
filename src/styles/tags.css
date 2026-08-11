@@ -142,7 +142,51 @@
   background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.16);
 }
 
+/* ── Per-item hue chip (quick-select) — `--tag-h` set inline by JS ── */
+
+.soft-tag--hue {
+  --tag-s: 58%;
+  --tag-l: 55%;
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.12);
+  color: hsla(var(--tag-h), var(--tag-s), calc(var(--tag-l) - 22%), 1);
+  border-color: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.32);
+}
+
+.soft-tag--hue:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.19);
+}
+
+/* ── Solid filled active state (chips + segmented pills) ── */
+
+.soft-tag--active {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.95);
+  border-color: hsla(var(--tag-h), var(--tag-s), calc(var(--tag-l) - 6%), 1);
+  color: #fff;
+  box-shadow: 0 1px 3px hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.35);
+}
+
+.soft-tag--active:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 1);
+  color: #fff;
+}
+
 /* ── Dark mode overrides ── */
+
+.dark .soft-tag--hue {
+  --tag-s: 60%;
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.17);
+  border-color: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.45);
+  color: hsla(var(--tag-h), var(--tag-s), 80%, 1);
+}
+
+.dark .soft-tag--hue:hover {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.24);
+}
+
+.dark .soft-tag--active {
+  background: hsla(var(--tag-h), var(--tag-s), var(--tag-l), 1);
+  box-shadow: 0 1px 4px hsla(var(--tag-h), var(--tag-s), var(--tag-l), 0.45);
+}
 
 .dark .soft-tag--web,
 .dark .soft-tag--ml,
