@@ -48,6 +48,7 @@ type QuestionSearchRow = {
   examType: ExamType
   viewCount: number
   downloadCount: number
+  createdAt: string
   questionTags: { tag: string }[]
   course: { code: string; title: string } | null
 }
@@ -214,6 +215,7 @@ export async function searchQuestions(
         examType: true,
         viewCount: true,
         downloadCount: true,
+        createdAt: true,
       },
       with: {
         questionTags: { columns: { tag: true } },
@@ -243,6 +245,7 @@ export async function searchQuestions(
     const base: GuestQuestionCard = {
       id: row.id,
       title: row.title,
+      createdAt: row.createdAt,
       batchNumber: row.batchNumber,
       programType: row.programType,
       season: row.season,
@@ -327,6 +330,13 @@ export async function incrementViewCount(id: string): Promise<void> {
   await db
     .update(questions)
     .set({ viewCount: sql`${questions.viewCount} + 1` })
+    .where(eq(questions.id, id))
+}
+
+export async function incrementDownloadCount(id: string): Promise<void> {
+  await db
+    .update(questions)
+    .set({ downloadCount: sql`${questions.downloadCount} + 1` })
     .where(eq(questions.id, id))
 }
 

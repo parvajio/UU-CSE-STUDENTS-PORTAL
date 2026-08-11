@@ -43,6 +43,7 @@ export type TopChips = {
 export type QuestionCardBase = {
   id: string
   title: string
+  createdAt: string
   batchNumber: number
   programType: ProgramType
   season: Season | null

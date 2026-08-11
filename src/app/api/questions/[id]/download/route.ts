@@ -5,6 +5,7 @@ import { db } from "@/lib/db"
 import { questionFiles, questions } from "@/lib/db/schema"
 import { auth } from "@/lib/auth/auth"
 import { safeCallbackUrl } from "@/lib/auth/safe-callback-url"
+import { incrementDownloadCount } from "@/lib/db/queries/question-bank"
 
 export const dynamic = "force-dynamic"
 
@@ -39,6 +40,13 @@ export async function GET(
   const parsedOrder = fileParam ? Number.parseInt(fileParam, 10) : 0
   const order =
     Number.isInteger(parsedOrder) && parsedOrder >= 0 ? parsedOrder : 0
+
+  // Public download only — `kind=file` counts toward `downloadCount`.
+  // Approval-review links (`?file=<order>` only) skip the increment so a
+  // reviewer browsing files doesn't inflate the public counter.
+  if (request.nextUrl.searchParams.get("kind") === "file") {
+    await incrementDownloadCount(id)
+  }
 
   const file = await db.query.questionFiles.findFirst({
     columns: { fileUrl: true },
