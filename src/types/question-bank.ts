@@ -49,6 +49,7 @@ export type QuestionCardBase = {
   season: Season | null
   year: number | null
   teacherName: string | null
+  submitterName: string | null
   examType: ExamType
   courseCode: string
   courseTitle: string
@@ -67,7 +68,6 @@ export type QuestionCard = QuestionCardBase & {
 
 export type QuestionDetailBase = QuestionCardBase & {
   creditHours: string
-  submitterName: string | null
   createdAt: string
   updatedAt: string
 }
