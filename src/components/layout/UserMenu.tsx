@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { signOut } from "next-auth/react"
-import { ClipboardList, LogOut, Settings2, ShieldCheck, UserRound } from "lucide-react"
+import { BookOpen, ClipboardList, LogOut, Settings2, ShieldCheck, UserRound } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -45,6 +45,12 @@ export function UserMenu({ user }: { user: NavbarUser }) {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
+          <Link href="/upload-question" className="cursor-pointer">
+            <ClipboardList className="size-4" strokeWidth={1.5} />
+            Upload Question
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link href="/my-submissions" className="cursor-pointer">
             <ClipboardList className="size-4" strokeWidth={1.5} />
             My Submissions
@@ -59,12 +65,22 @@ export function UserMenu({ user }: { user: NavbarUser }) {
           </DropdownMenuItem>
         ) : null}
         {user.role === "admin" ? (
-          <DropdownMenuItem asChild>
-            <Link href="/manage/settings" className="cursor-pointer">
-              <Settings2 className="size-4" strokeWidth={1.5} />
-              Settings
-            </Link>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Admin Management</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+              <Link href="/manage/courses" className="cursor-pointer">
+                <BookOpen className="size-4" strokeWidth={1.5} />
+                Manage Courses
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/manage/settings" className="cursor-pointer">
+                <Settings2 className="size-4" strokeWidth={1.5} />
+                Site Settings
+              </Link>
+            </DropdownMenuItem>
+          </>
         ) : null}
         <DropdownMenuItem
           className="cursor-pointer"

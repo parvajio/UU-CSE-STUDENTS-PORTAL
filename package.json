@@ -13,6 +13,7 @@
     "db:seed": "tsx --env-file=.env src/lib/db/seed.ts",
     "test:e2e": "playwright test",
     "verify:guest-sql": "tsx --env-file=.env scripts/verify-guest-sql.ts",
+    "verify:guest-question-sql": "tsx --env-file=.env scripts/verify-guest-question-sql.ts",
     "test:load": "tsx --env-file=.env scripts/load-test.ts"
   },
   "dependencies": {

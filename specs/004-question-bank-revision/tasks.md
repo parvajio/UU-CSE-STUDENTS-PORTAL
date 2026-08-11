@@ -127,9 +127,9 @@
 
 **Independent Test**: Log in as `admin` → `/manage/courses`: add a course (duplicate `code` → friendly error), edit title/creditHours; the new course appears in the upload combobox and course filter after reload. `user`/`moderator` get 403 (middleware). A course referenced by a question has no delete control.
 
-- [ ] T035 [P] Create `src/app/(admin)/manage/courses/actions.ts` — `createCourse({code,title,creditHours})` (admin role check; friendly unique-code error) + `updateCourse({id,title?,creditHours?})`; revalidatePath('/manage/courses') + revalidateTag('question-bank'); no delete action (FK restrict)
-- [ ] T036 [P] Update `src/middleware.ts` — add `"/manage/courses": ["admin"]` to `routePermissions`
-- [ ] T037 Create `src/app/(admin)/manage/courses/page.tsx` — flat table (code, title, creditHours) + inline add form + row edit (title/creditHours); calls T035 actions; metadata title
+- [X] T035 [P] Create `src/app/(admin)/manage/courses/actions.ts` — `createCourse({code,title,creditHours})` (admin role check; friendly unique-code error) + `updateCourse({id,title?,creditHours?})`; revalidatePath('/manage/courses') + revalidateTag('question-bank'); no delete action (FK restrict)
+- [X] T036 [P] Update `src/middleware.ts` — add `"/manage/courses": ["admin"]` to `routePermissions`
+- [X] T037 Create `src/app/(admin)/manage/courses/page.tsx` — flat table (code, title, creditHours) + inline add form + row edit (title/creditHours); calls T035 actions; metadata title
 
 ---
 
@@ -137,13 +137,13 @@
 
 **Purpose**: Verification script updates, repo docs sync, and end-to-end validation.
 
-- [ ] T038 [P] Extend `scripts/verify-guest-question-sql.ts` + `verify:guest-question-sql` npm script — assert the guest `searchQuestions`/`getQuestionDetail` payload has **no `files` array, no `fileUrl`/`file_url` keys, and no `isLikedByViewer`**; required guest metadata keys present (id, title, batchNumber, programType, season, year, examType, courseCode, courseTitle, tags, counts)
-- [ ] T039 [P] Update `AGENTS.md` — schema file set now: `courses` (flat), `questions`, `question-files`, `question-likes`, `question-tags`, users/profiles/skills/profile-skills/notifications/site-config (relations in `relations.ts`); note `subjects` removed (superseded decision), the two-step migration precedent, `recordDownload`/like route, client-side ZIP, and admin course surface
-- [ ] T040 [P] Remove stale references to old fields across the app — grep for `customSubject`/`customCourse`/`.program`/`.evening`/`OTHER_COURSE`/`fileUrl` in `src/app`, `src/components`, `src/lib` (excl. migration/verify docs) and update any survivors (e.g. `my-submissions`, approval card) to the revised shapes
-- [ ] T041 Run `npm run lint` and `npx tsc --noEmit` — fix all issues
-- [ ] T042 Run `npm run verify:guest-question-sql` — guest payload clean
-- [ ] T043 Run every scenario in `specs/004-question-bank-revision/quickstart.md` and the Playwright e2e suite (`npm run test:e2e`) covering SC-004, SC-008, SC-009, SC-010, SC-011, SC-012 — confirm end-to-end behavior (incl. 375px drawer and live chips)
-- [ ] T044 [P] Scale spot-check (SC-002/SC-008) — extend `scripts/load-test-questions.ts` (or a new variant) to verify `searchQuestions` + `getTopCourses` + `getRecentBatches` + `getPopularTags` under ~10k approved questions stay < 2s (record planner use of the `(status, courseId)`/`(status, batchNumber)` indexes); note results in `quickstart.md`. Note: chip queries are now cached via the `question-bank` tag (5-min TTL), so scale expectations apply to `searchQuestions` + the tag-invalidation path.
+- [X] T038 [P] Extend `scripts/verify-guest-question-sql.ts` + `verify:guest-question-sql` npm script — assert the guest `searchQuestions`/`getQuestionDetail` payload has **no `files` array, no `fileUrl`/`file_url` keys, and no `isLikedByViewer`**; required guest metadata keys present (id, title, batchNumber, programType, season, year, examType, courseCode, courseTitle, tags, counts)
+- [X] T039 [P] Update `AGENTS.md` — schema file set now: `courses` (flat), `questions`, `question-files`, `question-likes`, `question-tags`, users/profiles/skills/profile-skills/notifications/site-config (relations in `relations.ts`); note `subjects` removed (superseded decision), the two-step migration precedent, `recordDownload`/like route, client-side ZIP, and admin course surface
+- [X] T040 [P] Remove stale references to old fields across the app — grep for `customSubject`/`customCourse`/`.program`/`.evening`/`OTHER_COURSE`/`fileUrl` in `src/app`, `src/components`, `src/lib` (excl. migration/verify docs) and update any survivors (e.g. `my-submissions`, approval card) to the revised shapes
+- [X] T041 Run `npm run lint` and `npx tsc --noEmit` — fix all issues
+- [X] T042 Run `npm run verify:guest-question-sql` — guest payload clean
+- [X] T043 Run every scenario in `specs/004-question-bank-revision/quickstart.md` and the Playwright e2e suite (`npm run test:e2e`) covering SC-004, SC-008, SC-009, SC-010, SC-011, SC-012 — confirm end-to-end behavior (incl. 375px drawer and live chips)
+- [X] T044 [P] Scale spot-check (SC-002/SC-008) — extend `scripts/load-test-questions.ts` (or a new variant) to verify `searchQuestions` + `getTopCourses` + `getRecentBatches` + `getPopularTags` under ~10k approved questions stay < 2s (record planner use of the `(status, courseId)`/`(status, batchNumber)` indexes); note results in `quickstart.md`. Note: chip queries are now cached via the `question-bank` tag (5-min TTL), so scale expectations apply to `searchQuestions` + the tag-invalidation path.
 
 ---
 
