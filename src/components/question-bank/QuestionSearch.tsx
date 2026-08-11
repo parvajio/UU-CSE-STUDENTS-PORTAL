@@ -193,9 +193,29 @@ function QuickChips({
   )
 }
 
+function SearchField({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <Label htmlFor="q-search">Search</Label>
+      <Input
+        id="q-search"
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Search titles, courses, tags, teacher, season, year…"
+        aria-label="Search question titles, courses, tags, teacher, season, year"
+      />
+    </div>
+  )
+}
+
 function FilterFields({
-  searchText,
-  onSearchTextChange,
   courses,
   courseValue,
   onCourseChange,
@@ -224,8 +244,6 @@ function FilterFields({
   onTagChipChange,
   isMobile,
 }: {
-  searchText: string
-  onSearchTextChange: (value: string) => void
   courses: CourseOption[]
   courseValue: string | undefined
   onCourseChange: (value: string | undefined) => void
@@ -258,18 +276,6 @@ function FilterFields({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid gap-1.5">
-        <Label htmlFor="q-search">Search</Label>
-        <Input
-          id="q-search"
-          type="text"
-          value={searchText}
-          onChange={(e) => onSearchTextChange(e.target.value)}
-          placeholder="Search titles, courses, tags, teacher, season, year…"
-          aria-label="Search question titles, courses, tags, teacher, season, year"
-        />
-      </div>
-
       <div className="grid gap-1.5">
         <Label htmlFor="course-filter">Subject/course</Label>
         <QuickChips
@@ -595,8 +601,6 @@ export function QuestionSearch({
 
   const filterFields = (
     <FilterFields
-      searchText={searchText}
-      onSearchTextChange={setSearchText}
       courses={catalog}
       courseValue={courseChoice || undefined}
       onCourseChange={(value) => applyChanges({ [COURSE]: value })}
@@ -633,6 +637,7 @@ export function QuestionSearch({
 
   return (
     <section aria-label="Filter question papers" className="flex flex-col gap-3">
+      <SearchField value={searchText} onChange={setSearchText} />
       {isMobile ? (
         <div>
           <button
