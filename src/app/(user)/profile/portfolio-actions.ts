@@ -170,7 +170,7 @@ export async function addAchievement(data: AchievementInput): Promise<PortfolioA
   })
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -208,7 +208,7 @@ export async function updateAchievement(id: string, data: AchievementInput): Pro
     .where(and(eq(profileAchievements.id, id), eq(profileAchievements.profileId, owner.id)))
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -236,7 +236,7 @@ export async function deleteAchievement(id: string): Promise<PortfolioActionResu
     .where(and(eq(profileAchievements.id, id), eq(profileAchievements.profileId, owner.id)))
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -264,7 +264,7 @@ export async function addProject(data: ProjectInput): Promise<PortfolioActionRes
   })
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -302,7 +302,7 @@ export async function updateProject(id: string, data: ProjectInput): Promise<Por
     .where(and(eq(profileProjects.id, id), eq(profileProjects.profileId, owner.id)))
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -330,7 +330,7 @@ export async function deleteProject(id: string): Promise<PortfolioActionResult> 
     .where(and(eq(profileProjects.id, id), eq(profileProjects.profileId, owner.id)))
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -358,7 +358,7 @@ export async function addCertificate(data: CertificateInput): Promise<PortfolioA
   })
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -396,7 +396,7 @@ export async function updateCertificate(id: string, data: CertificateInput): Pro
     .where(and(eq(profileCertificates.id, id), eq(profileCertificates.profileId, owner.id)))
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -424,7 +424,7 @@ export async function deleteCertificate(id: string): Promise<PortfolioActionResu
     .where(and(eq(profileCertificates.id, id), eq(profileCertificates.profileId, owner.id)))
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -452,7 +452,7 @@ export async function addExperience(data: ExperienceInput): Promise<PortfolioAct
   })
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -486,7 +486,7 @@ export async function updateExperience(id: string, data: ExperienceInput): Promi
     .where(and(eq(profileExperiences.id, id), eq(profileExperiences.profileId, owner.id)))
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }
 
@@ -510,6 +510,6 @@ export async function deleteExperience(id: string): Promise<PortfolioActionResul
     .where(and(eq(profileExperiences.id, id), eq(profileExperiences.profileId, owner.id)))
 
   revalidatePath("/profile")
-  revalidatePath(`/directory/${owner.id}`)
+  revalidatePath(`/experts/${owner.id}`)
   return { success: true }
 }

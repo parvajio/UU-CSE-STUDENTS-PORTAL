@@ -3,10 +3,18 @@ import { neon } from "@neondatabase/serverless"
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http"
 import * as schema from "../src/lib/db/schema"
 import { db } from "../src/lib/db"
-import { users, profiles, profileSkills } from "../src/lib/db/schema"
-import { searchDirectory } from "../src/lib/db/queries/directory"
+import {
+  users,
+  profiles,
+  profileSkills,
+  profileAchievements,
+  profileProjects,
+  profileCertificates,
+  profileExperiences,
+} from "../src/lib/db/schema"
+import { searchDirectory, getProfileDetail } from "../src/lib/db/queries/directory"
 
-const CONTACT_COLUMNS = [
+const FORBIDDEN_COLUMNS = [
   "whatsapp_number",
   "facebook_url",
   "linkedin_url",
@@ -15,6 +23,22 @@ const CONTACT_COLUMNS = [
   "bio",
   "avatar_url",
   "section",
+  "achievements",
+  "projects",
+  "certificates",
+  "experiences",
+  "profile_achievements",
+  "profile_projects",
+  "profile_certificates",
+  "profile_experiences",
+  "issuer",
+  "issuing_organization",
+  "credential_url",
+  "company_name",
+  "position",
+  "achieved_date",
+  "start_date",
+  "end_date",
 ]
 
 let failures = 0
@@ -69,7 +93,7 @@ async function main() {
   let tempUserId: string | undefined
 
   try {
-    // ---- fixture: one APPROVED profile with every contact field populated ----
+    // ---- fixture: one APPROVED profile with every contact field and portfolio records populated ----
     const firstSkill = await db.query.skills.findFirst({ columns: { id: true } })
     const inserted = await db
       .insert(users)
@@ -105,6 +129,18 @@ async function main() {
         .values({ profileId: tmpProfileId, skillId: firstSkill.id })
     }
 
+    // Insert portfolio records for fixture user to verify they never leak to guests
+    await db.insert(profileAchievements).values({
+      profileId: tmpProfileId,
+      title: "Secret Achievement",
+      description: "Should never leak to guest",
+    })
+    await db.insert(profileProjects).values({
+      profileId: tmpProfileId,
+      title: "Secret Project",
+      description: "Should never leak to guest",
+    })
+
     // ---- 1. Runtime shape: real searchDirectory as guest ----
     const rows = await searchDirectory({ query: "Verify Guest SQL" }, "guest")
     const mine = rows.find((r) => r.fullName === "Verify Guest SQL Temp")
@@ -117,13 +153,29 @@ async function main() {
         `guest row has exactly {id, fullName, batchNumber, skills} — got ${keys.join(", ")}`
       )
       const forbiddenPresent = Object.keys(mine).filter((k) =>
-        ["avatarUrl", "bio", "section", "facebookUrl", "linkedinUrl", "whatsappNumber", "portfolioUrl", "githubUrl"].includes(k)
+        FORBIDDEN_COLUMNS.includes(k)
       )
-      assert(forbiddenPresent.length === 0, `no contact/auth fields leak at runtime — ${forbiddenPresent.join(", ") || "none"}`)
+      assert(forbiddenPresent.length === 0, `no contact/portfolio fields leak at runtime — ${forbiddenPresent.join(", ") || "none"}`)
       const skillKeys = new Set(mine.skills.flatMap((s) => Object.keys(s)))
       const illegal = [...skillKeys].filter((k) => !["id", "name", "slug", "colorKey"].includes(k))
       assert(illegal.length === 0, `skill objects expose only {id,name,slug,colorKey} — got ${[...skillKeys].join(", ")}`)
       assert(!JSON.stringify(mine).includes("+8801999000111"), "whatsapp value is absent from the guest result")
+      assert(!JSON.stringify(mine).includes("Secret Achievement"), "portfolio achievement is absent from the guest result")
+    }
+
+    // ---- 1b. Runtime shape: getProfileDetail as guest ----
+    const detailGuest = await getProfileDetail(tmpProfileId, "guest")
+    assert(Boolean(detailGuest), "getProfileDetail as guest returns the approved fixture profile")
+    if (detailGuest) {
+      const detailKeys = Object.keys(detailGuest).sort()
+      assert(
+        JSON.stringify(detailKeys) === JSON.stringify(["batchNumber", "fullName", "id", "skills"]),
+        `guest getProfileDetail has exactly {id, fullName, batchNumber, skills} — got ${detailKeys.join(", ")}`
+      )
+      const forbiddenDetailPresent = Object.keys(detailGuest).filter((k) =>
+        FORBIDDEN_COLUMNS.includes(k)
+      )
+      assert(forbiddenDetailPresent.length === 0, `no contact/portfolio fields leak in guest detail — ${forbiddenDetailPresent.join(", ") || "none"}`)
     }
 
     // ---- 2. Raw SQL: capture the exact guest SELECT clause and inspect it ----
@@ -134,8 +186,8 @@ async function main() {
     assert(Boolean(nameSql), "captured at least one guest query from the logger")
     assert(nameSql.toLowerCase().includes("full_name"), "SELECT references full_name")
     assert(nameSql.toLowerCase().includes("batch_number"), "SELECT references batch_number")
-    const leaked = CONTACT_COLUMNS.filter((c) => nameSql.toLowerCase().includes(c.toLowerCase()))
-    assert(leaked.length === 0, `SELECT clause contains no contact columns — ${leaked.join(", ") || "none"}`)
+    const leaked = FORBIDDEN_COLUMNS.filter((c) => nameSql.toLowerCase().includes(c.toLowerCase()))
+    assert(leaked.length === 0, `SELECT clause contains no contact or portfolio columns — ${leaked.join(", ") || "none"}`)
     console.log("\n[raw guest SQL]\n" + nameSql.slice(0, 600) + "\n")
 
     // ---- 3. Raw SQL for the skill-name search path (EXISTS subquery) ----
@@ -167,14 +219,18 @@ async function main() {
       limit: 1,
     })
     const skillSql = skillLog.join(" ")
-    const leakedSkill = CONTACT_COLUMNS.filter((c) => skillSql.toLowerCase().includes(c.toLowerCase()))
-    assert(leakedSkill.length === 0, `skill-search SQL contains no contact columns — ${leakedSkill.join(", ") || "none"}`)
+    const leakedSkill = FORBIDDEN_COLUMNS.filter((c) => skillSql.toLowerCase().includes(c.toLowerCase()))
+    assert(leakedSkill.length === 0, `skill-search SQL contains no contact or portfolio columns — ${leakedSkill.join(", ") || "none"}`)
     console.log("\n[skill-search SQL]\n" + skillSql.slice(0, 600) + "\n")
 
-    console.log(failures === 0 ? "\nRESULT: PASS — guest query never returns contact fields" : `\nRESULT: FAIL (${failures})`)
+    console.log(failures === 0 ? "\nRESULT: PASS — guest query never returns contact or portfolio fields" : `\nRESULT: FAIL (${failures})`)
   } finally {
     // ---- cleanup fixture ----
     try {
+      await db.delete(profileAchievements).where(eq(profileAchievements.profileId, tmpProfileId))
+      await db.delete(profileProjects).where(eq(profileProjects.profileId, tmpProfileId))
+      await db.delete(profileCertificates).where(eq(profileCertificates.profileId, tmpProfileId))
+      await db.delete(profileExperiences).where(eq(profileExperiences.profileId, tmpProfileId))
       await db.delete(profileSkills).where(eq(profileSkills.profileId, tmpProfileId))
       await db.delete(profiles).where(eq(profiles.id, tmpProfileId))
       if (tempUserId) await db.delete(users).where(eq(users.id, tempUserId))

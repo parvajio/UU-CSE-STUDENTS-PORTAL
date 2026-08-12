@@ -6,7 +6,7 @@ import type { Role } from "@/lib/auth/types"
 const secret = process.env.AUTH_SECRET
 
 const routePermissions: Record<string, Role[]> = {
-  "/directory": [],
+  "/experts": [],
   "/faculty": [],
   "/question-bank": [],
   "/clubs": [],
@@ -50,8 +50,8 @@ function matchRoute(pathname: string): string | undefined {
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
-  // Defense-in-depth: /directory/[profileId] requires authentication
-  if (pathname.startsWith("/directory/") && pathname !== "/directory" && pathname !== "/directory/") {
+  // Defense-in-depth: /experts/[profileId] requires authentication
+  if (pathname.startsWith("/experts/") && pathname !== "/experts" && pathname !== "/experts/") {
     const token = await getToken({
       req: request,
       secret,

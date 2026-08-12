@@ -1,4 +1,4 @@
-import { pgTable, AnyPgColumn, uuid, text } from "drizzle-orm/pg-core"
+import { pgTable, AnyPgColumn, uuid, text, boolean } from "drizzle-orm/pg-core"
 
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -7,4 +7,5 @@ export const skills = pgTable("skills", {
   parentSkillId: uuid("parent_skill_id")
     .references((): AnyPgColumn => skills.id, { onDelete: "set null" }),
   colorKey: text("color_key"),
+  isCustom: boolean("is_custom").default(false).notNull(),
 })

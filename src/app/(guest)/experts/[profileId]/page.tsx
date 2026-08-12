@@ -7,12 +7,12 @@ type PageProps = {
   params: Promise<{ profileId: string }>
 }
 
-export default async function ProfileDetailPage({ params }: PageProps) {
+export default async function ExpertDetailPage({ params }: PageProps) {
   const { profileId } = await params
   const session = await auth()
 
   if (!session?.user?.id) {
-    const callbackUrl = encodeURIComponent(`/directory/${profileId}`)
+    const callbackUrl = encodeURIComponent(`/experts/${profileId}`)
     redirect(`/login?callbackUrl=${callbackUrl}`)
   }
 

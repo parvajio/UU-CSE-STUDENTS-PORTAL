@@ -122,9 +122,9 @@ description: "Task list for Profile Detail Page + Personal Portfolio implementat
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T029 [P] Update guest-SQL verification script in `scripts/verify-guest-sql.ts` to assert no portfolio or contact columns appear in guest query responses
-- [ ] T030 [P] Run project linting (`npm run lint`), type-checking (`npx tsc --noEmit`), and build (`npm run build`)
-- [ ] T031 Run quickstart.md validation and manual verification across all user stories
+- [x] T029 [P] Update guest-SQL verification script in `scripts/verify-guest-sql.ts` to assert no portfolio or contact columns appear in guest query responses
+- [x] T030 [P] Run project linting (`npm run lint`), type-checking (`npx tsc --noEmit`), and build (`npm run build`)
+- [x] T031 Run quickstart.md validation and manual verification across all user stories
 
 ---
 
