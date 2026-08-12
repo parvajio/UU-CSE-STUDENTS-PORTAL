@@ -24,7 +24,7 @@ export function NavbarClient({ user }: { user: NavbarUser | null }) {
               {SITE_NAME}
             </span>
           </Link>
-          <MobileNav />
+          <MobileNav user={user} />
           <NavLinks />
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
