@@ -110,9 +110,9 @@ description: "Task list for Profile Detail Page + Personal Portfolio implementat
 
 ### Implementation for User Story 4
 
-- [ ] T026 [P] [US4] Create client-side PortfolioManager component in `src/app/(user)/profile/PortfolioManager.tsx` with 4 section cards, add/edit dialogs, confirm-delete modals, and actionable empty states
-- [ ] T027 [US4] Update profile page in `src/app/(user)/profile/page.tsx` to fetch portfolio data alongside profile, skills, and batch data
-- [ ] T028 [US4] Update ProfileView in `src/app/(user)/profile/ProfileView.tsx` to render amber pending notice, inline two-column draft preview of detail layout while pending, and PortfolioManager component
+- [x] T026 [P] [US4] Create client-side PortfolioManager component in `src/app/(user)/profile/PortfolioManager.tsx` with 4 section cards, add/edit dialogs, confirm-delete modals, and actionable empty states
+- [x] T027 [US4] Update profile page in `src/app/(user)/profile/page.tsx` to fetch portfolio data alongside profile, skills, and batch data
+- [x] T028 [US4] Update ProfileView in `src/app/(user)/profile/ProfileView.tsx` to render amber pending notice, inline two-column draft preview of detail layout while pending, and PortfolioManager component
 
 **Checkpoint**: All user stories implemented and independently testable
 
