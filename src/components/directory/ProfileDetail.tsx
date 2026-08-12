@@ -23,7 +23,7 @@ export function ProfileDetail({ profile }: { profile: MyProfile }) {
       ) : null}
 
       {/* Core Skills Card */}
-      {mainSkills.length > 0 ? (
+      {/* {mainSkills.length > 0 ? (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -39,10 +39,10 @@ export function ProfileDetail({ profile }: { profile: MyProfile }) {
             </div>
           </CardContent>
         </Card>
-      ) : null}
+      ) : null} */}
 
       {/* Subskills & Specialized Tags Card */}
-      {subskills.length > 0 ? (
+      {/* {subskills.length > 0 ? (
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
@@ -58,7 +58,7 @@ export function ProfileDetail({ profile }: { profile: MyProfile }) {
             </div>
           </CardContent>
         </Card>
-      ) : null}
+      ) : null} */}
     </div>
   )
 }
