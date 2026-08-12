@@ -19,7 +19,7 @@ export default async function ProfilePage() {
   ])
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+    <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-semibold text-foreground">
           My Profile

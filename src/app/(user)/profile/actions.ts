@@ -31,6 +31,7 @@ export type UpsertProfileInput = {
   portfolioUrl?: string
   githubUrl?: string
   skillIds: string[]
+  customSkills?: string[]
   isAlumni?: boolean
   currentCompany?: string
   jobPosition?: string
@@ -56,9 +57,6 @@ export async function upsertProfile(
   if (!session?.user?.id) redirect("/login")
   const userId = session.user.id
 
-  // R-021 / HIGH-1: 1 profile upsert per hour per user — creation AND edits
-  // share one counter. Runs unconditionally before the create/edit branch,
-  // so a first-time profile creation consumes the same single attempt as an edit.
   const limit = checkRateLimit(
     `profile-upsert:${userId}`,
     PROFILE_UPSERT_MAX,
@@ -127,6 +125,38 @@ export async function upsertProfile(
     }
   }
 
+  const customSkillNames = [...new Set((input.customSkills ?? []).map((s) => s.trim()).filter(Boolean))]
+  const finalSkillIds = [...uniqueSkillIds]
+
+  for (const customName of customSkillNames) {
+    const slug = customName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "skill"
+    const uniqueSlug = `${slug}-${Math.random().toString(36).substring(2, 7)}`
+
+    const existingSkill = await db.query.skills.findFirst({
+      where: eq(skills.name, customName),
+      columns: { id: true },
+    })
+
+    if (existingSkill) {
+      if (!finalSkillIds.includes(existingSkill.id)) {
+        finalSkillIds.push(existingSkill.id)
+      }
+    } else {
+      const [newSkill] = await db
+        .insert(skills)
+        .values({
+          name: customName,
+          slug: uniqueSlug,
+          isCustom: true,
+        })
+        .returning({ id: skills.id })
+
+      if (newSkill) {
+        finalSkillIds.push(newSkill.id)
+      }
+    }
+  }
+
   if (studentId) {
     const existingSid = await db.query.profiles.findFirst({
       where: and(eq(profiles.studentId, studentId), ne(profiles.userId, userId)),
@@ -142,11 +172,6 @@ export async function upsertProfile(
     columns: { id: true, status: true },
   })
 
-  // T046: only an APPROVED profile loses its approval on edit. Pending and
-  // rejected profiles are already not approved (approval columns already
-  // null), so their status/approval fields stay untouched. Every save
-  // re-queues as pending (creation, approved-edit, rejected-resubmit);
-  // a pending edit simply remains pending.
   const resetApproval = existing?.status === "approved"
 
   const values = {
@@ -177,10 +202,10 @@ export async function upsertProfile(
       ? db.update(profiles).set(values).where(eq(profiles.id, existing.id))
       : db.insert(profiles).values({ ...values, id: profileId }),
     db.delete(profileSkills).where(eq(profileSkills.profileId, profileId)),
-    ...(uniqueSkillIds.length > 0
+    ...(finalSkillIds.length > 0
       ? [
           db.insert(profileSkills).values(
-            uniqueSkillIds.map((skillId) => ({ profileId, skillId }))
+            finalSkillIds.map((skillId) => ({ profileId, skillId }))
           ),
         ]
       : []),
@@ -188,8 +213,8 @@ export async function upsertProfile(
 
   await db.batch(batchItems)
 
-  revalidateTag("directory")
-  revalidatePath("/directory")
+  revalidateTag("experts")
+  revalidatePath("/experts")
   revalidatePath("/my-submissions")
   revalidatePath("/profile")
 
@@ -202,6 +227,7 @@ export type MyProfileSkill = {
   slug: string
   parentSkillId: string | null
   colorKey: string | null
+  isCustom?: boolean
 }
 
 export type MyProfile = {
@@ -255,6 +281,7 @@ export async function getMyProfile(): Promise<MyProfile | null> {
       slug: j.skill.slug,
       parentSkillId: j.skill.parentSkillId,
       colorKey: j.skill.colorKey,
+      isCustom: j.skill.isCustom,
     })),
   }
 }

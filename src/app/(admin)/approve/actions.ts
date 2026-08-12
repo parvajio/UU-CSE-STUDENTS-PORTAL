@@ -150,9 +150,9 @@ async function decideItem(
   if (!result.success) return fail(result.error ?? "Unable to update item.")
 
   revalidateTag("pending-items")
-  revalidateTag("directory")
+  revalidateTag("experts")
   revalidatePath("/approve")
-  revalidatePath("/directory")
+  revalidatePath("/experts")
   revalidatePath("/my-submissions")
   revalidateTag("question-bank")
   revalidatePath("/question-bank")

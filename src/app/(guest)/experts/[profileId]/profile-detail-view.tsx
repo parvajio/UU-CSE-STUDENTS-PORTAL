@@ -3,7 +3,7 @@ import { ArrowLeft, Building2, IdCard } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ProfileSocials } from "@/components/directory/ProfileSocials"
 import { ProfilePortfolioSections } from "@/components/directory/ProfilePortfolioSections"
-import type { ProfileDetail } from "@/lib/db/queries/directory"
+import type { ProfileDetail as ProfileDetailType } from "@/lib/db/queries/directory"
 
 function initials(fullName: string): string {
   return fullName
@@ -15,7 +15,7 @@ function initials(fullName: string): string {
     .toUpperCase()
 }
 
-export function ProfileDetailView({ profile }: { profile: ProfileDetail }) {
+export function ProfileDetailView({ profile }: { profile: ProfileDetailType }) {
   return (
     <div className="min-h-screen bg-background pb-16">
       {/* Hero Banner Region */}
@@ -23,17 +23,17 @@ export function ProfileDetailView({ profile }: { profile: ProfileDetail }) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-6">
           <Link
-            href="/directory"
+            href="/experts"
             className="inline-flex items-center gap-1.5 rounded-full bg-background/20 backdrop-blur-md px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-background/35"
           >
             <ArrowLeft className="size-3.5" strokeWidth={1.5} />
-            Back to Directory
+            Back to Experts
           </Link>
         </div>
       </div>
 
       {/* Main Content Container */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 -mt-16 sm:-mt-20 relative z-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 -mt-16 sm:-mt-20 relative z-10 space-y-8">
         {/* Glass Identity Card */}
         <div className="rounded-3xl border border-white/20 bg-card/80 backdrop-blur-xl p-6 sm:p-8 shadow-xl">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -91,7 +91,7 @@ export function ProfileDetailView({ profile }: { profile: ProfileDetail }) {
           </div>
         </div>
 
-        {/* Two-Column Portfolio & About Body */}
+        {/* Portfolio & About Body (Projects on top of Experience, Core Skills & Subskills in right column) */}
         <div className="mt-8">
           <ProfilePortfolioSections profile={profile} />
         </div>

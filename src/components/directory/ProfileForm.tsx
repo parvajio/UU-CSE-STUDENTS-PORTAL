@@ -2,7 +2,9 @@
 
 import { useMemo, useState, useTransition, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
-import { GraduationCap, Loader2 } from "lucide-react"
+import { GraduationCap, Loader2, UploadCloud, X } from "lucide-react"
+import { generateUploadDropzone } from "@uploadthing/react"
+import type { OurFileRouter } from "@/lib/uploadthing"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -27,6 +29,8 @@ import { SECTIONS } from "../../../config/site"
 import { upsertProfile, type MyProfile, type UpsertProfileInput } from "@/app/(user)/profile/actions"
 import type { FlatSkill } from "@/lib/db/queries/skills"
 
+const UploadDropzone = generateUploadDropzone<OurFileRouter>()
+
 function SkillPill({
   skill,
   selected,
@@ -42,12 +46,15 @@ function SkillPill({
       aria-pressed={selected}
       onClick={onToggle}
       className={cn(
-        "soft-tag soft-tag--default cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        skill.colorKey && `soft-tag--${skill.colorKey}`,
-        selected && "soft-tag--selected"
+        "soft-tag cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background font-medium transition-all duration-150 text-xs sm:text-sm px-3 py-1.5",
+        skill.colorKey && !selected && `soft-tag--${skill.colorKey}`,
+        !skill.colorKey && !selected && "soft-tag--default",
+        selected
+          ? "bg-primary text-primary-foreground border-primary shadow-md font-semibold ring-2 ring-primary/40 scale-[1.02]"
+          : "hover:scale-[1.01]"
       )}
     >
-      {skill.name}
+      {skill.name} {selected ? "✓" : ""}
     </button>
   )
 }
@@ -86,9 +93,19 @@ export function ProfileForm({
   const [isAlumni, setIsAlumni] = useState(initial?.isAlumni ?? false)
   const [currentCompany, setCurrentCompany] = useState(initial?.currentCompany ?? "")
   const [jobPosition, setJobPosition] = useState(initial?.jobPosition ?? "")
+
+  const skillIdsSet = useMemo(() => new Set(skills.map((s) => s.id)), [skills])
+
   const [skillIds, setSkillIds] = useState<string[]>(
-    initial?.skills.map((skill) => skill.id) ?? []
+    initial?.skills.filter((skill) => skillIdsSet.has(skill.id)).map((skill) => skill.id) ?? []
   )
+
+  const [customSkills, setCustomSkills] = useState<string[]>(
+    initial?.skills
+      .filter((skill) => !skillIdsSet.has(skill.id) || skill.isCustom)
+      .map((skill) => skill.name) ?? []
+  )
+  const [customSkillInput, setCustomSkillInput] = useState("")
 
   const { topLevel, childrenByParent, orphanChildren } = useMemo(() => {
     const topLevel: FlatSkill[] = []
@@ -128,6 +145,21 @@ export function ProfileForm({
     )
   }
 
+  function addCustomSkill() {
+    const trimmed = customSkillInput.trim()
+    if (!trimmed) return
+    if (customSkills.map((s) => s.toLowerCase()).includes(trimmed.toLowerCase())) {
+      setCustomSkillInput("")
+      return
+    }
+    setCustomSkills((prev) => [...prev, trimmed])
+    setCustomSkillInput("")
+  }
+
+  function removeCustomSkill(skillName: string) {
+    setCustomSkills((prev) => prev.filter((s) => s !== skillName))
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
@@ -145,6 +177,7 @@ export function ProfileForm({
       portfolioUrl,
       githubUrl,
       skillIds,
+      customSkills,
       isAlumni,
       currentCompany,
       jobPosition,
@@ -162,8 +195,8 @@ export function ProfileForm({
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="w-full max-w-full overflow-hidden">
+      <CardHeader className="px-4 sm:px-6">
         <CardTitle>{initial ? "Edit Profile" : "Create Profile"}</CardTitle>
         <CardDescription>
           {initial
@@ -173,7 +206,7 @@ export function ProfileForm({
       </CardHeader>
 
       <form onSubmit={handleSubmit} noValidate>
-        <CardContent className="grid gap-5 sm:grid-cols-2">
+        <CardContent className="grid gap-5 px-4 sm:px-6 sm:grid-cols-2 overflow-hidden">
           <div className="grid gap-2 sm:col-span-2">
             <Label htmlFor="fullName">Full name</Label>
             <Input
@@ -185,61 +218,93 @@ export function ProfileForm({
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="studentId">Student ID</Label>
-            <Input
-              id="studentId"
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              placeholder="e.g. CSE-20-42"
-              required={!isAlumni}
-            />
+          <div className="grid gap-5 sm:col-span-2 sm:grid-cols-3">
+            <div className="grid gap-2">
+              <Label htmlFor="studentId">Student ID</Label>
+              <Input
+                id="studentId"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                placeholder="e.g. CSE-20-42"
+                required={!isAlumni}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Section</Label>
+              <Select value={section} onValueChange={setSection}>
+                <SelectTrigger aria-label="Section">
+                  <SelectValue placeholder="Select a section" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SECTIONS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      Section {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Batch</Label>
+              <Select
+                value={String(batchNumber)}
+                onValueChange={(value) => setBatchNumber(Number(value))}
+              >
+                <SelectTrigger aria-label="Batch">
+                  <SelectValue placeholder="Select a batch" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {batchOptions.map((batch) => (
+                    <SelectItem key={batch} value={String(batch)}>
+                      {batch}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label>Section</Label>
-            <Select value={section} onValueChange={setSection}>
-              <SelectTrigger aria-label="Section">
-                <SelectValue placeholder="Select a section" />
-              </SelectTrigger>
-              <SelectContent>
-                {SECTIONS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    Section {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Batch</Label>
-            <Select
-              value={String(batchNumber)}
-              onValueChange={(value) => setBatchNumber(Number(value))}
-            >
-              <SelectTrigger aria-label="Batch">
-                <SelectValue placeholder="Select a batch" />
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                {batchOptions.map((batch) => (
-                  <SelectItem key={batch} value={String(batch)}>
-                    {batch}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="avatarUrl">Avatar URL</Label>
-            <Input
-              id="avatarUrl"
-              type="url"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="https://…"
-            />
+          <div className="grid gap-2 sm:col-span-2">
+            <Label>Profile Avatar</Label>
+            {avatarUrl ? (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border p-3 bg-muted/30 w-full overflow-hidden">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img src={avatarUrl} alt="Avatar preview" className="size-16 rounded-full object-cover shrink-0 border" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">Avatar uploaded successfully</p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 w-full sm:w-auto"
+                  onClick={() => setAvatarUrl("")}
+                >
+                  Change / Remove
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed p-4 w-full overflow-hidden">
+                <UploadDropzone
+                  endpoint="portfolioImage"
+                  config={{ mode: "auto" }}
+                  content={{
+                    uploadIcon: <UploadCloud className="mx-auto size-10 text-muted-foreground" strokeWidth={1.5} />,
+                    button: ({ isUploading, uploadProgress }) =>
+                      isUploading ? `${Math.round(uploadProgress)}%` : "Upload Avatar Image",
+                    allowedContent: "Image (PNG, JPG, WebP) up to 10MB",
+                  }}
+                  onUploadBegin={() => setError(null)}
+                  onClientUploadComplete={(res) => {
+                    if (res?.[0]?.url) setAvatarUrl(res[0].url)
+                  }}
+                  onUploadError={(err) => setError(err.message)}
+                />
+              </div>
+            )}
           </div>
 
           <div className="grid gap-2 sm:col-span-2">
@@ -273,7 +338,7 @@ export function ProfileForm({
           </div>
 
           {isAlumni ? (
-            <>
+            <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="currentCompany">Current company</Label>
                 <Input
@@ -292,7 +357,7 @@ export function ProfileForm({
                   placeholder="Your role"
                 />
               </div>
-            </>
+            </div>
           ) : null}
 
           <div className="grid gap-2 sm:col-span-2">
@@ -306,51 +371,53 @@ export function ProfileForm({
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="githubUrl">GitHub</Label>
-            <Input
-              id="githubUrl"
-              type="url"
-              value={githubUrl}
-              onChange={(e) => setGithubUrl(e.target.value)}
-              placeholder="https://github.com/…"
-            />
-          </div>
+          <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="githubUrl">GitHub</Label>
+              <Input
+                id="githubUrl"
+                type="url"
+                value={githubUrl}
+                onChange={(e) => setGithubUrl(e.target.value)}
+                placeholder="https://github.com/…"
+              />
+            </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="portfolioUrl">Portfolio</Label>
-            <Input
-              id="portfolioUrl"
-              type="url"
-              value={portfolioUrl}
-              onChange={(e) => setPortfolioUrl(e.target.value)}
-              placeholder="https://…"
-            />
-          </div>
+            <div className="grid gap-2">
+              <Label htmlFor="portfolioUrl">Portfolio</Label>
+              <Input
+                id="portfolioUrl"
+                type="url"
+                value={portfolioUrl}
+                onChange={(e) => setPortfolioUrl(e.target.value)}
+                placeholder="https://…"
+              />
+            </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="facebookUrl">Facebook</Label>
-            <Input
-              id="facebookUrl"
-              type="url"
-              value={facebookUrl}
-              onChange={(e) => setFacebookUrl(e.target.value)}
-              placeholder="https://facebook.com/…"
-            />
-          </div>
+            <div className="grid gap-2">
+              <Label htmlFor="facebookUrl">Facebook</Label>
+              <Input
+                id="facebookUrl"
+                type="url"
+                value={facebookUrl}
+                onChange={(e) => setFacebookUrl(e.target.value)}
+                placeholder="https://facebook.com/…"
+              />
+            </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="whatsappNumber">WhatsApp number</Label>
-            <Input
-              id="whatsappNumber"
-              value={whatsappNumber}
-              onChange={(e) => setWhatsappNumber(e.target.value)}
-              placeholder="+8801XXXXXXXXX"
-            />
+            <div className="grid gap-2">
+              <Label htmlFor="whatsappNumber">WhatsApp number</Label>
+              <Input
+                id="whatsappNumber"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                placeholder="+8801XXXXXXXXX"
+              />
+            </div>
           </div>
 
           <div className="grid gap-3 sm:col-span-2">
-            <Label>Skills</Label>
+            <Label>Skills & Subskills</Label>
             <div className="flex flex-col gap-4">
               {topLevel.map((skill) => (
                 <div key={skill.id}>
@@ -362,7 +429,7 @@ export function ProfileForm({
                     />
                   </div>
                   {(childrenByParent.get(skill.id) ?? []).length > 0 ? (
-                    <div className="mt-2 flex flex-wrap gap-2 pl-4">
+                    <div className="mt-2 flex flex-wrap gap-2 pl-2 sm:pl-4">
                       {(childrenByParent.get(skill.id) ?? []).map((child) => (
                         <SkillPill
                           key={child.id}
@@ -390,6 +457,47 @@ export function ProfileForm({
             </div>
           </div>
 
+          <div className="grid gap-3 sm:col-span-2">
+            <Label htmlFor="customSkillInput">Add Custom Subskills / Tags (e.g. Next.js, Docker)</Label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                id="customSkillInput"
+                value={customSkillInput}
+                onChange={(e) => setCustomSkillInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === "," || e.key === " ") {
+                    e.preventDefault()
+                    addCustomSkill()
+                  }
+                }}
+                placeholder="Type skill and press Enter or comma"
+              />
+              <Button type="button" variant="secondary" onClick={addCustomSkill} className="shrink-0">
+                Add Tag
+              </Button>
+            </div>
+            {customSkills.length > 0 ? (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {customSkills.map((cs) => (
+                  <span
+                    key={cs}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 text-primary border border-primary/30 px-3 py-1 text-xs sm:text-sm font-semibold shadow-xs"
+                  >
+                    {cs}
+                    <button
+                      type="button"
+                      onClick={() => removeCustomSkill(cs)}
+                      className="text-primary/70 hover:text-destructive ml-0.5 rounded-full p-0.5 hover:bg-primary/20"
+                      aria-label={`Remove ${cs}`}
+                    >
+                      <X className="size-3.5" strokeWidth={2} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
           {error ? (
             <p
               role="alert"
@@ -400,8 +508,8 @@ export function ProfileForm({
           ) : null}
         </CardContent>
 
-        <CardFooter>
-          <Button type="submit" disabled={isPending}>
+        <CardFooter className="px-4 sm:px-6 pb-6">
+          <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
             {isPending ? (
               <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
             ) : null}

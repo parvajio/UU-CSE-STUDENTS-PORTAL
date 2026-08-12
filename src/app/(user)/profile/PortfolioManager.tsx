@@ -481,7 +481,7 @@ export function PortfolioManager({ portfolio }: { portfolio: ProfilePortfolio })
 
       {/* Add / Edit Dialog */}
       <Dialog open={modal.type === "add" || modal.type === "edit"} onOpenChange={(open) => !open && closeModal()}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {modal.type === "add" ? `Add ${modal.entity}` : `Edit ${modal.entity}`}
@@ -513,16 +513,25 @@ export function PortfolioManager({ portfolio }: { portfolio: ProfilePortfolio })
                 <div className="space-y-2">
                   <Label>Optional Image (Max 10MB)</Label>
                   {imageUrl ? (
-                    <div className="flex items-center gap-3 rounded-lg border p-2 bg-muted/30">
-                      <img src={imageUrl} alt="Preview" className="size-16 rounded object-cover" />
-                      <div className="flex-1 truncate text-xs text-muted-foreground">{imageUrl}</div>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setImageUrl("")}>
+                    <div className="flex items-center justify-between gap-3 rounded-lg border p-2 bg-muted/30">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img src={imageUrl} alt="Preview" className="size-16 rounded object-cover shrink-0" />
+                        <span className="text-xs font-medium text-muted-foreground truncate">Image attached successfully</span>
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => setImageUrl("")}>
                         Remove
                       </Button>
                     </div>
                   ) : (
                     <UploadDropzone
                       endpoint="portfolioImage"
+                      config={{ mode: "auto" }}
+                      content={{
+                        button: ({ isUploading, uploadProgress }) =>
+                          isUploading ? `${Math.round(uploadProgress)}%` : "Choose image",
+                        allowedContent: "Image up to 10MB",
+                      }}
+                      onUploadBegin={() => setError(null)}
                       onClientUploadComplete={(res) => {
                         if (res?.[0]?.url) setImageUrl(res[0].url)
                       }}
@@ -568,16 +577,25 @@ export function PortfolioManager({ portfolio }: { portfolio: ProfilePortfolio })
                 <div className="space-y-2">
                   <Label>Optional Project Image (Max 10MB)</Label>
                   {imageUrl ? (
-                    <div className="flex items-center gap-3 rounded-lg border p-2 bg-muted/30">
-                      <img src={imageUrl} alt="Preview" className="size-16 rounded object-cover" />
-                      <div className="flex-1 truncate text-xs text-muted-foreground">{imageUrl}</div>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setImageUrl("")}>
+                    <div className="flex items-center justify-between gap-3 rounded-lg border p-2 bg-muted/30">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img src={imageUrl} alt="Preview" className="size-16 rounded object-cover shrink-0" />
+                        <span className="text-xs font-medium text-muted-foreground truncate">Image attached successfully</span>
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => setImageUrl("")}>
                         Remove
                       </Button>
                     </div>
                   ) : (
                     <UploadDropzone
                       endpoint="portfolioImage"
+                      config={{ mode: "auto" }}
+                      content={{
+                        button: ({ isUploading, uploadProgress }) =>
+                          isUploading ? `${Math.round(uploadProgress)}%` : "Choose image",
+                        allowedContent: "Image up to 10MB",
+                      }}
+                      onUploadBegin={() => setError(null)}
                       onClientUploadComplete={(res) => {
                         if (res?.[0]?.url) setImageUrl(res[0].url)
                       }}
@@ -609,16 +627,25 @@ export function PortfolioManager({ portfolio }: { portfolio: ProfilePortfolio })
                 <div className="space-y-2">
                   <Label>Optional Certificate Image (Max 10MB)</Label>
                   {imageUrl ? (
-                    <div className="flex items-center gap-3 rounded-lg border p-2 bg-muted/30">
-                      <img src={imageUrl} alt="Preview" className="size-16 rounded object-cover" />
-                      <div className="flex-1 truncate text-xs text-muted-foreground">{imageUrl}</div>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setImageUrl("")}>
+                    <div className="flex items-center justify-between gap-3 rounded-lg border p-2 bg-muted/30">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img src={imageUrl} alt="Preview" className="size-16 rounded object-cover shrink-0" />
+                        <span className="text-xs font-medium text-muted-foreground truncate">Image attached successfully</span>
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => setImageUrl("")}>
                         Remove
                       </Button>
                     </div>
                   ) : (
                     <UploadDropzone
                       endpoint="portfolioImage"
+                      config={{ mode: "auto" }}
+                      content={{
+                        button: ({ isUploading, uploadProgress }) =>
+                          isUploading ? `${Math.round(uploadProgress)}%` : "Choose image",
+                        allowedContent: "Image up to 10MB",
+                      }}
+                      onUploadBegin={() => setError(null)}
                       onClientUploadComplete={(res) => {
                         if (res?.[0]?.url) setImageUrl(res[0].url)
                       }}

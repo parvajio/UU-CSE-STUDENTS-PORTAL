@@ -8,6 +8,7 @@ export type SkillNode = {
   slug: string
   parentSkillId: string | null
   colorKey: string | null
+  isCustom?: boolean
   children: SkillNode[]
 }
 
@@ -17,6 +18,7 @@ export type FlatSkill = {
   slug: string
   parentSkillId: string | null
   colorKey: string | null
+  isCustom?: boolean
 }
 
 export async function getAllSkills(): Promise<FlatSkill[]> {
@@ -27,6 +29,7 @@ export async function getAllSkills(): Promise<FlatSkill[]> {
       slug: true,
       parentSkillId: true,
       colorKey: true,
+      isCustom: true,
     },
     orderBy: [asc(skills.name)],
   })
@@ -40,6 +43,7 @@ export async function getSkillsTree(): Promise<SkillNode[]> {
       slug: true,
       parentSkillId: true,
       colorKey: true,
+      isCustom: true,
     },
     where: isNull(skills.parentSkillId),
     with: { children: true },
@@ -56,6 +60,7 @@ export async function getSkillsTree(): Promise<SkillNode[]> {
         slug: child.slug,
         parentSkillId: child.parentSkillId,
         colorKey: child.colorKey,
+        isCustom: child.isCustom,
         children: [],
       })),
   }))

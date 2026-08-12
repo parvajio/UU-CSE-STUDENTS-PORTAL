@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Lock } from "lucide-react"
+import { ArrowRight, Lock } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { SkillTag } from "./SkillTag"
@@ -24,6 +24,7 @@ export function ProfileCard({
   viewerRole?: string
 }) {
   const isGuest = viewerRole === "guest"
+  const mainSkills = profile.skills.filter((skill) => !skill.parentSkillId && !skill.isCustom)
 
   if (isGuest) {
     return (
@@ -44,9 +45,9 @@ export function ProfileCard({
             <p className="mt-0.5 text-xs text-muted-foreground">
               Batch {profile.batchNumber}
             </p>
-            {profile.skills.length > 0 ? (
+            {mainSkills.length > 0 ? (
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {profile.skills.map((skill) => (
+                {mainSkills.map((skill) => (
                   <SkillTag key={skill.id} skill={skill} />
                 ))}
               </div>
@@ -66,7 +67,7 @@ export function ProfileCard({
   return (
     <Card className="relative h-full overflow-hidden border-border/80 bg-card transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] motion-reduce:translate-y-0 motion-reduce:transition-none group">
       <Link
-        href={`/directory/${profile.id}`}
+        href={`/experts/${profile.id}`}
         className="absolute inset-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={`View profile for ${authedProfile.fullName}`}
       />
@@ -103,15 +104,15 @@ export function ProfileCard({
             </p>
           ) : null}
 
-          {authedProfile.skills.length > 0 ? (
+          {mainSkills.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-1.5 relative z-20">
-              {authedProfile.skills.map((skill) => (
+              {mainSkills.map((skill) => (
                 <SkillTag key={skill.id} skill={skill} />
               ))}
             </div>
           ) : null}
 
-          <div className="mt-4 flex items-center justify-between pt-2 border-t border-border/40 relative z-20">
+          <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40 relative z-20">
             <ProfileSocials
               facebookUrl={authedProfile.facebookUrl}
               linkedinUrl={authedProfile.linkedinUrl}
@@ -119,8 +120,8 @@ export function ProfileCard({
               portfolioUrl={authedProfile.portfolioUrl}
               whatsappNumber={authedProfile.whatsappNumber}
             />
-            <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-              View profile →
+            <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+              View profile <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
             </span>
           </div>
         </div>

@@ -17,7 +17,9 @@ export type SearchProfileSkill = {
   id: string
   name: string
   slug: string
+  parentSkillId: string | null
   colorKey: string | null
+  isCustom?: boolean
 }
 
 export type GuestSearchProfile = {
@@ -114,7 +116,7 @@ export async function searchDirectory(
       columns: {},
       with: {
         skill: {
-          columns: { id: true, name: true, slug: true, colorKey: true },
+          columns: { id: true, name: true, slug: true, parentSkillId: true, colorKey: true, isCustom: true },
         },
       },
     },
@@ -187,7 +189,7 @@ export async function getProfileDetail(
         columns: {},
         with: {
           skill: {
-            columns: { id: true, name: true, slug: true, colorKey: true },
+            columns: { id: true, name: true, slug: true, parentSkillId: true, colorKey: true, isCustom: true },
           },
         },
       },
