@@ -91,12 +91,12 @@ description: "Task list for Profile Detail Page + Personal Portfolio implementat
 
 ### Implementation for User Story 3
 
-- [ ] T020 [P] [US3] Create portfolio server actions file in `src/app/(user)/profile/portfolio-actions.ts` with `getMyPortfolio` query function
-- [ ] T021 [US3] Implement server-side add/update/delete actions for achievements in `src/app/(user)/profile/portfolio-actions.ts` with owner guard and rate-limiting (`portfolio:achievement:<userId>`)
-- [ ] T022 [US3] Implement server-side add/update/delete actions for projects in `src/app/(user)/profile/portfolio-actions.ts` with owner guard and rate-limiting (`portfolio:project:<userId>`)
-- [ ] T023 [US3] Implement server-side add/update/delete actions for certificates in `src/app/(user)/profile/portfolio-actions.ts` with owner guard and rate-limiting (`portfolio:certificate:<userId>`)
-- [ ] T024 [US3] Implement server-side add/update/delete actions for experiences in `src/app/(user)/profile/portfolio-actions.ts` with owner guard and rate-limiting (`portfolio:experience:<userId>`)
-- [ ] T025 [US3] Implement image upload handling and cleanup logic (no orphaned files on delete, save entry even if upload fails) in `src/app/(user)/profile/portfolio-actions.ts`
+- [x] T020 [P] [US3] Create portfolio server actions file in `src/app/(user)/profile/portfolio-actions.ts` with `getMyPortfolio` query function
+- [x] T021 [US3] Implement server-side add/update/delete actions for achievements in `src/app/(user)/profile/portfolio-actions.ts` with owner guard and rate-limiting (`portfolio:achievement:<userId>`)
+- [x] T022 [US3] Implement server-side add/update/delete actions for projects in `src/app/(user)/profile/portfolio-actions.ts` with owner guard and rate-limiting (`portfolio:project:<userId>`)
+- [x] T023 [US3] Implement server-side add/update/delete actions for certificates in `src/app/(user)/profile/portfolio-actions.ts` with owner guard and rate-limiting (`portfolio:certificate:<userId>`)
+- [x] T024 [US3] Implement server-side add/update/delete actions for experiences in `src/app/(user)/profile/portfolio-actions.ts` with owner guard and rate-limiting (`portfolio:experience:<userId>`)
+- [x] T025 [US3] Implement image upload handling and cleanup logic (no orphaned files on delete, save entry even if upload fails) in `src/app/(user)/profile/portfolio-actions.ts`
 
 **Checkpoint**: Portfolio system fully operational and secured
 
