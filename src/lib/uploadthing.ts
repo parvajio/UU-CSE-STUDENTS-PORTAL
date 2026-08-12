@@ -28,6 +28,23 @@ export const ourFileRouter = {
     .onUploadComplete(async () => {
       // No DB write here — the fileUrl is persisted by the createQuestion Server Action.
     }),
+
+  portfolioImage: f({
+    image: { maxFileSize: TEN_MB, maxFileCount: 1 },
+  })
+    .middleware(async () => {
+      const session = await auth()
+      if (!session?.user?.id) {
+        throw new UploadThingError({
+          code: "FORBIDDEN",
+          message: "You must be logged in to upload a portfolio image.",
+        })
+      }
+      return { uploadedBy: session.user.id }
+    })
+    .onUploadComplete(async () => {
+      // No DB write here — persisted by portfolio server actions.
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter
