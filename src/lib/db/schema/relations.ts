@@ -3,6 +3,10 @@ import { users } from "./users"
 import { profiles } from "./profiles"
 import { skills } from "./skills"
 import { profileSkills } from "./profile-skills"
+import { profileAchievements } from "./profile-achievements"
+import { profileProjects } from "./profile-projects"
+import { profileCertificates } from "./profile-certificates"
+import { profileExperiences } from "./profile-experiences"
 import { notifications } from "./notifications"
 import { siteConfig } from "./site-config"
 import { courses } from "./courses"
@@ -37,6 +41,10 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
     references: [users.id],
   }),
   profileSkills: many(profileSkills),
+  achievements: many(profileAchievements),
+  projects: many(profileProjects),
+  certificates: many(profileCertificates),
+  experiences: many(profileExperiences),
 }))
 
 export const skillsRelations = relations(skills, ({ one, many }) => ({
@@ -59,6 +67,34 @@ export const profileSkillsRelations = relations(profileSkills, ({ one }) => ({
   skill: one(skills, {
     fields: [profileSkills.skillId],
     references: [skills.id],
+  }),
+}))
+
+export const profileAchievementsRelations = relations(profileAchievements, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [profileAchievements.profileId],
+    references: [profiles.id],
+  }),
+}))
+
+export const profileProjectsRelations = relations(profileProjects, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [profileProjects.profileId],
+    references: [profiles.id],
+  }),
+}))
+
+export const profileCertificatesRelations = relations(profileCertificates, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [profileCertificates.profileId],
+    references: [profiles.id],
+  }),
+}))
+
+export const profileExperiencesRelations = relations(profileExperiences, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [profileExperiences.profileId],
+    references: [profiles.id],
   }),
 }))
 

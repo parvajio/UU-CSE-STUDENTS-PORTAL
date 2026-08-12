@@ -49,6 +49,22 @@ function matchRoute(pathname: string): string | undefined {
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
+
+  // Defense-in-depth: /directory/[profileId] requires authentication
+  if (pathname.startsWith("/directory/") && pathname !== "/directory" && pathname !== "/directory/") {
+    const token = await getToken({
+      req: request,
+      secret,
+      secureCookie: request.nextUrl.protocol === "https:",
+    })
+    if (!token) {
+      const loginUrl = new URL("/login", request.url)
+      loginUrl.searchParams.set("callbackUrl", `${pathname}${search}`)
+      return NextResponse.redirect(loginUrl)
+    }
+    return NextResponse.next()
+  }
+
   const route = matchRoute(pathname)
 
   if (!route) {

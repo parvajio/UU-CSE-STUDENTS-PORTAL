@@ -1,6 +1,9 @@
+import Link from "next/link"
+import { Lock } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { SkillTag } from "./SkillTag"
+import { ProfileSocials } from "./ProfileSocials"
 import type { ProfileCard as ProfileCardData } from "@/lib/db/queries/directory"
 
 function initials(fullName: string): string {
@@ -13,40 +16,112 @@ function initials(fullName: string): string {
     .toUpperCase()
 }
 
-export function ProfileCard({ profile }: { profile: ProfileCardData }) {
-  const isAuthed = "avatarUrl" in profile
+export function ProfileCard({
+  profile,
+  viewerRole = "guest",
+}: {
+  profile: ProfileCardData
+  viewerRole?: string
+}) {
+  const isGuest = viewerRole === "guest"
 
-  return (
-    <Card className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--card-shadow-hover)] motion-reduce:translate-y-0 motion-reduce:transition-none">
-      <CardContent className="flex items-start gap-4 p-5">
-        {isAuthed && profile.avatarUrl ? (
-          <Avatar className="mt-0.5">
-            <AvatarImage src={profile.avatarUrl} alt={profile.fullName} />
-            <AvatarFallback>{initials(profile.fullName)}</AvatarFallback>
-          </Avatar>
-        ) : null}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+  if (isGuest) {
+    return (
+      <Card className="relative overflow-hidden border-border/60 bg-card/60 backdrop-blur-sm transition-all duration-200">
+        <div className="h-16 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent" />
+        <CardContent className="relative px-5 pb-5 pt-0">
+          <div className="-mt-7 mb-3 flex items-end justify-between">
+            <Avatar className="size-14 border-2 border-background shadow-md">
+              <AvatarFallback className="text-sm font-medium">
+                {initials(profile.fullName)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="min-w-0">
             <h3 className="truncate font-heading text-base font-semibold text-foreground">
               {profile.fullName}
             </h3>
-            {isAuthed && profile.isAlumni ? (
-              <span className="soft-tag soft-tag--default px-2 py-0.5 text-xs">Alumni</span>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Batch {profile.batchNumber}
+            </p>
+            {profile.skills.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {profile.skills.map((skill) => (
+                  <SkillTag key={skill.id} skill={skill} />
+                ))}
+              </div>
+            ) : null}
+            <div className="mt-4 flex items-center gap-1.5 text-xs font-medium text-muted-foreground pt-2 border-t border-border/40">
+              <Lock className="size-3.5" strokeWidth={1.5} />
+              <span>Log in to view full profile</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const authedProfile = profile as Extract<ProfileCardData, { avatarUrl: string | null }>
+
+  return (
+    <Link href={`/directory/${profile.id}`} className="block group">
+      <Card className="relative h-full overflow-hidden border-border/80 bg-card transition-all duration-200 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:shadow-[var(--card-shadow-hover)] motion-reduce:translate-y-0 motion-reduce:transition-none">
+        <div className="h-20 bg-gradient-to-r from-primary/20 via-primary/10 to-accent/20" />
+        <CardContent className="relative px-5 pb-5 pt-0">
+          <div className="-mt-8 mb-3 flex items-end justify-between">
+            <Avatar className="size-16 border-2 border-background shadow-md">
+              {authedProfile.avatarUrl ? (
+                <AvatarImage src={authedProfile.avatarUrl} alt={authedProfile.fullName} />
+              ) : null}
+              <AvatarFallback className="text-base font-medium">
+                {initials(authedProfile.fullName)}
+              </AvatarFallback>
+            </Avatar>
+            {authedProfile.isAlumni ? (
+              <span className="soft-tag soft-tag--default px-2 py-0.5 text-xs font-medium">
+                Alumni
+              </span>
             ) : null}
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Batch {profile.batchNumber}
-            {isAuthed && profile.section ? ` · Section ${profile.section}` : ""}
-          </p>
-          {profile.skills.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {profile.skills.map((skill) => (
-                <SkillTag key={skill.id} skill={skill} />
-              ))}
+
+          <div className="min-w-0">
+            <h3 className="truncate font-heading text-base font-semibold text-foreground group-hover:text-primary transition-colors">
+              {authedProfile.fullName}
+            </h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Batch {authedProfile.batchNumber}
+              {authedProfile.section ? ` · Section ${authedProfile.section}` : ""}
+            </p>
+
+            {authedProfile.bio ? (
+              <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                {authedProfile.bio}
+              </p>
+            ) : null}
+
+            {authedProfile.skills.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {authedProfile.skills.map((skill) => (
+                  <SkillTag key={skill.id} skill={skill} />
+                ))}
+              </div>
+            ) : null}
+
+            <div className="mt-4 flex items-center justify-between pt-2 border-t border-border/40">
+              <ProfileSocials
+                facebookUrl={authedProfile.facebookUrl}
+                linkedinUrl={authedProfile.linkedinUrl}
+                githubUrl={authedProfile.githubUrl}
+                portfolioUrl={authedProfile.portfolioUrl}
+                whatsappNumber={authedProfile.whatsappNumber}
+              />
+              <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                View profile →
+              </span>
             </div>
-          ) : null}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }

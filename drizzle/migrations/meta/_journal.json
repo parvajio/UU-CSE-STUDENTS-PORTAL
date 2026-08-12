@@ -43,6 +43,13 @@
       "when": 1786374220695,
       "tag": "0005_perfect_grey_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786528218626,
+      "tag": "0006_white_star_brand",
+      "breakpoints": true
     }
   ]
 }
