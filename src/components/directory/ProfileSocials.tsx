@@ -36,6 +36,7 @@ type ProfileSocialsProps = {
   githubUrl?: string | null
   portfolioUrl?: string | null
   whatsappNumber?: string | null
+  iconOnly?: boolean
 }
 
 export function ProfileSocials({
@@ -44,6 +45,7 @@ export function ProfileSocials({
   githubUrl,
   portfolioUrl,
   whatsappNumber,
+  iconOnly = false,
 }: ProfileSocialsProps) {
   const links = [
     { label: "LinkedIn", href: linkedinUrl, icon: LinkedinSvg, color: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20" },
@@ -63,6 +65,29 @@ export function ProfileSocials({
   ].filter((item): item is { label: string; href: string; icon: typeof Globe; color: string } => Boolean(item.href))
 
   if (links.length === 0) return null
+
+  if (iconOnly) {
+    return (
+      <div className="flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+        {links.map((link) => {
+          const Icon = link.icon
+          return (
+            <Link
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={link.label}
+              title={link.label}
+              className={`inline-flex items-center justify-center size-8 rounded-lg border transition-transform hover:scale-105 shadow-xs ${link.color}`}
+            >
+              <Icon className="size-4 shrink-0" strokeWidth={1.75} />
+            </Link>
+          )
+        })}
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>

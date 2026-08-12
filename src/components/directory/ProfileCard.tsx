@@ -112,17 +112,21 @@ export function ProfileCard({
             </div>
           ) : null}
 
-          <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40 relative z-20">
+          <div className="mt-4 pt-3 border-t border-border/40 space-y-3 relative z-20">
             <ProfileSocials
               facebookUrl={authedProfile.facebookUrl}
               linkedinUrl={authedProfile.linkedinUrl}
               githubUrl={authedProfile.githubUrl}
               portfolioUrl={authedProfile.portfolioUrl}
               whatsappNumber={authedProfile.whatsappNumber}
+              iconOnly={true}
             />
-            <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-              View profile <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
-            </span>
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span className="text-muted-foreground font-medium">Click card to view</span>
+              <span className="inline-flex items-center gap-1 rounded-md bg-muted/80 px-2.5 py-1 text-xs font-medium text-foreground hover:bg-accent transition-colors">
+                View profile <ArrowRight className="size-3" strokeWidth={1.75} />
+              </span>
+            </div>
           </div>
         </div>
       </CardContent>
