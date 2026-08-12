@@ -13,7 +13,7 @@ export const EXAM_TYPE_LABELS: Record<(typeof EXAM_TYPES)[number], string> = {
   midterm: "Midterm",
   final: "Final",
   lab: "Lab",
-  viva: "Viva/Seminar",
+  viva: "CT/Assignment",
 }
 
 export const PROGRAM_TYPES = ["regular", "diploma", "evening"] as const
