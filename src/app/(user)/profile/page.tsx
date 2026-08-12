@@ -3,6 +3,7 @@ import { getAllSkills } from "@/lib/db/queries/skills"
 import { getCurrentBatch } from "@/lib/db/queries/site-config"
 import { ProfileForm } from "@/components/directory/ProfileForm"
 import { getMyProfile } from "./actions"
+import { getMyPortfolio } from "./portfolio-actions"
 import { ProfileView } from "./ProfileView"
 
 export const metadata: Metadata = {
@@ -10,10 +11,11 @@ export const metadata: Metadata = {
 }
 
 export default async function ProfilePage() {
-  const [profile, skills, currentBatch] = await Promise.all([
+  const [profile, skills, currentBatch, portfolio] = await Promise.all([
     getMyProfile(),
     getAllSkills(),
     getCurrentBatch(),
+    getMyPortfolio(),
   ])
 
   return (
@@ -28,7 +30,12 @@ export default async function ProfilePage() {
       </div>
 
       {profile ? (
-        <ProfileView profile={profile} skills={skills} currentBatch={currentBatch} />
+        <ProfileView
+          profile={profile}
+          skills={skills}
+          currentBatch={currentBatch}
+          portfolio={portfolio}
+        />
       ) : (
         <ProfileForm skills={skills} currentBatch={currentBatch} />
       )}
