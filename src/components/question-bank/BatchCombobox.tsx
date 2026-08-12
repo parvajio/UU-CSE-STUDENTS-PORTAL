@@ -25,7 +25,7 @@ export function BatchCombobox({
   const [query, setQuery] = useState("")
 
   const options = useMemo(
-    () => Array.from({ length: max }, (_, i) => i + 1),
+    () => Array.from({ length: max }, (_, i) => max - i),
     [max]
   )
 

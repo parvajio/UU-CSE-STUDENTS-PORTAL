@@ -281,7 +281,7 @@ function FilterFields({
         <QuickChips
           items={topCourses.map((chip) => ({
             key: chip.courseId,
-            label: `${chip.code} · ${chip.title}`,
+            label: `${chip.title}`,
             count: chip.count,
           }))}
           isActive={(key) => key === courseValue}
