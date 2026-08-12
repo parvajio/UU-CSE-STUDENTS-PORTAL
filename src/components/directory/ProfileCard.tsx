@@ -83,7 +83,7 @@ export function ProfileCard({
             </AvatarFallback>
           </Avatar>
           {authedProfile.isAlumni ? (
-            <span className="soft-tag soft-tag--default px-2 py-0.5 text-xs font-medium relative z-20">
+            <span className="soft-tag soft-tag--default px-2 py-0.5 text-xs font-medium">
               Alumni
             </span>
           ) : null}
@@ -105,22 +105,24 @@ export function ProfileCard({
           ) : null}
 
           {mainSkills.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-1.5 relative z-20">
+            <div className="mt-3 flex flex-wrap gap-1.5">
               {mainSkills.map((skill) => (
                 <SkillTag key={skill.id} skill={skill} />
               ))}
             </div>
           ) : null}
 
-          <div className="mt-4 pt-3 border-t border-border/40 space-y-3 relative z-20">
-            <ProfileSocials
-              facebookUrl={authedProfile.facebookUrl}
-              linkedinUrl={authedProfile.linkedinUrl}
-              githubUrl={authedProfile.githubUrl}
-              portfolioUrl={authedProfile.portfolioUrl}
-              whatsappNumber={authedProfile.whatsappNumber}
-              iconOnly={true}
-            />
+          <div className="mt-4 pt-3 border-t border-border/40 space-y-3">
+            <div className="relative z-20">
+              <ProfileSocials
+                facebookUrl={authedProfile.facebookUrl}
+                linkedinUrl={authedProfile.linkedinUrl}
+                githubUrl={authedProfile.githubUrl}
+                portfolioUrl={authedProfile.portfolioUrl}
+                whatsappNumber={authedProfile.whatsappNumber}
+                iconOnly={true}
+              />
+            </div>
             <div className="flex items-center justify-between text-xs pt-1">
               <span className="text-muted-foreground font-medium">Click card to view</span>
               <span className="inline-flex items-center gap-1 rounded-md bg-muted/80 px-2.5 py-1 text-xs font-medium text-foreground hover:bg-accent transition-colors">
