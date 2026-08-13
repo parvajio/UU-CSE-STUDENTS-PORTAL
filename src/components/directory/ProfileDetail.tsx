@@ -21,44 +21,6 @@ export function ProfileDetail({ profile }: { profile: MyProfile }) {
           </CardContent>
         </Card>
       ) : null}
-
-      {/* Core Skills Card */}
-      {/* {mainSkills.length > 0 ? (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <span className="inline-block size-2 rounded-full bg-primary" />
-              Core Skills & Expertise
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex flex-wrap gap-2">
-              {mainSkills.map((skill) => (
-                <SkillTag key={skill.id} skill={skill} />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ) : null} */}
-
-      {/* Subskills & Specialized Tags Card */}
-      {/* {subskills.length > 0 ? (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
-              <Sparkles className="size-4" strokeWidth={1.75} />
-              Subskills & Specialized Tags
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex flex-wrap gap-2">
-              {subskills.map((skill) => (
-                <SkillTag key={skill.id} skill={skill} />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ) : null} */}
     </div>
   )
 }
