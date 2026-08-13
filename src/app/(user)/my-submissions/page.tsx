@@ -4,8 +4,8 @@ import { ClipboardList, ExternalLink, FileText, Pencil, AlertCircle } from "luci
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/shared/EmptyState"
-import { ProfileDetail } from "@/components/directory/ProfileDetail"
 import { StatusBadge } from "@/components/approval/StatusBadge"
+import { cn } from "@/lib/utils"
 import { getMyProfile } from "../profile/actions"
 import { getMyQuestions } from "@/lib/db/queries/questions-mine"
 import { auth } from "@/lib/auth/auth"
@@ -46,18 +46,73 @@ export default async function MySubmissionsPage() {
             Profile Submission
           </h2>
           {profile ? (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <StatusBadge status={profile.status} />
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/profile">
-                    <Pencil className="size-4" strokeWidth={1.5} />
-                    Edit
-                  </Link>
-                </Button>
-              </div>
-              <ProfileDetail profile={profile} />
-            </div>
+            <Card>
+              <CardContent className="flex flex-col gap-3 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <StatusBadge status={profile.status} />
+                  <span className="text-xs text-muted-foreground">
+                    Submitted on {formatDate(profile.createdAt)}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-heading text-base font-semibold text-foreground">
+                    {profile.fullName}
+                  </h3>
+                  {profile.studentId ? (
+                    <p className="text-sm font-medium text-foreground">
+                      Student ID: {profile.studentId}
+                    </p>
+                  ) : null}
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Batch {profile.batchNumber} · Section {profile.section}
+                    {profile.isAlumni ? " · Alumni" : ""}
+                  </p>
+                  {profile.isAlumni &&
+                  (profile.currentCompany || profile.jobPosition) ? (
+                    <p className="text-xs text-muted-foreground">
+                      {profile.currentCompany}
+                      {profile.currentCompany && profile.jobPosition ? " · " : ""}
+                      {profile.jobPosition}
+                    </p>
+                  ) : null}
+                </div>
+
+                {profile.skills.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {profile.skills.map((skill) => (
+                      <span
+                        key={skill.id}
+                        className={cn(
+                          "soft-tag",
+                          skill.colorKey
+                            ? `soft-tag--${skill.colorKey}`
+                            : "soft-tag--default",
+                          "px-2 py-0.5 text-xs"
+                        )}
+                      >
+                        {skill.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                {profile.bio ? (
+                  <p className="line-clamp-3 text-sm text-muted-foreground">
+                    {profile.bio}
+                  </p>
+                ) : null}
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/profile">
+                      <Pencil className="size-4" strokeWidth={1.5} />
+                      Edit
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <EmptyState
               title="No profile submission yet"
