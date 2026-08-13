@@ -94,50 +94,27 @@ export function ProfileForm({
   const [currentCompany, setCurrentCompany] = useState(initial?.currentCompany ?? "")
   const [jobPosition, setJobPosition] = useState(initial?.jobPosition ?? "")
 
-  const skillIdsSet = useMemo(() => new Set(skills.map((s) => s.id)), [skills])
+  const topLevelSkills = useMemo(() => {
+    return skills.filter(
+      (skill) => skill.parentSkillId === null && !skill.isCustom && skill.colorKey !== null
+    )
+  }, [skills])
+
+  const topLevelSkillIdsSet = useMemo(
+    () => new Set(topLevelSkills.map((s) => s.id)),
+    [topLevelSkills]
+  )
 
   const [skillIds, setSkillIds] = useState<string[]>(
-    initial?.skills.filter((skill) => skillIdsSet.has(skill.id)).map((skill) => skill.id) ?? []
+    initial?.skills.filter((skill) => topLevelSkillIdsSet.has(skill.id)).map((skill) => skill.id) ?? []
   )
 
   const [customSkills, setCustomSkills] = useState<string[]>(
     initial?.skills
-      .filter((skill) => !skillIdsSet.has(skill.id) || skill.isCustom)
+      .filter((skill) => !topLevelSkillIdsSet.has(skill.id) || skill.isCustom)
       .map((skill) => skill.name) ?? []
   )
   const [customSkillInput, setCustomSkillInput] = useState("")
-
-  const { topLevel, childrenByParent, orphanChildren } = useMemo(() => {
-    const topLevel: FlatSkill[] = []
-    const childrenByParent = new Map<string, FlatSkill[]>()
-    const topLevelIds = new Set<string>()
-
-    for (const skill of skills) {
-      if (skill.parentSkillId === null) {
-        topLevel.push(skill)
-        topLevelIds.add(skill.id)
-      }
-    }
-
-    const orphanChildren: FlatSkill[] = []
-    for (const skill of skills) {
-      if (skill.parentSkillId !== null) {
-        if (topLevelIds.has(skill.parentSkillId)) {
-          const arr = childrenByParent.get(skill.parentSkillId) ?? []
-          arr.push(skill)
-          childrenByParent.set(skill.parentSkillId, arr)
-        } else {
-          orphanChildren.push(skill)
-        }
-      }
-    }
-
-    for (const children of childrenByParent.values()) {
-      children.sort((a, b) => a.name.localeCompare(b.name))
-    }
-
-    return { topLevel, childrenByParent, orphanChildren }
-  }, [skills])
 
   function toggleSkill(id: string) {
     setSkillIds((prev) =>
@@ -417,43 +394,16 @@ export function ProfileForm({
           </div>
 
           <div className="grid gap-3 sm:col-span-2">
-            <Label>Skills & Subskills</Label>
-            <div className="flex flex-col gap-4">
-              {topLevel.map((skill) => (
-                <div key={skill.id}>
-                  <div className="flex flex-wrap gap-2">
-                    <SkillPill
-                      skill={skill}
-                      selected={skillIds.includes(skill.id)}
-                      onToggle={() => toggleSkill(skill.id)}
-                    />
-                  </div>
-                  {(childrenByParent.get(skill.id) ?? []).length > 0 ? (
-                    <div className="mt-2 flex flex-wrap gap-2 pl-2 sm:pl-4">
-                      {(childrenByParent.get(skill.id) ?? []).map((child) => (
-                        <SkillPill
-                          key={child.id}
-                          skill={child}
-                          selected={skillIds.includes(child.id)}
-                          onToggle={() => toggleSkill(child.id)}
-                        />
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
+            <Label>Skills</Label>
+            <div className="flex flex-wrap gap-2">
+              {topLevelSkills.map((skill) => (
+                <SkillPill
+                  key={skill.id}
+                  skill={skill}
+                  selected={skillIds.includes(skill.id)}
+                  onToggle={() => toggleSkill(skill.id)}
+                />
               ))}
-              {orphanChildren.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {orphanChildren.map((skill) => (
-                    <SkillPill
-                      key={skill.id}
-                      skill={skill}
-                      selected={skillIds.includes(skill.id)}
-                      onToggle={() => toggleSkill(skill.id)}
-                    />
-                  ))}
-                </div>
-              ) : null}
             </div>
           </div>
 
