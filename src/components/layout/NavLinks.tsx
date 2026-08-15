@@ -8,6 +8,7 @@ export const NAV_LINKS = [
   { href: "/experts", label: "Experts" },
   { href: "/faculty", label: "Faculty" },
   { href: "/question-bank", label: "Question Bank" },
+  { href: "/routine", label: "Routine" },
   { href: "/clubs", label: "Clubs" },
   { href: "/events", label: "Events" },
 ]
