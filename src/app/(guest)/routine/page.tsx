@@ -8,17 +8,13 @@ export const metadata = {
 }
 
 export default async function RoutinePage() {
-  // Fetch all routine slots from the database
   const allSlots = await db.select().from(routineSlots)
 
-  // Extract distinct batches and semesters
   const batchesSet = new Set<string>()
-  const semestersSet = new Set<string>()
   const sectionsSet = new Set<string>()
 
   allSlots.forEach((slot) => {
     if (slot.batch) batchesSet.add(slot.batch)
-    if (slot.semester) semestersSet.add(slot.semester)
     if (slot.section) sectionsSet.add(slot.section.toUpperCase())
   })
 
@@ -29,7 +25,6 @@ export default async function RoutinePage() {
     return a.localeCompare(b)
   })
 
-  const semesters = Array.from(semestersSet).sort().reverse()
   const sections = Array.from(sectionsSet).sort()
 
   return (
@@ -37,14 +32,13 @@ export default async function RoutinePage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Class Routine</h1>
         <p className="text-muted-foreground">
-          Clean and structured class schedules for all batches and sections. Filter by batch, section, or search course codes/teachers.
+          Clean and structured class schedules for all batches and sections. Filter by batch, section, day, or search course codes.
         </p>
       </div>
 
       <RoutineClientView
         initialSlots={allSlots}
         batches={batches}
-        semesters={semesters}
         sections={sections}
       />
     </div>
