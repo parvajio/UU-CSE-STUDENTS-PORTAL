@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
 import { routineSlots } from "@/lib/db/schema"
-import { eq, and } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
 export async function POST(req: Request) {
@@ -20,41 +20,36 @@ export async function POST(req: Request) {
       return Response.json({ error: "Invalid sections data provided" }, { status: 400 })
     }
 
-    if (!semester) {
-      return Response.json({ error: "Semester is required" }, { status: 400 })
-    }
+    const targetSemester = semester ? String(semester).trim() : "Current"
 
+    // Map all slots without dropping unflagged/missing entries (even if admin didn't modify)
     const rows = sections.flatMap((sec: any) => {
-      const batch = String(sec.batch || "").trim()
-      const section = String(sec.section || "").trim()
+      const batch = String(sec.batch || "General").trim()
+      const section = String(sec.section || "A").trim()
       const slots = Array.isArray(sec.slots) ? sec.slots : []
 
-      return slots
-        .filter((s: any) => s && s.classCode) // require classCode for valid slots
-        .map((s: any) => ({
-          batch: batch || "All",
-          section: section || "A",
-          day: String(s.day || "Sunday").trim(),
-          startPeriod: s.startPeriod !== undefined && s.startPeriod !== null ? Number(s.startPeriod) : null,
-          endPeriod: s.endPeriod !== undefined && s.endPeriod !== null ? Number(s.endPeriod) : null,
-          startTime: s.startTime ? String(s.startTime).trim() : null,
-          endTime: s.endTime ? String(s.endTime).trim() : null,
-          classCode: String(s.classCode).trim().toUpperCase(),
-          courseTitle: s.courseTitle ? String(s.courseTitle).trim() : null,
-          teacherInitial: s.teacherInitial ? String(s.teacherInitial).trim().toUpperCase() : null,
-          room: s.room ? String(s.room).trim() : null,
-          isLab: Boolean(s.isLab),
-          semester: String(semester).trim(),
-          effectiveFrom: effectiveFrom ? String(effectiveFrom).trim() : null,
-        }))
+      return slots.map((s: any) => ({
+        batch,
+        section,
+        day: String(s.day || "Sunday").trim(),
+        startPeriod: s.startPeriod !== undefined && s.startPeriod !== null && s.startPeriod !== "" ? Number(s.startPeriod) : null,
+        endPeriod: s.endPeriod !== undefined && s.endPeriod !== null && s.endPeriod !== "" ? Number(s.endPeriod) : null,
+        startTime: s.startTime ? String(s.startTime).trim() : null,
+        endTime: s.endTime ? String(s.endTime).trim() : null,
+        classCode: s.classCode ? String(s.classCode).trim().toUpperCase() : "TBD",
+        courseTitle: s.courseTitle ? String(s.courseTitle).trim() : null,
+        teacherInitial: s.teacherInitial ? String(s.teacherInitial).trim().toUpperCase() : "TBD",
+        room: s.room ? String(s.room).trim() : "TBD",
+        isLab: Boolean(s.isLab),
+        semester: targetSemester,
+        effectiveFrom: effectiveFrom ? String(effectiveFrom).trim() : null,
+      }))
     })
 
-    // If specific semester is targeted, we clean out old slots for this semester to replace cleanly,
-    // or we can replace across all or per batch/section. The standard pattern is clearing by semester.
-    await db.delete(routineSlots).where(eq(routineSlots.semester, semester))
+    // Clear old slots for this semester and insert new ones
+    await db.delete(routineSlots).where(eq(routineSlots.semester, targetSemester))
 
     if (rows.length > 0) {
-      // Insert in batches of 500 to prevent payload limits
       const batchSize = 500
       for (let i = 0; i < rows.length; i += batchSize) {
         const chunk = rows.slice(i, i + batchSize)
