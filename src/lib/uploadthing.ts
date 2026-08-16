@@ -45,6 +45,23 @@ export const ourFileRouter = {
     .onUploadComplete(async () => {
       // No DB write here — persisted by portfolio server actions.
     }),
+
+  binary26Image: f({
+    image: { maxFileSize: TEN_MB, maxFileCount: 1 },
+  })
+    .middleware(async () => {
+      const session = await auth()
+      if (!session?.user?.id || session.user.role !== "admin") {
+        throw new UploadThingError({
+          code: "FORBIDDEN",
+          message: "Only admins can upload binary 26 gallery images.",
+        })
+      }
+      return { uploadedBy: session.user.id }
+    })
+    .onUploadComplete(async () => {
+      // No DB write here — persisted by admin server action.
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter

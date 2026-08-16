@@ -57,6 +57,13 @@
       "when": 1786530000000,
       "tag": "0007_custom_skills",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786910720404,
+      "tag": "0008_far_butterfly",
+      "breakpoints": true
     }
   ]
 }

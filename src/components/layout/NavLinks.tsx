@@ -11,6 +11,7 @@ export const NAV_LINKS = [
   { href: "/routine", label: "Routine" },
   { href: "/clubs", label: "Clubs" },
   { href: "/events", label: "Events" },
+  { href: "/binary-26", label: "Binary 26" },
 ]
 
 export function NavLinks() {

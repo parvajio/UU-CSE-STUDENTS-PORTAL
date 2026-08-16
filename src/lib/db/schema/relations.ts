@@ -14,6 +14,7 @@ import { questions } from "./questions"
 import { questionFiles } from "./question-files"
 import { questionLikes } from "./question-likes"
 import { questionTags } from "./question-tags"
+import { binary26Registrations, binary26Gallery } from "./binary26"
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
@@ -29,6 +30,25 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     relationName: "approvedQuestions",
   }),
   questionLikes: many(questionLikes),
+  binary26Registrations: many(binary26Registrations, {
+    relationName: "userRegistrations",
+  }),
+  markedBinary26Payments: many(binary26Registrations, {
+    relationName: "paidMarker",
+  }),
+}))
+
+export const binary26RegistrationsRelations = relations(binary26Registrations, ({ one }) => ({
+  user: one(users, {
+    fields: [binary26Registrations.userId],
+    references: [users.id],
+    relationName: "userRegistrations",
+  }),
+  marker: one(users, {
+    fields: [binary26Registrations.markedPaidBy],
+    references: [users.id],
+    relationName: "paidMarker",
+  }),
 }))
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
