@@ -11,8 +11,12 @@ import {
   BookOpen,
   Code2
 } from "lucide-react"
+import { Binary26Banner } from "@/components/binary26/Binary26Banner"
+import { getBinary26EventSettings } from "@/lib/binary26/actions"
 
-export default function Home() {
+export default async function Home() {
+  const eventSettings = await getBinary26EventSettings()
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
@@ -55,6 +59,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Binary 26 Medium Banner */}
+      <Binary26Banner 
+        eventTime={eventSettings.eventTime}
+        title={eventSettings.title}
+        location={eventSettings.location}
+      />
 
       {/* Live Features Section */}
       <section className="py-16 border-t border-border/60 bg-surface/30">

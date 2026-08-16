@@ -16,6 +16,7 @@ const routePermissions: Record<string, Role[]> = {
   "/achievements": [],
   "/projects": [],
   "/certificate-verify": [],
+  "/binary-26": [],
 
   "/profile": ["user", "moderator", "admin"],
   "/profile/edit": ["user", "moderator", "admin"],
@@ -27,6 +28,7 @@ const routePermissions: Record<string, Role[]> = {
   "/blood-donor": ["user", "moderator", "admin"],
 
   "/approve": ["moderator", "admin"],
+  "/moderator/binary-26": ["moderator", "admin"],
   "/manage/roles": ["admin"],
   "/manage/faculty": ["admin"],
   "/manage/clubs": ["admin"],
@@ -35,6 +37,7 @@ const routePermissions: Record<string, Role[]> = {
   "/manage/skills": ["admin"],
   "/manage/courses": ["admin"],
   "/manage/settings": ["admin"],
+  "/manage/binary-26": ["admin"],
 }
 
 function matchRoute(pathname: string): string | undefined {

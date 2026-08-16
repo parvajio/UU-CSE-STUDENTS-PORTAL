@@ -5,6 +5,7 @@ import { ProfileForm } from "@/components/directory/ProfileForm"
 import { getMyProfile } from "./actions"
 import { getMyPortfolio } from "./portfolio-actions"
 import { ProfileView } from "./ProfileView"
+import { UserTicketsCard } from "@/components/binary26/UserTicketsCard"
 
 export const metadata: Metadata = {
   title: "My Profile",
@@ -19,15 +20,17 @@ export default async function ProfilePage() {
   ])
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+    <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 space-y-8">
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-semibold text-foreground">
-          My Profile
+          My Profile & Tickets
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Your profile powers your entry in the Student Expert Directory.
+          Manage your student profile and check your Binary 26 tickets.
         </p>
       </div>
+
+      <UserTicketsCard />
 
       {profile ? (
         <ProfileView

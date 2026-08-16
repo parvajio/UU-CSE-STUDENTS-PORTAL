@@ -17,6 +17,7 @@ import {
   Settings2,
   LogIn,
   LogOut,
+  Ticket,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -40,6 +41,7 @@ const LINK_ICONS: Record<string, React.ComponentType<{ className?: string; strok
   "/question-bank": FileText,
   "/clubs": Shield,
   "/events": Calendar,
+  "/binary-26": Ticket,
 }
 
 export function MobileNav({ user }: { user: NavbarUser | null }) {

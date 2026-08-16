@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { signOut } from "next-auth/react"
-import { BookOpen, Calendar, ClipboardList, LogOut, Settings2, ShieldCheck, UserRound } from "lucide-react"
+import { BookOpen, Calendar, ClipboardList, LogOut, Settings2, ShieldCheck, UserRound, Ticket } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -57,12 +57,20 @@ export function UserMenu({ user }: { user: NavbarUser }) {
           </Link>
         </DropdownMenuItem>
         {user.role === "moderator" || user.role === "admin" ? (
-          <DropdownMenuItem asChild>
-            <Link href="/approve" className="cursor-pointer">
-              <ShieldCheck className="size-4" strokeWidth={1.5} />
-              Approvals
-            </Link>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/approve" className="cursor-pointer">
+                <ShieldCheck className="size-4" strokeWidth={1.5} />
+                Approvals
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/moderator/binary-26" className="cursor-pointer">
+                <Ticket className="size-4" strokeWidth={1.5} />
+                Binary 26 Verifications
+              </Link>
+            </DropdownMenuItem>
+          </>
         ) : null}
         {user.role === "admin" || user.role === "moderator" ? (
           <DropdownMenuItem asChild>
@@ -80,6 +88,12 @@ export function UserMenu({ user }: { user: NavbarUser }) {
               <Link href="/manage/courses" className="cursor-pointer">
                 <BookOpen className="size-4" strokeWidth={1.5} />
                 Manage Courses
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/manage/binary-26" className="cursor-pointer">
+                <Ticket className="size-4" strokeWidth={1.5} />
+                Binary 26 Admin
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
