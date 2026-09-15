@@ -6,15 +6,16 @@ import { eq } from "drizzle-orm"
 import { enforceSubmissionLimit } from "@/lib/rate-limit"
 import { notFound } from "next/navigation"
 
-export async function GET(req: Request, ctx: { params: { clubId: string } }) {
+export async function GET(req: Request, ctx: { params: Promise<{ clubId: string }> }) {
+  const { clubId } = await ctx.params
   const club = await db.query.clubs.findFirst({
-    where: eq(clubs.id, ctx.params.clubId),
+    where: eq(clubs.id, clubId),
   })
   if (!club) return NextResponse.json({ error: "Club not found" }, { status: 404 })
   return NextResponse.json(club)
 }
 
-export async function PUT(req: Request, ctx: { params: { clubId: string } }) {
+export async function PUT(req: Request, ctx: { params: Promise<{ clubId: string }> }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
@@ -32,7 +33,7 @@ export async function PUT(req: Request, ctx: { params: { clubId: string } }) {
     const { updatedAt: clientUpdatedAt, ...updates } = body
 
     const club = await db.query.clubs.findFirst({
-      where: eq(clubs.id, ctx.params.clubId),
+      where: eq(clubs.id, (await ctx.params).clubId),
     })
     if (!club) return NextResponse.json({ error: "Club not found" }, { status: 404 })
 
@@ -43,7 +44,7 @@ export async function PUT(req: Request, ctx: { params: { clubId: string } }) {
     const [row] = await db
       .update(clubs)
       .set({ ...updates, updatedAt: new Date().toISOString() })
-      .where(eq(clubs.id, ctx.params.clubId))
+      .where(eq(clubs.id, (await ctx.params).clubId))
       .returning()
 
     return NextResponse.json(row)
@@ -52,18 +53,18 @@ export async function PUT(req: Request, ctx: { params: { clubId: string } }) {
   }
 }
 
-export async function DELETE(req: Request, ctx: { params: { clubId: string } }) {
+export async function DELETE(req: Request, ctx: { params: Promise<{ clubId: string }> }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   try {
     const club = await db.query.clubs.findFirst({
-      where: eq(clubs.id, ctx.params.clubId),
+      where: eq(clubs.id, (await ctx.params).clubId),
     })
     if (!club) return NextResponse.json({ error: "Club not found" }, { status: 404 })
 
-    await db.delete(clubs).where(eq(clubs.id, ctx.params.clubId))
+    await db.delete(clubs).where(eq(clubs.id, (await ctx.params).clubId))
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
     return NextResponse.json({ error: "Failed to delete club" }, { status: 500 })

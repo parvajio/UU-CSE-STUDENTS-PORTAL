@@ -145,16 +145,16 @@
 
 ### Tests for User Story 5
 
-- [ ] T041 [P] [US5] Playwright e2e test: admin creates gallery album and uploads images in `tests/e2e/manage-gallery.spec.ts`
+- [X] T041 [P] [US5] Playwright e2e test: admin creates gallery album and uploads images in `tests/e2e/manage-gallery.spec.ts`
 
 ### Implementation for User Story 5
 
-- [ ] T042 [P] [US5] Implement gallery album CRUD in `src/app/manage/clubs/[clubId]/gallery/page.tsx` — form with title, description; `POST /api/clubs/[clubId]/gallery` creates album
-- [ ] T043 [US5] Implement gallery image upload in `src/app/api/gallery-images/route.ts` — multipart/form-data handling with UploadThing blocking upload, persists imageUrl, caption, displayOrder to `club_gallery_images`
-- [ ] T044 [US5] Implement achievement CRUD in `src/app/manage/clubs/[clubId]/achievements/page.tsx` — form with title, description, optional date, imageUrl (UploadThing), linkUrl; `POST /api/club-achievements`
-- [ ] T045 [US5] Implement event CRUD in `src/app/manage/clubs/events/page.tsx` and `src/app/api/events/route.ts` — form with name, place, description, date, deadline, startTime, endTime, clubId; event status computed dynamically
-- [ ] T046 [US5] Implement event visibility logic — club events (`clubId` set) appear on club detail page AND main events page with "From [Club Name]" tag; standalone events (`clubId = null`) appear only on main events page
-- [ ] T047 [US5] Add Playwright e2e test: admin creates achievement and event, verifies they appear on club detail page in `tests/e2e/manage-achievements-events.spec.ts`
+- [X] T042 [P] [US5] Implement gallery album CRUD in `src/app/manage/clubs/[clubId]/gallery/page.tsx` — form with title, description; `POST /api/clubs/[clubId]/gallery` creates album
+- [X] T043 [US5] Implement gallery image upload in `src/app/api/gallery-images/route.ts` — multipart/form-data handling with UploadThing blocking upload, persists imageUrl, caption, displayOrder to `club_gallery_images`
+- [X] T044 [US5] Implement achievement CRUD in `src/app/manage/clubs/[clubId]/achievements/page.tsx` — form with title, description, optional date, imageUrl (UploadThing), linkUrl; `POST /api/club-achievements`
+- [X] T045 [US5] Implement event CRUD in `src/app/manage/clubs/events/page.tsx` and `src/app/api/events/route.ts` — form with name, place, description, date, deadline, startTime, endTime, clubId; event status computed dynamically
+- [X] T046 [US5] Implement event visibility logic — club events (`clubId` set) appear on club detail page AND main events page with "From [Club Name]" tag; standalone events (`clubId = null`) appear only on main events page
+- [X] T047 [US5] Add Playwright e2e test: admin creates achievement and event, verifies they appear on club detail page in `tests/e2e/manage-achievements-events.spec.ts`
 
 **Checkpoint**: User Story 5 fully functional — admin can manage gallery, achievements, and events for any club.
 

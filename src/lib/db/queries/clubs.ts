@@ -127,6 +127,7 @@ export async function getClubDetail(clubId: string) {
       startTime: e.startTime,
       endTime: e.endTime,
       deadline: e.deadline,
+      clubId: e.clubId,
       status: computeEventStatus(e.startTime, e.endTime),
     })),
   }
@@ -140,4 +141,37 @@ export function computeEventStatus(startTime: string | null, endTime: string | n
   if (endTimeDate && endTimeDate <= now) return "completed"
   if (startTimeDate && startTimeDate > now) return "upcoming"
   return "ongoing"
+}
+
+export async function getEventsForPage(clubId?: string | null) {
+  if (clubId) {
+    const clubEvents = await db.query.events.findMany({
+      where: eq(events.clubId, clubId),
+      orderBy: [desc(events.createdAt)],
+      with: {
+        club: {
+          columns: { name: true },
+        },
+      },
+    })
+    return clubEvents.map((e) => ({
+      ...e,
+      status: computeEventStatus(e.startTime, e.endTime),
+      clubName: e.club?.name ?? "",
+    }))
+  }
+
+  const allEvents = await db.query.events.findMany({
+    orderBy: [desc(events.createdAt)],
+    with: {
+      club: {
+        columns: { name: true },
+      },
+    },
+  })
+  return allEvents.map((e) => ({
+    ...e,
+    status: computeEventStatus(e.startTime, e.endTime),
+    clubName: e.club?.name ?? "",
+  }))
 }
