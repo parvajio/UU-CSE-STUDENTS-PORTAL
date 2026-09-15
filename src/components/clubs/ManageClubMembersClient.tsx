@@ -50,11 +50,13 @@ export function ManageClubMembersClient({
 
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
-    if (searchQuery.length < 2) {
-      setResults([])
-      return
-    }
+    // Short queries clear results inside the deferred callback (not
+    // synchronously in the effect body) per react-hooks/set-state-in-effect.
     debounceTimer.current = setTimeout(async () => {
+      if (searchQuery.length < 2) {
+        setResults([])
+        return
+      }
       setIsSearching(true)
       try {
         const res = await fetch(`/api/club-members?q=${encodeURIComponent(searchQuery)}`)
@@ -162,7 +164,7 @@ export function ManageClubMembersClient({
             </div>
             {isSearching && (
               <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
                 Searching...
               </div>
             )}
@@ -218,7 +220,7 @@ export function ManageClubMembersClient({
               </select>
             </div>
             <Button onClick={handleAddMember} disabled={isAdding || !selectedProfile}>
-              {isAdding ? <Loader2 className="size-4 animate-spin mr-2" /> : <UserPlus className="size-4 mr-2" />}
+              {isAdding ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none mr-2" /> : <UserPlus className="size-4 mr-2" />}
               Add Member
             </Button>
           </div>
@@ -232,7 +234,7 @@ export function ManageClubMembersClient({
           members.map((member) => (
             <div
               key={member.profileId}
-              className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-border hover:border-primary/30 transition-colors"
+              className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-border hover:border-primary/30 transition-colors motion-reduce:transition-none"
             >
               <Avatar className="h-10 w-10">
                 <AvatarImage src={member.avatarUrl ?? undefined} alt={member.fullName} />

@@ -102,7 +102,7 @@ export function AchievementsClient({
               </p>
             )}
             <Button type="submit" disabled={isPending}>
-              {isPending ? <Loader2 className="size-4 animate-spin mr-2" /> : <Plus className="size-4 mr-2" />}
+              {isPending ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none mr-2" /> : <Plus className="size-4 mr-2" />}
               Create Achievement
             </Button>
           </CardContent>

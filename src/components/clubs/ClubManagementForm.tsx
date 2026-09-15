@@ -167,7 +167,7 @@ export function ClubManagementForm({
 
       <Button type="submit" disabled={isPending}>
         {isPending ? (
-          <Loader2 className="size-4 animate-spin mr-2" strokeWidth={1.5} />
+          <Loader2 className="size-4 animate-spin motion-reduce:animate-none mr-2" strokeWidth={1.5} />
         ) : null}
         {submitLabel}
       </Button>
@@ -200,7 +200,7 @@ export function ClubManagementForm({
           </div>
           <Button type="submit" variant="secondary" disabled={isPending}>
             {isPending ? (
-              <Loader2 className="size-4 animate-spin mr-2" strokeWidth={1.5} />
+              <Loader2 className="size-4 animate-spin motion-reduce:animate-none mr-2" strokeWidth={1.5} />
             ) : (
               <Plus className="size-4 mr-2" strokeWidth={1.5} />
             )}

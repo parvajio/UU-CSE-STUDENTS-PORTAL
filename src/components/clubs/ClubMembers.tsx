@@ -30,7 +30,7 @@ export function ClubMembers({
       {members.map((member) => (
         <div
           key={member.profileId}
-          className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-border hover:border-primary/30 transition-colors"
+          className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-border hover:border-primary/30 transition-colors motion-reduce:transition-none"
         >
           <Avatar className="h-10 w-10">
             <AvatarImage src={member.avatarUrl ?? undefined} alt={member.fullName} />

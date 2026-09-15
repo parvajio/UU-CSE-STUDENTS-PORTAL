@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { linkifyText } from "@/lib/linkify"
 
 interface ClubMember {
   profileId: string
@@ -70,26 +71,11 @@ interface ClubDetailData {
 
 function renderDescription(text: string | null | undefined) {
   if (!text) return null
-  const urlRegex = /(https?:\/\/|www\.)[^\s]+/g
-  const parts = text.split(urlRegex)
-  const urls = text.match(urlRegex) || []
-
+  // URL auto-detection (FR-013, SC-006) via the shared linkify util.
   return (
     <div className="text-sm text-muted-foreground space-y-2">
-      {parts.map((part, i) => (
-        <React.Fragment key={i}>
-          {part}
-          {urls[i] && (
-            <a
-              href={urls[i].startsWith("http") ? urls[i] : `https://${urls[i]}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              {urls[i]}
-            </a>
-          )}
-        </React.Fragment>
+      {linkifyText(text).map((node, i) => (
+        <React.Fragment key={i}>{node}</React.Fragment>
       ))}
     </div>
   )
@@ -146,7 +132,7 @@ export function ClubDetailPage({ data }: { data: ClubDetailData }) {
               href={club.msgGroupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-sm text-foreground hover:bg-accent transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-sm text-foreground hover:bg-accent transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Message Group <ExternalLink className="size-3" />
             </a>
@@ -156,7 +142,7 @@ export function ClubDetailPage({ data }: { data: ClubDetailData }) {
               href={club.pageUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-sm text-foreground hover:bg-accent transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-sm text-foreground hover:bg-accent transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Page <ExternalLink className="size-3" />
             </a>
@@ -166,7 +152,7 @@ export function ClubDetailPage({ data }: { data: ClubDetailData }) {
               href={club.fbGroupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-sm text-foreground hover:bg-accent transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-sm text-foreground hover:bg-accent transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Facebook <ExternalLink className="size-3" />
             </a>
@@ -220,7 +206,9 @@ export function ClubDetailPage({ data }: { data: ClubDetailData }) {
                       )}
                       {event.description && (
                         <p className="text-sm text-muted-foreground mt-1">
-                          {event.description}
+                          {linkifyText(event.description).map((node, i) => (
+                            <React.Fragment key={i}>{node}</React.Fragment>
+                          ))}
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">

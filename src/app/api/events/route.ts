@@ -73,9 +73,17 @@ export async function PUT(req: Request) {
     const body = await req.json()
     const { id, ...updates } = body
 
+    // Whitelist updatable columns — event status is computed dynamically
+    // (computeEventStatus) and must never be persisted (T054).
+    const allowed = ["clubId", "name", "place", "description", "date", "deadline", "startTime", "endTime"] as const
+    const patch: Record<string, unknown> = {}
+    for (const key of allowed) {
+      if (key in updates) patch[key] = updates[key]
+    }
+
     const [row] = await db
       .update(events)
-      .set({ ...updates, updatedAt: new Date().toISOString() })
+      .set({ ...patch, updatedAt: new Date().toISOString() })
       .where(eq(events.id, id))
       .returning()
 
