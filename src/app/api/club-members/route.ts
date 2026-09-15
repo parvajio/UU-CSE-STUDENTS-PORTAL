@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { clubMembers } from "@/lib/db/schema/club-members"
 import { clubs } from "@/lib/db/schema/clubs"
 import { profiles } from "@/lib/db/schema/profiles"
-import { eq, ilike } from "drizzle-orm"
+import { eq, ilike, and } from "drizzle-orm"
 import { enforceSubmissionLimit } from "@/lib/rate-limit"
 
 export async function GET(req: Request) {
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   }
 
   const approvedProfiles = await db.query.profiles.findMany({
-    where: ilike(profiles.fullName, `%${query}%`),
+    where: and(eq(profiles.status, "approved"), ilike(profiles.fullName, `%${query}%`)),
     columns: {
       id: true,
       fullName: true,
@@ -65,5 +65,29 @@ export async function POST(req: Request) {
     return NextResponse.json(row, { status: 201 })
   } catch (err: unknown) {
     return NextResponse.json({ error: "Failed to add member" }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: Request) {
+  const session = await auth()
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+
+  try {
+    const body = await req.json()
+    const { clubId, profileId } = body
+
+    const deleted = await db
+      .delete(clubMembers)
+      .where(
+        and(eq(clubMembers.clubId, clubId), eq(clubMembers.profileId, profileId))
+      )
+      .returning()
+
+    if (!deleted.length) return NextResponse.json({ error: "Member not found" }, { status: 404 })
+
+    return NextResponse.json({ success: true })
+  } catch (err: unknown) {
+    return NextResponse.json({ error: "Failed to remove member" }, { status: 500 })
   }
 }

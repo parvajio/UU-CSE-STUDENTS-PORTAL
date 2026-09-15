@@ -127,11 +127,11 @@
 
 ### Implementation for User Story 4
 
-- [ ] T036 [P] [US4] Implement profile search API in `src/app/api/club-members/route.ts` — GET handler searching approved profiles by name using Drizzle `ilike` on `profiles.fullName`
-- [ ] T037 [US4] Implement member search UI in `src/app/manage/clubs/[clubId]/page.tsx` — search input with debounced results dropdown showing approved profiles
-- [ ] T038 [US4] Implement add member form in `src/components/clubs/ClubManagementForm.tsx` — dropdown for roleInClub (`member` | `executive` | `advisor`), free-text designation field, profile selector
-- [ ] T039 [US4] Implement member addition Server Action — validates `profileId` references approved profile, inserts into `club_members` with `joinedAt = now()`, enforces `enforceSubmissionLimit`
-- [ ] T040 [US4] Update `ClubMembers` component in `src/components/clubs/ClubMembers.tsx` — re-renders with new member data including avatar, name, designation, roleInClub, position
+- [X] T036 [P] [US4] Implement profile search API in `src/app/api/club-members/route.ts` — GET handler searching approved profiles by name using Drizzle `ilike` on `profiles.fullName`
+- [X] T037 [US4] Implement member search UI in `src/app/manage/clubs/[clubId]/page.tsx` — search input with debounced results dropdown showing approved profiles
+- [X] T038 [US4] Implement add member form in `src/components/clubs/ClubManagementForm.tsx` — dropdown for roleInClub (`member` | `executive` | `advisor`), free-text designation field, profile selector
+- [X] T039 [US4] Implement member addition Server Action — validates `profileId` references approved profile, inserts into `club_members` with `joinedAt = now()`, enforces `enforceSubmissionLimit`
+- [X] T040 [US4] Update `ClubMembers` component in `src/components/clubs/ClubMembers.tsx` — re-renders with new member data including avatar, name, designation, roleInClub, position
 
 **Checkpoint**: User Story 4 fully functional — admin can search and add members to clubs.
 

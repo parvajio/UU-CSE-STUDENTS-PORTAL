@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
 import { getClubDetail } from "@/lib/db/queries/clubs"
+import { ManageClubMembersClient } from "@/components/clubs/ManageClubMembersClient"
 
 export default async function ManageClubDetailPage({
   params,
@@ -22,6 +23,10 @@ export default async function ManageClubDetailPage({
           Manage Club
         </h1>
       </div>
+      <ManageClubMembersClient
+        clubId={params.clubId}
+        initialMembers={data.members}
+      />
     </main>
   )
 }

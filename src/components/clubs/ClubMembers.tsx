@@ -11,7 +11,11 @@ interface ClubMember {
   designation: string | null
 }
 
-export function ClubMembers({ members }: { members: ClubMember[] }) {
+export function ClubMembers({
+  members,
+}: {
+  members: ClubMember[]
+}) {
   if (members.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm flex items-center justify-center gap-2">
