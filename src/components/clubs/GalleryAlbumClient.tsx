@@ -122,7 +122,7 @@ export function GalleryAlbumClient({
             )}
             <Button type="submit" disabled={isPending}>
               {isPending ? (
-                <Loader2 className="size-4 animate-spin mr-2" />
+                <Loader2 className="size-4 animate-spin motion-reduce:animate-none mr-2" />
               ) : (
                 <Plus className="size-4 mr-2" />
               )}

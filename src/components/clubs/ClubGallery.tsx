@@ -1,4 +1,6 @@
 import { ImageIcon } from "lucide-react"
+import React from "react"
+import { linkifyText } from "@/lib/linkify"
 
 interface GalleryImage {
   id: string
@@ -31,7 +33,11 @@ export function ClubGallery({ albums }: { albums: Album[] }) {
             {album.title}
           </h3>
           {album.description && (
-            <p className="text-sm text-muted-foreground">{album.description}</p>
+            <p className="text-sm text-muted-foreground">
+              {linkifyText(album.description).map((node, i) => (
+                <React.Fragment key={i}>{node}</React.Fragment>
+              ))}
+            </p>
           )}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {album.images.map((image) => (
@@ -45,7 +51,11 @@ export function ClubGallery({ albums }: { albums: Album[] }) {
                   className="w-full h-48 object-cover"
                 />
                 {image.caption && (
-                  <p className="p-2 text-xs text-muted-foreground">{image.caption}</p>
+                  <p className="p-2 text-xs text-muted-foreground">
+                    {linkifyText(image.caption).map((node, i) => (
+                      <React.Fragment key={i}>{node}</React.Fragment>
+                    ))}
+                  </p>
                 )}
               </div>
             ))}

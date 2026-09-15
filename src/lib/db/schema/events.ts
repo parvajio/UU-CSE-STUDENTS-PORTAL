@@ -14,7 +14,9 @@ export const events = pgTable(
     deadline: timestamp("deadline", { mode: "string" }),
     startTime: timestamp("start_time", { mode: "string" }),
     endTime: timestamp("end_time", { mode: "string" }),
-    status: text("status"),
+    // NOTE: event status (upcoming | ongoing | completed) is computed
+    // dynamically via computeEventStatus() in src/lib/db/queries/clubs.ts —
+    // never stored as a DB column (spec §events, T054).
     createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow().$onUpdate(() => new Date().toISOString()),
   },

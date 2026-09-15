@@ -186,15 +186,15 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T054 [P] Update `src/lib/db/schema/index.ts` and `src/lib/db/schema/relations.ts` with any final schema adjustments based on integration testing
-- [ ] T055 [P] Add Playwright e2e test suite for end-to-end validation per `quickstart.md` scenarios in `tests/e2e/club-section-full.spec.ts`
-- [ ] T056 Verify dark mode across all club pages and components — `/clubs`, `/clubs/[clubId]`, `/manage/clubs` — per `docs/design-direction.md`
-- [ ] T057 Verify keyboard navigation and visible focus states on all interactive elements per SC-010
-- [ ] T058 Verify `prefers-reduced-motion` support across all club components per SC-009
-- [ ] T059 Run `npm run db:generate && npm run db:migrate` to validate all schema changes and generate migration
-- [ ] T060 Run Playwright e2e test suite: `npx playwright test` to validate all stories end-to-end
-- [ ] T061 Update `src/lib/db/seed.ts` with comprehensive seed data covering departments, clubs, members, gallery, achievements, and events for development
-- [ ] T062 Validate URL auto-detection accuracy (http, https, www) per SC-006 across all text rendering components
+- [X] T054 [P] Update `src/lib/db/schema/index.ts` and `src/lib/db/schema/relations.ts` with any final schema adjustments based on integration testing
+- [X] T055 [P] Add Playwright e2e test suite for end-to-end validation per `quickstart.md` scenarios in `tests/e2e/club-section-full.spec.ts`
+- [X] T056 Verify dark mode across all club pages and components — `/clubs`, `/clubs/[clubId]`, `/manage/clubs` — per `docs/design-direction.md`
+- [X] T057 Verify keyboard navigation and visible focus states on all interactive elements per SC-010
+- [X] T058 Verify `prefers-reduced-motion` support across all club components per SC-009
+- [X] T059 Run `npm run db:generate && npm run db:migrate` to validate all schema changes and generate migration
+- [X] T060 Run Playwright e2e test suite: `npx playwright test` to validate all stories end-to-end
+- [X] T061 Update `src/lib/db/seed.ts` with comprehensive seed data covering departments, clubs, members, gallery, achievements, and events for development
+- [X] T062 Validate URL auto-detection accuracy (http, https, www) per SC-006 across all text rendering components
 
 ---
 
