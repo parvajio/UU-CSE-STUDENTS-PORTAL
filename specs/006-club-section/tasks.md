@@ -25,10 +25,10 @@
 
 **Purpose**: Project initialization and basic structure for the Club Section module
 
-- [ ] T001 Create club schema files: `src/lib/db/schema/departments.ts`, `src/lib/db/schema/clubs.ts`, `src/lib/db/schema/club-members.ts`, `src/lib/db/schema/club-gallery-albums.ts`, `src/lib/db/schema/club-gallery-images.ts`, `src/lib/db/schema/club-achievements.ts`, `src/lib/db/schema/events.ts` per data-model.md field definitions
-- [ ] T002 [P] Update `src/lib/db/schema/index.ts` to export all new club schema modules (departments, clubs, clubMembers, clubGalleryAlbums, clubGalleryImages, clubAchievements, events)
-- [ ] T003 [P] Update `src/lib/db/schema/relations.ts` to add relations for departments, clubs, clubMembers, clubGalleryAlbums, clubGalleryImages, clubAchievements, events (with proper cascade/SET NULL patterns)
-- [ ] T004 Update `docs/data-dictionary.md` to add `departments` table, expand `clubs` table with all new fields (departmentId, coverImgUrl, msgGroupUrl, pageUrl, fbGroupUrl, contacts, mail, status, approvedBy, approvedAt, timestamps), add `club_gallery_albums`, `club_gallery_images`, `club_achievements`, `events` tables, and update `club_members` with `designation` field
+- [X] T001 Create club schema files: `src/lib/db/schema/departments.ts`, `src/lib/db/schema/clubs.ts`, `src/lib/db/schema/club-members.ts`, `src/lib/db/schema/club-gallery-albums.ts`, `src/lib/db/schema/club-gallery-images.ts`, `src/lib/db/schema/club-achievements.ts`, `src/lib/db/schema/events.ts` per data-model.md field definitions
+- [X] T002 [P] Update `src/lib/db/schema/index.ts` to export all new club schema modules (departments, clubs, clubMembers, clubGalleryAlbums, clubGalleryImages, clubAchievements, events)
+- [X] T003 [P] Update `src/lib/db/schema/relations.ts` to add relations for departments, clubs, clubMembers, clubGalleryAlbums, clubGalleryImages, clubAchievements, events (with proper cascade/SET NULL patterns)
+- [X] T004 Update `docs/data-dictionary.md` to add `departments` table, expand `clubs` table with all new fields (departmentId, coverImgUrl, msgGroupUrl, pageUrl, fbGroupUrl, contacts, mail, status, approvedBy, approvedAt, timestamps), add `club_gallery_albums`, `club_gallery_images`, `club_achievements`, `events` tables, and update `club_members` with `designation` field
 
 ---
 
