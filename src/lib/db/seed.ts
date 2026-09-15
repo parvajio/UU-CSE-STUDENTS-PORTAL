@@ -5,6 +5,8 @@ import { users } from "./schema/users"
 import { skills } from "./schema/skills"
 import { siteConfig } from "./schema/site-config"
 import { courses } from "./schema/courses"
+import { departments } from "./schema/departments"
+import { clubs } from "./schema/clubs"
 import uuCseCoursesSeed from "./seed-data/uu-cse-courses-seed.json"
 import { CURRENT_BATCH } from "../../../config/site"
 
@@ -18,6 +20,20 @@ const TOP_LEVEL_SKILLS = [
   { name: "Cybersecurity", slug: "cybersecurity", colorKey: "cyber" },
   { name: "Research", slug: "research", colorKey: "research" },
   { name: "Design", slug: "design", colorKey: "design" },
+]
+
+const SEED_DEPARTMENTS = [
+  { name: "CSE", slug: "cse", description: "Computer Science and Engineering" },
+  { name: "IT", slug: "it", description: "Information Technology" },
+  { name: "AIML", slug: "aiml", description: "Artificial Intelligence and Machine Learning" },
+]
+
+const SEED_CLUBS = [
+  { name: "ACM", description: "Association for Computing Machinery", departmentSlug: "cse" },
+  { name: "IEEE", description: "Institute of Electrical and Electronics Engineers", departmentSlug: "cse" },
+  { name: "CodeChef", description: "Programming competitive club", departmentSlug: "cse" },
+  { name: "Google Developer Students Club", description: "GDSC CSE", departmentSlug: "cse" },
+  { name: "Robotics Club", description: "Robotics and automation", departmentSlug: "cse" },
 ]
 
 async function seedAdmin() {
@@ -79,10 +95,7 @@ async function seedCurrentBatch() {
 }
 
 async function seedQuestionBank() {
-  // 004 revision: `subjects` is removed — the flat `courses` catalog is seeded
-  // directly (idempotent by `code`, dedupe rule unchanged).
   let courseInserted = 0
-
   for (const course of uuCseCoursesSeed.courses) {
     const existing = await db.query.courses.findFirst({
       where: eq(courses.code, course.code),
@@ -98,11 +111,42 @@ async function seedQuestionBank() {
     })
     courseInserted++
   }
-
   console.log(
     `[seed] subjects: removed, courses: ${courseInserted}`
   )
   return { courseInserted }
+}
+
+async function seedDepartmentsAndClubs() {
+  let deptInserted = 0
+  for (const dept of SEED_DEPARTMENTS) {
+    const existing = await db.query.departments.findFirst({
+      where: eq(departments.slug, dept.slug),
+    })
+    if (!existing) {
+      await db.insert(departments).values(dept)
+      deptInserted++
+      console.log(`[seed] Created department: ${dept.name}`)
+    }
+  }
+
+  const existingDept = await db.query.departments.findMany({ columns: { id: true, slug: true } })
+  const deptMap = Object.fromEntries(existingDept.map((d) => [d.slug, d.id]))
+
+  for (const club of SEED_CLUBS) {
+    const existing = await db.query.clubs.findFirst({
+      where: eq(clubs.name, club.name),
+    })
+    if (!existing && deptMap[club.departmentSlug]) {
+      await db.insert(clubs).values({
+        name: club.name,
+        description: club.description,
+        departmentId: deptMap[club.departmentSlug],
+        status: "approved",
+      })
+      console.log(`[seed] Created club: ${club.name}`)
+    }
+  }
 }
 
 async function seed() {
@@ -110,8 +154,9 @@ async function seed() {
   const skillCount = await seedSkills()
   const batchCount = await seedCurrentBatch()
   const { courseInserted } = await seedQuestionBank()
+  await seedDepartmentsAndClubs()
   console.log(
-    `[seed] Done. admin inserted: ${adminCount}, skills inserted: ${skillCount}, currentBatch inserted: ${batchCount}, subjects: removed, courses inserted: ${courseInserted}`
+    `[seed] Done. admin inserted: ${adminCount}, skills inserted: ${skillCount}, currentBatch inserted: ${batchCount}, subjects: removed, courses inserted: ${courseInserted}, departments+clubs seeded`
   )
 }
 

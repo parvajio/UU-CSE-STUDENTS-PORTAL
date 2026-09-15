@@ -38,14 +38,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 [P] Update `src/middleware.ts` to enforce admin-only protection on `/manage/clubs/*` routes and public access on `/clubs/*` per middleware contract
-- [ ] T006 [P] Create `src/app/clubs/page.tsx` — public `/clubs` listing route shell with DepartmentGroup and ClubCard component placeholders
-- [ ] T007 [P] Create `src/app/clubs/[clubId]/page.tsx` — public club detail route shell with all content section placeholders
-- [ ] T008 [P] Create `src/app/manage/clubs/page.tsx` — admin dashboard route shell with authentication guard
-- [ ] T009 [P] Create API route files: `src/app/api/departments/route.ts`, `src/app/api/clubs/route.ts`, `src/app/api/clubs/[clubId]/route.ts` with admin-only middleware enforcement and `enforceSubmissionLimit` wrapper
-- [ ] T010 [P] Configure UploadThing integration for club images (logo, cover, gallery, achievement) reusing existing `src/lib/uploadthing.ts` pattern per uploadthing contract
-- [ ] T011 [P] Create `src/lib/db/queries/clubs.ts` with query functions: `getDepartmentsWithClubs()`, `getClubById()`, `getApprovedClubs()`, `getClubDetail()` — all filtering by `status = approved` for public queries
-- [ ] T012 [P] Update `src/lib/db/seed.ts` to add seed data for departments and clubs (admin-created with `status = approved`) for development/validation
+- [X] T005 [P] Update `src/middleware.ts` to enforce admin-only protection on `/manage/clubs/*` routes and public access on `/clubs/*` per middleware contract
+- [X] T006 [P] Create `src/app/clubs/page.tsx` — public `/clubs` listing route shell with DepartmentGroup and ClubCard component placeholders
+- [X] T007 [P] Create `src/app/clubs/[clubId]/page.tsx` — public club detail route shell with all content section placeholders
+- [X] T008 [P] Create `src/app/manage/clubs/page.tsx` — admin dashboard route shell with authentication guard
+- [X] T009 [P] Create API route files: `src/app/api/departments/route.ts`, `src/app/api/clubs/route.ts`, `src/app/api/clubs/[clubId]/route.ts` with admin-only middleware enforcement and `enforceSubmissionLimit` wrapper
+- [X] T010 [P] Configure UploadThing integration for club images (logo, cover, gallery, achievement) reusing existing `src/lib/uploadthing.ts` pattern per uploadthing contract
+- [X] T011 [P] Create `src/lib/db/queries/clubs.ts` with query functions: `getDepartmentsWithClubs()`, `getClubById()`, `getApprovedClubs()`, `getClubDetail()` — all filtering by `status = approved` for public queries
+- [X] T012 [P] Update `src/lib/db/seed.ts` to add seed data for departments and clubs (admin-created with `status = approved`) for development/validation
 
 **Checkpoint**: Foundation ready — schema, middleware, routes, queries, and UploadThing infrastructure in place. User story implementation can now begin.
 
@@ -59,19 +59,19 @@
 
 ### Tests for User Story 1 (Playwright e2e)
 
-- [ ] T013 [P] [US1] Playwright e2e test: admin creates department and verifies it persists in `tests/e2e/manage-departments.spec.ts`
-- [ ] T014 [P] [US1] Playwright e2e test: admin creates club under department and verifies it appears on `/clubs` without approval in `tests/e2e/manage-clubs.spec.ts`
+- [X] T013 [P] [US1] Playwright e2e test: admin creates department and verifies it persists in `tests/e2e/manage-departments.spec.ts`
+- [X] T014 [P] [US1] Playwright e2e test: admin creates club under department and verifies it appears on `/clubs` without approval in `tests/e2e/manage-clubs.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T015 [P] [US1] Create `DepartmentGroup` component in `src/components/clubs/DepartmentGroup.tsx` — renders department heading with its clubs beneath
-- [ ] T016 [P] [US1] Create `ClubCard` component in `src/components/clubs/ClubCard.tsx` — displays club name, logo, description preview with glassmorphism styling
-- [ ] T017 [US1] Implement department CRUD in `src/app/manage/clubs/departments/page.tsx` — form with name, slug, description, imageUrl; Server Action calls `enforceSubmissionLimit` and persists to Neon
-- [ ] T018 [US1] Implement club CRUD in `src/app/manage/clubs/[clubId]/page.tsx` — form with name, description, departmentId, logoUrl, coverImgUrl; admin-created clubs set `status = approved` immediately
-- [ ] T019 [US1] Implement `ClubManagementForm` component in `src/components/clubs/ClubManagementForm.tsx` — shared form with concurrent edit detection via `updatedAt` timestamp check (409 warning)
-- [ ] T020 [US1] Implement delete department/club with cascade confirmation in `src/app/manage/clubs/departments/page.tsx` and `src/app/manage/clubs/[clubId]/page.tsx`
-- [ ] T021 [US1] Implement rate limit error display: "Rate limit reached — try again in X minutes" using `enforceSubmissionLimit` return value in `ClubManagementForm.tsx`
-- [ ] T022 [US1] Add URL auto-detection rendering for club descriptions (FR-013) in `src/components/clubs/ClubCard.tsx` and detail page
+- [X] T015 [P] [US1] Create `DepartmentGroup` component in `src/components/clubs/DepartmentGroup.tsx` — renders department heading with its clubs beneath
+- [X] T016 [P] [US1] Create `ClubCard` component in `src/components/clubs/ClubCard.tsx` — displays club name, logo, description preview with glassmorphism styling
+- [X] T017 [US1] Implement department CRUD in `src/app/manage/clubs/departments/page.tsx` — form with name, slug, description, imageUrl; Server Action calls `enforceSubmissionLimit` and persists to Neon
+- [X] T018 [US1] Implement club CRUD in `src/app/manage/clubs/[clubId]/page.tsx` — form with name, description, departmentId, logoUrl, coverImgUrl; admin-created clubs set `status = approved` immediately
+- [X] T019 [US1] Implement `ClubManagementForm` component in `src/components/clubs/ClubManagementForm.tsx` — shared form with concurrent edit detection via `updatedAt` timestamp check (409 warning)
+- [X] T020 [US1] Implement delete department/club with cascade confirmation in `src/app/manage/clubs/departments/page.tsx` and `src/app/manage/clubs/[clubId]/page.tsx`
+- [X] T021 [US1] Implement rate limit error display: "Rate limit reached — try again in X minutes" using `enforceSubmissionLimit` return value in `ClubManagementForm.tsx`
+- [X] T022 [US1] Add URL auto-detection rendering for club descriptions (FR-013) in `src/components/clubs/ClubCard.tsx` and detail page
 
 **Checkpoint**: User Story 1 fully functional — admin can create, edit, delete departments and clubs; all appear immediately on `/clubs`.
 
