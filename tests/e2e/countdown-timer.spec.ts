@@ -106,4 +106,45 @@ test.describe("Countdown timer", () => {
     await page.goto(href)
     await expect(page.getByText("completed", { exact: true })).toBeVisible({ timeout: 10000 })
   })
+
+  test("timer respects reduced motion preference", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    const mediaMatches = await page.evaluate(() =>
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+    expect(mediaMatches).toBe(true)
+
+    await page.goto("/clubs")
+    const href = await getHref(page.locator("a[href^='/clubs/']").first())
+    const clubId = href.replace("/clubs/", "")
+
+    const futureStart = new Date(Date.now() - 60 * 1000).toISOString()
+    const futureEnd = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+
+    await page.request.post("/api/events", {
+      headers: { "Content-Type": "application/json" },
+      data: JSON.stringify({
+        clubId,
+        name: "Reduced Motion Timer Test",
+        date: new Date().toISOString(),
+        startTime: futureStart,
+        endTime: futureEnd,
+      }),
+    })
+
+    await page.goto(href)
+    const timer = page.locator("[data-testid='event-timer']").first()
+    await expect(timer).toBeVisible({ timeout: 10000 })
+    await expect(timer).toHaveAttribute("data-motion", "reduced")
+
+    // Static snapshot: text must not tick while reduced motion is on.
+    const textBefore = await timer.textContent()
+    expect(textBefore).toBeTruthy()
+    expect(textBefore).not.toBe("completed")
+
+    await page.waitForTimeout(2200)
+
+    const textAfter = await timer.textContent()
+    expect(textAfter).toBe(textBefore)
+  })
 })

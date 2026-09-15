@@ -173,10 +173,10 @@
 
 ### Implementation for User Story 6
 
-- [ ] T050 [P] [US6] Create `EventTimer` component in `src/components/clubs/EventTimer.tsx` — props `endTime?`, `startTime?`; counts down to end or start; shows "completed" if both passed; updates every second via `useEffect`/`setInterval`
-- [ ] T051 [US6] Implement tab-switch resync in `src/components/clubs/EventTimer.tsx` — use `Date.now()` on each tick rather than relying on `setInterval` drift; or use `visibilitychange` event to recalculate
-- [ ] T052 [US6] Implement `prefers-reduced-motion` support in `src/components/clubs/EventTimer.tsx` — check `window.matchMedia('(prefers-reduced-motion: reduce)')`; disable or reduce timer animations
-- [ ] T053 [US6] Add Playwright e2e test: timer respects reduced motion preference in `tests/e2e/countdown-timer.spec.ts`
+- [X] T050 [P] [US6] Create `EventTimer` component in `src/components/clubs/EventTimer.tsx` — props `endTime?`, `startTime?`; counts down to end or start; shows "completed" if both passed; updates every second via `useEffect`/`setInterval`
+- [X] T051 [US6] Implement tab-switch resync in `src/components/clubs/EventTimer.tsx` — use `Date.now()` on each tick rather than relying on `setInterval` drift; or use `visibilitychange` event to recalculate
+- [X] T052 [US6] Implement `prefers-reduced-motion` support in `src/components/clubs/EventTimer.tsx` — check `window.matchMedia('(prefers-reduced-motion: reduce)')`; disable or reduce timer animations
+- [X] T053 [US6] Add Playwright e2e test: timer respects reduced motion preference in `tests/e2e/countdown-timer.spec.ts`
 
 **Checkpoint**: User Story 6 fully functional — all event timers are live, accurate, accessible.
 
