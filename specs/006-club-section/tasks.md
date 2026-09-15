@@ -103,17 +103,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T028 [P] [US3] Playwright e2e test: guest visits `/clubs/[clubId]` and verifies all content sections render in `tests/e2e/guest-club-detail.spec.ts`
+- [X] T028 [P] [US3] Playwright e2e test: guest visits `/clubs/[clubId]` and verifies all content sections render in `tests/e2e/guest-club-detail.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T029 [P] [US3] Create `ClubDetailPage` component in `src/components/clubs/ClubDetailPage.tsx` — orchestrates all content sections (description, links, members, gallery, achievements, events)
-- [ ] T030 [US3] Implement club description and link rendering in `src/components/clubs/ClubDetailPage.tsx` — render msgGroupUrl, pageUrl, fbGroupUrl as clickable anchors with `rel="noopener noreferrer"`, auto-detect URLs in description text
-- [ ] T031 [US3] Implement member list rendering in `src/components/clubs/ClubMembers.tsx` — display avatar (from `profiles.avatarUrl`), fullName, designation, roleInClub, position for each club member
-- [ ] T032 [US3] Implement gallery rendering in `src/components/clubs/ClubGallery.tsx` — display albums with images and captions, organized by album
-- [ ] T033 [US3] Implement achievements rendering in `src/components/clubs/ClubAchievements.tsx` — display title, description, optional image/link
-- [ ] T034 [US3] Implement events section rendering in `src/components/clubs/ClubDetailPage.tsx` — display event cards with countdown timers, showing "From [Club Name]" tag for club events
-- [ ] T035 [US3] Add Playwright e2e test: event countdown timer displays correctly on club detail page in `tests/e2e/club-detail-timer.spec.ts`
+- [X] T029 [P] [US3] Create `ClubDetailPage` component in `src/components/clubs/ClubDetailPage.tsx` — orchestrates all content sections (description, links, members, gallery, achievements, events)
+- [X] T030 [US3] Implement club description and link rendering in `src/components/clubs/ClubDetailPage.tsx` — render msgGroupUrl, pageUrl, fbGroupUrl as clickable anchors with `rel="noopener noreferrer"`, auto-detect URLs in description text
+- [X] T031 [US3] Implement member list rendering in `src/components/clubs/ClubMembers.tsx` — display avatar (from `profiles.avatarUrl`), fullName, designation, roleInClub, position for each club member
+- [X] T032 [US3] Implement gallery rendering in `src/components/clubs/ClubGallery.tsx` — display albums with images and captions, organized by album
+- [X] T033 [US3] Implement achievements rendering in `src/components/clubs/ClubAchievements.tsx` — display title, description, optional image/link
+- [X] T034 [US3] Implement events section rendering in `src/components/clubs/ClubDetailPage.tsx` — display event cards with countdown timers, showing "From [Club Name]" tag for club events
+- [X] T035 [US3] Add Playwright e2e test: event countdown timer displays correctly on club detail page in `tests/e2e/club-detail-timer.spec.ts`
 
 **Checkpoint**: User Story 3 fully functional — guests see complete club detail pages with all content sections.
 
