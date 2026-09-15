@@ -62,6 +62,57 @@ export const ourFileRouter = {
     .onUploadComplete(async () => {
       // No DB write here — persisted by admin server action.
     }),
+
+  clubImage: f({
+    image: { maxFileSize: TEN_MB, maxFileCount: 1 },
+  })
+    .middleware(async () => {
+      const session = await auth()
+      if (!session?.user?.id || session.user.role !== "admin") {
+        throw new UploadThingError({
+          code: "FORBIDDEN",
+          message: "Only admins can upload club images.",
+        })
+      }
+      return { uploadedBy: session.user.id }
+    })
+    .onUploadComplete(async () => {
+      // No DB write here — persisted by club server actions.
+    }),
+
+  clubGalleryImage: f({
+    image: { maxFileSize: TEN_MB, maxFileCount: 5 },
+  })
+    .middleware(async () => {
+      const session = await auth()
+      if (!session?.user?.id || session.user.role !== "admin") {
+        throw new UploadThingError({
+          code: "FORBIDDEN",
+          message: "Only admins can upload gallery images.",
+        })
+      }
+      return { uploadedBy: session.user.id }
+    })
+    .onUploadComplete(async () => {
+      // No DB write here — persisted by gallery server actions.
+    }),
+
+  achievementImage: f({
+    image: { maxFileSize: TEN_MB, maxFileCount: 1 },
+  })
+    .middleware(async () => {
+      const session = await auth()
+      if (!session?.user?.id || session.user.role !== "admin") {
+        throw new UploadThingError({
+          code: "FORBIDDEN",
+          message: "Only admins can upload achievement images.",
+        })
+      }
+      return { uploadedBy: session.user.id }
+    })
+    .onUploadComplete(async () => {
+      // No DB write here — persisted by achievement server actions.
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter

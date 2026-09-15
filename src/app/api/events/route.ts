@@ -1,0 +1,39 @@
+import { NextResponse } from "next/server"
+import { auth } from "@/lib/auth/auth"
+import { db } from "@/lib/db"
+import { events } from "@/lib/db/schema/events"
+import { clubs } from "@/lib/db/schema/clubs"
+import { eq } from "drizzle-orm"
+import { enforceSubmissionLimit } from "@/lib/rate-limit"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+
+  const limit = enforceSubmissionLimit(session.user.id)
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: `Rate limit reached — try again in ${limit.retryAfter} minutes` },
+      { status: 429 }
+    )
+  }
+
+  try {
+    const body = await req.json()
+    const { clubId, name, place, description, date, deadline, startTime, endTime } = body
+
+    if (!name || !date) {
+      return NextResponse.json({ error: "Name and date are required." }, { status: 400 })
+    }
+
+    const [row] = await db
+      .insert(events)
+      .values({ clubId: clubId ?? null, name, place, description, date, deadline, startTime, endTime })
+      .returning()
+
+    return NextResponse.json(row, { status: 201 })
+  } catch (err: unknown) {
+    return NextResponse.json({ error: "Failed to create event" }, { status: 500 })
+  }
+}
