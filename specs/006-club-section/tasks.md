@@ -85,11 +85,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T023 [P] [US2] Implement `/clubs` page data fetching in `src/app/clubs/page.tsx` — query `getDepartmentsWithClubs()` filtering `status = approved`, grouped by department
-- [ ] T024 [US2] Implement empty state rendering: departments with no clubs show "No clubs yet" message per edge case spec
-- [ ] T025 [US2] Implement `DepartmentGroup` component in `src/components/clubs/DepartmentGroup.tsx` — renders department name heading with clubs list beneath, glassmorphism styling per design-direction.md
-- [ ] T026 [US2] Implement dark mode support for `/clubs` page — verify all glass panels, tags, and cards render correctly in both light and dark modes per `docs/design-direction.md`
-- [ ] T027 [US2] Add Playwright e2e test: guest browsing `/clubs` shows departments with clubs and hides rejected/pending clubs in `tests/e2e/guest-clubs-listing.spec.ts`
+- [X] T023 [P] [US2] Implement `/clubs` page data fetching in `src/app/clubs/page.tsx` — query `getDepartmentsWithClubs()` filtering `status = approved`, grouped by department
+- [X] T024 [US2] Implement empty state rendering: departments with no clubs show "No clubs yet" message per edge case spec
+- [X] T025 [US2] Implement `DepartmentGroup` component in `src/components/clubs/DepartmentGroup.tsx` — renders department name heading with clubs list beneath, glassmorphism styling per design-direction.md
+- [X] T026 [US2] Implement dark mode support for `/clubs` page — verify all glass panels, tags, and cards render correctly in both light and dark modes per `docs/design-direction.md`
+- [X] T027 [US2] Add Playwright e2e test: guest browsing `/clubs` shows departments with clubs and hides rejected/pending clubs in `tests/e2e/guest-clubs-listing.spec.ts`
 
 **Checkpoint**: User Story 2 fully functional — guests can browse all approved clubs grouped by department without login.
 

@@ -12,8 +12,8 @@ export function DepartmentGroup({
   clubList: typeof import("@/lib/db/schema").clubs.$inferSelect[]
 }) {
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-3">
+    <section className="glass-panel rounded-2xl p-6 sm:p-8">
+      <div className="flex items-center gap-3 mb-4">
         <div className="w-1 h-8 bg-primary rounded-full" />
         <h2 className="font-heading text-xl font-semibold text-foreground">
           {department.name}

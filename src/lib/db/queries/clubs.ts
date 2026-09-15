@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm"
+import { desc, eq, sql, type InferSelectModel } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { departments } from "@/lib/db/schema/departments"
 import { clubs } from "@/lib/db/schema/clubs"
