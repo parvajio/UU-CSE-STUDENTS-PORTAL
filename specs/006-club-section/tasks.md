@@ -168,8 +168,8 @@
 
 ### Tests for User Story 6
 
-- [ ] T048 [P] [US6] Playwright e2e test: countdown timer updates every second and resumes after tab switch in `tests/e2e/countdown-timer.spec.ts`
-- [ ] T049 [P] [US6] Playwright e2e test: timer shows "completed" when endTime has passed in `tests/e2e/countdown-timer.spec.ts`
+- [X] T048 [P] [US6] Playwright e2e test: countdown timer updates every second and resumes after tab switch in `tests/e2e/countdown-timer.spec.ts`
+- [X] T049 [P] [US6] Playwright e2e test: timer shows "completed" when endTime has passed in `tests/e2e/countdown-timer.spec.ts`
 
 ### Implementation for User Story 6
 
