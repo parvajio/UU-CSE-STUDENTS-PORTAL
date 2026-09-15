@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Loader2, AlertTriangle } from "lucide-react"
+import { Loader2, AlertTriangle, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type Feedback =
   | { type: "success"; text: string }
@@ -26,6 +27,8 @@ interface ClubManagementFormProps {
   departments: { id: string; name: string; slug: string }[]
   onSubmit: (data: FormData) => Promise<void>
   submitLabel?: string
+  showMemberForm?: boolean
+  onAddMember?: (data: FormData) => Promise<void>
 }
 
 export function ClubManagementForm({
@@ -33,6 +36,8 @@ export function ClubManagementForm({
   departments,
   onSubmit,
   submitLabel = "Save",
+  showMemberForm = false,
+  onAddMember,
 }: ClubManagementFormProps) {
   const [isPending, startTransition] = useTransition()
   const [feedback, setFeedback] = useState<Feedback | null>(null)
@@ -166,6 +171,43 @@ export function ClubManagementForm({
         ) : null}
         {submitLabel}
       </Button>
+
+      {showMemberForm && onAddMember && (
+        <form onSubmit={async (e) => {
+          e.preventDefault()
+          const formData = new FormData(e.currentTarget)
+          await onAddMember(formData)
+        }} className="mt-8 pt-6 border-t border-border space-y-4">
+          <h3 className="font-heading text-lg font-bold text-foreground">Add Member</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="memberRole">Role in Club</Label>
+              <Select name="roleInClub" defaultValue="member">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="executive">Executive</SelectItem>
+                  <SelectItem value="advisor">Advisor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="designation">Designation</Label>
+              <Input id="designation" name="designation" placeholder="e.g., Group Admin" />
+            </div>
+          </div>
+          <Button type="submit" variant="secondary" disabled={isPending}>
+            {isPending ? (
+              <Loader2 className="size-4 animate-spin mr-2" strokeWidth={1.5} />
+            ) : (
+              <Plus className="size-4 mr-2" strokeWidth={1.5} />
+            )}
+            Add Member
+          </Button>
+        </form>
+      )}
     </form>
   )
 }
