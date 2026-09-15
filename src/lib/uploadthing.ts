@@ -3,6 +3,10 @@ import { UploadThingError } from "uploadthing/server"
 import type { FileRouter } from "uploadthing/server"
 import type { FileSize } from "@uploadthing/shared"
 import { auth } from "@/lib/auth/auth"
+import { db } from "@/lib/db"
+import { clubGalleryImages } from "@/lib/db/schema/club-gallery-images"
+import { clubAchievements } from "@/lib/db/schema/club-achievements"
+import { eq } from "drizzle-orm"
 
 const f = createUploadthing()
 
@@ -93,8 +97,21 @@ export const ourFileRouter = {
       }
       return { uploadedBy: session.user.id }
     })
-    .onUploadComplete(async () => {
-      // No DB write here — persisted by gallery server actions.
+    .onUploadComplete(async (metadata) => {
+      const meta = metadata as { albumId?: string; caption?: string; displayOrder?: number; imageUrl?: string }
+      if (meta.albumId && meta.imageUrl) {
+        try {
+          await db.insert(clubGalleryImages).values({
+            albumId: meta.albumId,
+            imageUrl: meta.imageUrl,
+            caption: meta.caption ?? null,
+            displayOrder: meta.displayOrder ?? 0,
+            createdAt: new Date().toISOString(),
+          })
+        } catch {
+          // Silently fail — persisted by server action if needed
+        }
+      }
     }),
 
   achievementImage: f({
