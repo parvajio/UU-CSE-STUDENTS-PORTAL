@@ -15,6 +15,13 @@ import { questionFiles } from "./question-files"
 import { questionLikes } from "./question-likes"
 import { questionTags } from "./question-tags"
 import { binary26Registrations, binary26Gallery } from "./binary26"
+import { departments } from "./departments"
+import { clubs } from "./clubs"
+import { clubMembers } from "./club-members"
+import { clubGalleryAlbums } from "./club-gallery-albums"
+import { clubGalleryImages } from "./club-gallery-images"
+import { clubAchievements } from "./club-achievements"
+import { events } from "./events"
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
@@ -65,6 +72,7 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
   projects: many(profileProjects),
   certificates: many(profileCertificates),
   experiences: many(profileExperiences),
+  clubMembers: many(clubMembers),
 }))
 
 export const skillsRelations = relations(skills, ({ one, many }) => ({
@@ -174,5 +182,64 @@ export const questionTagsRelations = relations(questionTags, ({ one }) => ({
   question: one(questions, {
     fields: [questionTags.questionId],
     references: [questions.id],
+  }),
+}))
+
+export const departmentsRelations = relations(departments, ({ many }) => ({
+  clubs: many(clubs),
+}))
+
+export const clubsRelations = relations(clubs, ({ one, many }) => ({
+  department: one(departments, {
+    fields: [clubs.departmentId],
+    references: [departments.id],
+  }),
+  approvedByUser: one(users, {
+    fields: [clubs.approvedBy],
+    references: [users.id],
+  }),
+  clubMembers: many(clubMembers),
+  clubGalleryAlbums: many(clubGalleryAlbums),
+  clubAchievements: many(clubAchievements),
+  events: many(events),
+}))
+
+export const clubMembersRelations = relations(clubMembers, ({ one }) => ({
+  club: one(clubs, {
+    fields: [clubMembers.clubId],
+    references: [clubs.id],
+  }),
+  profile: one(profiles, {
+    fields: [clubMembers.profileId],
+    references: [profiles.id],
+  }),
+}))
+
+export const clubGalleryAlbumsRelations = relations(clubGalleryAlbums, ({ one, many }) => ({
+  club: one(clubs, {
+    fields: [clubGalleryAlbums.clubId],
+    references: [clubs.id],
+  }),
+  clubGalleryImages: many(clubGalleryImages),
+}))
+
+export const clubGalleryImagesRelations = relations(clubGalleryImages, ({ one }) => ({
+  album: one(clubGalleryAlbums, {
+    fields: [clubGalleryImages.albumId],
+    references: [clubGalleryAlbums.id],
+  }),
+}))
+
+export const clubAchievementsRelations = relations(clubAchievements, ({ one }) => ({
+  club: one(clubs, {
+    fields: [clubAchievements.clubId],
+    references: [clubs.id],
+  }),
+}))
+
+export const eventsRelations = relations(events, ({ one }) => ({
+  club: one(clubs, {
+    fields: [events.clubId],
+    references: [clubs.id],
   }),
 }))

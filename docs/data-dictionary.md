@@ -184,23 +184,104 @@ Composite unique `(questionId, tag)` prevents duplicate tags on the same questio
 
 ---
 
+## departments
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| name | text | unique, required | e.g. "CSE", "IT" |
+| slug | text | unique, required | for URLs |
+| description | text | nullable | |
+| imageUrl | text | nullable | UploadThing URL |
+| createdAt / updatedAt | timestamp | `updatedAt` via Drizzle `$onUpdate` | |
+
+---
+
 ## clubs
-| Field | Type | Constraints |
-|---|---|---|
-| id | uuid | PK |
-| name | text | unique, required |
-| description | text | nullable |
-| logoUrl | text | nullable |
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| name | text | unique, required | |
+| description | text | nullable | URLs auto-detected in rendering |
+| departmentId | uuid | FK → departments.id, required | |
+| logoUrl | text | nullable | UploadThing URL |
+| coverImgUrl | text | nullable | UploadThing URL |
+| msgGroupUrl | text | nullable | Social link |
+| pageUrl | text | nullable | Social link |
+| fbGroupUrl | text | nullable | Social link |
+| contacts | text | nullable | Contact info |
+| mail | text | nullable | Email |
+| status | enum | `pending` \| `approved` \| `rejected`, default `approved` | Admin-created = approved immediately |
+| approvedBy | uuid | FK → users.id, nullable, `onDelete: SET NULL` | |
+| approvedAt | timestamp | nullable | |
+| createdAt / updatedAt | timestamp | `updatedAt` via Drizzle `$onUpdate` | |
+
+---
 
 ## club_members
 | Field | Type | Constraints | Notes |
 |---|---|---|---|
 | id | uuid | PK | |
-| clubId | uuid | FK → clubs.id | |
-| profileId | uuid | FK → profiles.id | |
-| roleInClub | enum | `member` \| `executive` \| `advisor` | |
+| clubId | uuid | FK → clubs.id, `onDelete: CASCADE` | |
+| profileId | uuid | FK → profiles.id, `onDelete: CASCADE` | |
+| roleInClub | enum | `member` \| `executive` \| `advisor` | Required |
 | position | text | nullable | e.g. "President", "General Secretary" |
-| joinedAt | timestamp | | |
+| designation | text | nullable | Free-text e.g. "Group Admin" |
+| joinedAt | timestamp | default now | |
+
+---
+
+## club_gallery_albums
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| clubId | uuid | FK → clubs.id, `onDelete: CASCADE` | |
+| title | text | required | |
+| description | text | nullable | |
+| displayOrder | integer | required | |
+| createdAt / updatedAt | timestamp | `updatedAt` via Drizzle `$onUpdate` | |
+
+---
+
+## club_gallery_images
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| albumId | uuid | FK → club_gallery_albums.id, `onDelete: CASCADE` | |
+| imageUrl | text | required | UploadThing URL |
+| caption | text | nullable | |
+| displayOrder | integer | required | |
+| createdAt | timestamp | default now | |
+
+---
+
+## club_achievements
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| clubId | uuid | FK → clubs.id, `onDelete: CASCADE` | |
+| title | text | required | |
+| description | text | nullable | |
+| date | timestamp | nullable | |
+| imageUrl | text | nullable | UploadThing URL |
+| linkUrl | text | nullable | External link |
+| createdAt / updatedAt | timestamp | `updatedAt` via Drizzle `$onUpdate` | |
+
+---
+
+## events
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| id | uuid | PK | |
+| clubId | uuid | FK → clubs.id, `onDelete: CASCADE`, nullable | `null` = standalone event |
+| name | text | required | |
+| place | text | nullable | |
+| description | text | nullable | URLs auto-detected in rendering |
+| date | timestamp | required | The event date |
+| deadline | timestamp | nullable | Registration deadline |
+| startTime | timestamp | nullable | Event start |
+| endTime | timestamp | nullable | Event end |
+| status | text | computed | `upcoming`/`ongoing`/`completed` |
+| createdAt / updatedAt | timestamp | `updatedAt` via Drizzle `$onUpdate` | |
 
 ---
 
