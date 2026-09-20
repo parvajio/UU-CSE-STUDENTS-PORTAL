@@ -24,9 +24,10 @@ interface Profile {
 interface ManageClubMembersClientProps {
   clubId: string
   initialMembers: Array<{
-    profileId: string
+    id: string
+    profileId: string | null
     avatarUrl: string | null
-    fullName: string
+    fullName: string | null
     roleInClub: string
     position: string | null
     designation: string | null
@@ -93,6 +94,7 @@ export function ManageClubMembersClient({
       setMembers((prev) => [
         ...prev,
         {
+          id: data.id ?? selectedProfile,
           profileId: selectedProfile,
           avatarUrl: profile?.avatarUrl ?? null,
           fullName: profile?.fullName ?? "",
@@ -113,14 +115,14 @@ export function ManageClubMembersClient({
     }
   }
 
-  async function handleRemoveMember(profileId: string) {
+  async function handleRemoveMember(memberId: string, profileId: string | null) {
     try {
       await fetch(`/api/club-members`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clubId, profileId }),
+        body: JSON.stringify({ clubId, memberId, profileId }),
       })
-      setMembers((prev) => prev.filter((m) => m.profileId !== profileId))
+      setMembers((prev) => prev.filter((m) => m.id !== memberId))
     } catch {
       alert("Failed to remove member")
     }
@@ -233,17 +235,17 @@ export function ManageClubMembersClient({
         ) : (
           members.map((member) => (
             <div
-              key={member.profileId}
+              key={member.id}
               className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-border hover:border-primary/30 transition-colors motion-reduce:transition-none"
             >
               <Avatar className="h-10 w-10">
-                <AvatarImage src={member.avatarUrl ?? undefined} alt={member.fullName} />
+                <AvatarImage src={member.avatarUrl ?? undefined} alt={member.fullName ?? "Club member"} />
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                  {member.fullName.charAt(0).toUpperCase()}
+                  {(member.fullName ?? "?").charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground text-sm">{member.fullName}</p>
+                <p className="font-medium text-foreground text-sm">{member.fullName ?? "Member (no profile yet)"}</p>
                 <p className="text-xs text-muted-foreground">
                   {member.roleInClub}
                   {member.designation ? ` · ${member.designation}` : ""}
@@ -256,7 +258,7 @@ export function ManageClubMembersClient({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleRemoveMember(member.profileId)}
+                onClick={() => handleRemoveMember(member.id, member.profileId)}
                 className="text-destructive hover:text-destructive"
               >
                 Remove

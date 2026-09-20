@@ -91,9 +91,11 @@ export async function getClubDetail(clubId: string) {
   return {
     club,
     members: members.map((m) => ({
+      id: m.id,
+      userId: m.userId,
       profileId: m.profileId,
       avatarUrl: m.profile?.avatarUrl ?? null,
-      fullName: m.profile?.fullName ?? "",
+      fullName: m.profile?.fullName ?? null,
       roleInClub: m.roleInClub,
       position: m.position ?? null,
       designation: m.designation ?? null,

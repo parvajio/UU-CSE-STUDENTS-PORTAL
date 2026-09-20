@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { auth } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
 import { getClubDetail } from "@/lib/db/queries/clubs"
 import { db } from "@/lib/db"
 import { clubGalleryAlbums } from "@/lib/db/schema/club-gallery-albums"
@@ -15,7 +17,7 @@ export default async function ManageGalleryPage({
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
-  if (session.user.role !== "admin") redirect("/")
+  if (session.user.role !== "admin" && session.user.role !== "moderator") redirect("/")
 
   const data = await getClubDetail(params.clubId)
   if (!data) notFound()
@@ -27,6 +29,13 @@ export default async function ManageGalleryPage({
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
+      <Link
+        href={`/manage/clubs/${params.clubId}`}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+      >
+        <ArrowLeft className="size-4" strokeWidth={1.5} />
+        Back to {data.club.name}
+      </Link>
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-bold text-foreground">
           Manage Gallery

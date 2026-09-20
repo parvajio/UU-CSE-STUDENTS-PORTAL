@@ -174,6 +174,39 @@ export function MobileNav({ user }: { user: NavbarUser | null }) {
                       <ShieldCheck className="size-4 text-muted-foreground" strokeWidth={1.5} />
                       Approvals
                     </Link>
+                    <Link
+                      href="/moderator/binary-26"
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                        pathname === "/moderator/binary-26" && "bg-primary/10 text-primary font-semibold"
+                      )}
+                    >
+                      <Ticket className="size-4 text-muted-foreground" strokeWidth={1.5} />
+                      Binary 26 Verifications
+                    </Link>
+                    <Link
+                      href="/manage/routine"
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                        pathname === "/manage/routine" && "bg-primary/10 text-primary font-semibold"
+                      )}
+                    >
+                      <Calendar className="size-4 text-muted-foreground" strokeWidth={1.5} />
+                      Manage Routine
+                    </Link>
+                    <Link
+                      href="/manage/clubs"
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                        pathname === "/manage/clubs" && "bg-primary/10 text-primary font-semibold"
+                      )}
+                    >
+                      <Shield className="size-4 text-muted-foreground" strokeWidth={1.5} />
+                      Manage Clubs
+                    </Link>
                   </>
                 )}
 
@@ -192,6 +225,17 @@ export function MobileNav({ user }: { user: NavbarUser | null }) {
                     >
                       <BookOpen className="size-4 text-muted-foreground" strokeWidth={1.5} />
                       Manage Courses
+                    </Link>
+                    <Link
+                      href="/manage/binary-26"
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                        pathname === "/manage/binary-26" && "bg-primary/10 text-primary font-semibold"
+                      )}
+                    >
+                      <Ticket className="size-4 text-muted-foreground" strokeWidth={1.5} />
+                      Binary 26 Admin
                     </Link>
                     <Link
                       href="/manage/settings"

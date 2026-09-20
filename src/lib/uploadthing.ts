@@ -72,10 +72,10 @@ export const ourFileRouter = {
   })
     .middleware(async () => {
       const session = await auth()
-      if (!session?.user?.id || session.user.role !== "admin") {
+      if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "moderator")) {
         throw new UploadThingError({
           code: "FORBIDDEN",
-          message: "Only admins can upload club images.",
+          message: "Only club managers can upload club images.",
         })
       }
       return { uploadedBy: session.user.id }
@@ -89,10 +89,10 @@ export const ourFileRouter = {
   })
     .middleware(async () => {
       const session = await auth()
-      if (!session?.user?.id || session.user.role !== "admin") {
+      if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "moderator")) {
         throw new UploadThingError({
           code: "FORBIDDEN",
-          message: "Only admins can upload gallery images.",
+          message: "Only club managers can upload gallery images.",
         })
       }
       return { uploadedBy: session.user.id }
@@ -119,10 +119,10 @@ export const ourFileRouter = {
   })
     .middleware(async () => {
       const session = await auth()
-      if (!session?.user?.id || session.user.role !== "admin") {
+      if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "moderator")) {
         throw new UploadThingError({
           code: "FORBIDDEN",
-          message: "Only admins can upload achievement images.",
+          message: "Only club managers can upload achievement images.",
         })
       }
       return { uploadedBy: session.user.id }
