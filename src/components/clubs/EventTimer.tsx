@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -64,22 +64,29 @@ function computeParts(endTime?: string | null, startTime?: string | null): Count
   }
 }
 
+function subscribeToReducedMotion(onChange: () => void): () => void {
+  const query = window.matchMedia("(prefers-reduced-motion: reduce)")
+  query.addEventListener("change", onChange)
+  return () => query.removeEventListener("change", onChange)
+}
+
+function getReducedMotionSnapshot(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+}
+
+function getReducedMotionServerSnapshot(): boolean {
+  return false
+}
+
 function usePrefersReducedMotion(): boolean {
-  // Initialize to `false` so server and initial client render match.
-  // The real preference is synced in an effect after mount to avoid
-  // hydration mismatch when the OS setting is "reduce".
-  const [reduced, setReduced] = useState<boolean>(false)
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setReduced(query.matches)
-    const onChange = (event: MediaQueryListEvent) => setReduced(event.matches)
-    query.addEventListener("change", onChange)
-    return () => query.removeEventListener("change", onChange)
-  }, [])
-
-  return reduced
+  // useSyncExternalStore keeps server and initial client render identical
+  // (server snapshot `false`) so there's no hydration mismatch when the OS
+  // setting is "reduce", and needs no setState-in-effect sync.
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot
+  )
 }
 
 function TimeCell({ value, unit }: { value: string; unit: string }) {
@@ -103,26 +110,36 @@ export function EventTimer({ endTime, startTime, className }: EventTimerProps) {
   )
   // `parts` starts as `undefined` (not yet computed) so the server and the
   // initial client render produce identical deterministic placeholder HTML.
-  // The real countdown is computed in an effect after mount — never during
-  // render — so `Date.now()` skew between SSR and hydration can't mismatch.
+  // The real countdown is computed after mount — never during render — so
+  // `Date.now()` skew between SSR and hydration can't mismatch.
   // `null` means completed, `undefined` means loading.
   const [parts, setParts] = useState<CountdownParts | null | undefined>(undefined)
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
-    setParts(calculateParts())
-  }, [calculateParts])
+    // Deferred (not synchronous) so this doesn't trigger cascading renders
+    // (react-hooks/set-state-in-effect). The timeout also lets the
+    // deterministic loading placeholder paint before the first tick.
+    let cancelled = false
+    let interval: ReturnType<typeof setInterval> | undefined
 
-  useEffect(() => {
-    if (!mounted || reducedMotion) return
-    // Reduced motion: keep the single static snapshot — no per-second
-    // ticking and no animations (T052, SC-009).
-    const interval = setInterval(() => {
+    const timeout = setTimeout(() => {
+      if (cancelled) return
       setParts(calculateParts())
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [calculateParts, reducedMotion, mounted])
+      if (!reducedMotion) {
+        // Reduced motion: keep the single static snapshot — no per-second
+        // ticking and no animations (T052, SC-009).
+        interval = setInterval(() => {
+          if (!cancelled) setParts(calculateParts())
+        }, 1000)
+      }
+    }, 0)
+
+    return () => {
+      cancelled = true
+      clearTimeout(timeout)
+      if (interval !== undefined) clearInterval(interval)
+    }
+  }, [calculateParts, reducedMotion])
 
   // Tab-switch resync: browsers throttle setInterval in background tabs,
   // so recalculate from Date.now() immediately when the tab becomes
@@ -135,14 +152,14 @@ export function EventTimer({ endTime, startTime, className }: EventTimerProps) {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
   }, [calculateParts])
 
-  if (!mounted || parts === undefined) {
+  if (parts === undefined) {
     return (
       <span
         role="timer"
         data-testid="event-timer"
         data-completed="false"
         data-state="loading"
-        data-motion="full"
+        data-motion={reducedMotion ? "reduced" : "full"}
         aria-live="off"
         aria-label="Loading time remaining"
         title="Loading time remaining"

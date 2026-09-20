@@ -13,24 +13,25 @@ import { GalleryAlbumClient } from "@/components/clubs/GalleryAlbumClient"
 export default async function ManageGalleryPage({
   params,
 }: {
-  params: { clubId: string }
+  params: Promise<{ clubId: string }>
 }) {
+  const { clubId } = await params
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
   if (session.user.role !== "admin" && session.user.role !== "moderator") redirect("/")
 
-  const data = await getClubDetail(params.clubId)
+  const data = await getClubDetail(clubId)
   if (!data) notFound()
 
   const albums = await db.query.clubGalleryAlbums.findMany({
-    where: eq(clubGalleryAlbums.clubId, params.clubId),
+    where: eq(clubGalleryAlbums.clubId, clubId),
     orderBy: [clubGalleryAlbums.displayOrder],
   })
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <Link
-        href={`/manage/clubs/${params.clubId}`}
+        href={`/manage/clubs/${clubId}`}
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="size-4" strokeWidth={1.5} />
@@ -45,7 +46,7 @@ export default async function ManageGalleryPage({
         </p>
       </div>
 
-      <GalleryAlbumClient clubId={params.clubId} initialAlbums={albums} />
+      <GalleryAlbumClient clubId={clubId} initialAlbums={albums} />
     </main>
   )
 }

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       ;({ name, slug, description, imageUrl } = body)
     }
 
-    if (!name || !slug) {
+    if (typeof name !== "string" || typeof slug !== "string" || !name || !slug) {
       return NextResponse.json({ error: "Name and slug are required." }, { status: 400 })
     }
 
@@ -48,7 +48,12 @@ export async function POST(req: Request) {
 
     const [row] = await db
       .insert(departments)
-      .values({ name, slug, description, imageUrl })
+      .values({
+        name,
+        slug,
+        description: typeof description === "string" ? description : null,
+        imageUrl: typeof imageUrl === "string" ? imageUrl : null,
+      })
       .returning()
 
     return NextResponse.json(row, { status: 201 })
