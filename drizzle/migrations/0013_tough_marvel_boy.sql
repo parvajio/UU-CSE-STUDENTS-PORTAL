@@ -1,0 +1,1 @@
+ALTER TABLE "binary26_registrations" ADD COLUMN IF NOT EXISTS "student_id" text;

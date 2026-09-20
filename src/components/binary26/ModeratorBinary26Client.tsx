@@ -1,13 +1,37 @@
 "use client"
 
-import { useState } from "react"
-import { markBinary26Paid, searchBinary26Ticket } from "@/lib/binary26/actions"
-import { Search, CheckCircle2, AlertCircle, Ticket, User, Mail, Phone, MapPin, Calendar, Check, Loader2 } from "lucide-react"
+import { Fragment, useMemo, useState } from "react"
+import { getAllRegistrations, markBinary26Paid, searchBinary26Ticket, unmarkBinary26Paid } from "@/lib/binary26/actions"
+import { Search, CheckCircle2, AlertCircle, Check, Loader2, History, Undo2, X, ShieldAlert, ChevronDown, User } from "lucide-react"
+
+function formatDateTime(ts: string) {
+  const d = new Date(ts)
+  if (isNaN(d.getTime())) return ts
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+interface PaymentEventRecord {
+  id: string
+  action: string
+  reason: string | null
+  createdAt: string
+  actor: {
+    name?: string | null
+    email?: string | null
+  } | null
+}
 
 interface RegistrationRecord {
   id: string
   ticketNumber: string
   fullName: string
+  studentId: string | null
   phone: string
   email: string
   batch: string
@@ -28,24 +52,54 @@ interface RegistrationRecord {
     email?: string | null
     [key: string]: any
   } | null
+  paymentEvents: PaymentEventRecord[]
 }
 
 interface ModeratorBinary26ClientProps {
   initialRegistrations: RegistrationRecord[]
+  isAdmin: boolean
 }
 
-export function ModeratorBinary26Client({ initialRegistrations }: ModeratorBinary26ClientProps) {
+export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: ModeratorBinary26ClientProps) {
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>(initialRegistrations)
   const [searchQuery, setSearchQuery] = useState("")
   const [searching, setSearching] = useState(false)
   const [activeTab, setActiveTab] = useState<"all" | "unpaid" | "paid">("all")
   const [loadingTicket, setLoadingTicket] = useState<string | null>(null)
   const [actionMessage, setActionMessage] = useState<{ text: string; type: "success" | "error" } | null>(null)
+  const [confirmReg, setConfirmReg] = useState<RegistrationRecord | null>(null)
+  const [revertReg, setRevertReg] = useState<RegistrationRecord | null>(null)
+  const [revertReason, setRevertReason] = useState("")
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  // Full (unfiltered) list — verifier counts are derived from this so they
+  // stay global even while the ticket search box narrows the table.
+  const [fullList, setFullList] = useState<RegistrationRecord[]>(initialRegistrations)
+  const [selectedApproverId, setSelectedApproverId] = useState<string | null>(null)
+  const [approverOpen, setApproverOpen] = useState(false)
+  const [approverSearch, setApproverSearch] = useState("")
+
+  const refreshList = async () => {
+    try {
+      const res = await getAllRegistrations()
+      if (res.success && "data" in res) {
+        const fresh = res.data as RegistrationRecord[]
+        setFullList(fresh)
+        if (searchQuery.trim()) {
+          const results = await searchBinary26Ticket(searchQuery)
+          setRegistrations(results as RegistrationRecord[])
+        } else {
+          setRegistrations(fresh)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim()) {
-      setRegistrations(initialRegistrations)
+      setRegistrations(fullList)
       return
     }
 
@@ -60,7 +114,9 @@ export function ModeratorBinary26Client({ initialRegistrations }: ModeratorBinar
     }
   }
 
-  const handleMarkPaid = async (ticketNumber: string) => {
+  const handleConfirmMarkPaid = async () => {
+    if (!confirmReg) return
+    const ticketNumber = confirmReg.ticketNumber
     setLoadingTicket(ticketNumber)
     setActionMessage(null)
 
@@ -68,10 +124,8 @@ export function ModeratorBinary26Client({ initialRegistrations }: ModeratorBinar
       const res = await markBinary26Paid(ticketNumber)
       if (res.success) {
         setActionMessage({ text: `Ticket ${ticketNumber} successfully marked as Paid!`, type: "success" })
-        // Update local state
-        setRegistrations(prev =>
-          prev.map(r => r.ticketNumber === ticketNumber ? { ...r, paymentStatus: "paid" } : r)
-        )
+        setConfirmReg(null)
+        await refreshList()
       } else if (!res.success) {
         setActionMessage({ text: res.error || "Failed to mark as paid.", type: "error" })
       }
@@ -83,18 +137,80 @@ export function ModeratorBinary26Client({ initialRegistrations }: ModeratorBinar
     }
   }
 
-  const filteredRegistrations = registrations.filter(r => {
+  const handleConfirmRevert = async () => {
+    if (!revertReg) return
+    if (revertReason.trim().length < 3) {
+      setActionMessage({ text: "Please give a short reason for the revert (min 3 characters).", type: "error" })
+      return
+    }
+    const ticketNumber = revertReg.ticketNumber
+    setLoadingTicket(ticketNumber)
+    setActionMessage(null)
+
+    try {
+      const res = await unmarkBinary26Paid(ticketNumber, revertReason.trim())
+      if (res.success) {
+        setActionMessage({ text: `Ticket ${ticketNumber} reverted to Unpaid. The action was logged.`, type: "success" })
+        setRevertReg(null)
+        setRevertReason("")
+        await refreshList()
+      } else if (!res.success) {
+        setActionMessage({ text: res.error || "Failed to revert payment.", type: "error" })
+      }
+    } catch (err) {
+      console.error(err)
+      setActionMessage({ text: "An error occurred.", type: "error" })
+    } finally {
+      setLoadingTicket(null)
+    }
+  }
+
+  // Verifiers (moderators/admins who marked payments) with global paid counts.
+  const approvers = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; email: string; count: number }>()
+    for (const r of fullList) {
+      if (r.paymentStatus !== "paid" || !r.marker) continue
+      const id = r.marker.id
+      const entry = map.get(id) ?? {
+        id,
+        name: r.marker.name || "Unknown moderator",
+        email: r.marker.email || "",
+        count: 0,
+      }
+      entry.count += 1
+      map.set(id, entry)
+    }
+    return [...map.values()].sort((a, b) => b.count - a.count)
+  }, [fullList])
+
+  const approverOptions = useMemo(() => {
+    const q = approverSearch.trim().toLowerCase()
+    if (!q) return approvers
+    return approvers.filter(
+      (a) => a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
+    )
+  }, [approvers, approverSearch])
+
+  const selectedApprover = selectedApproverId
+    ? approvers.find((a) => a.id === selectedApproverId) ?? null
+    : null
+
+  const approverFiltered = selectedApproverId
+    ? registrations.filter((r) => r.paymentStatus === "paid" && r.marker?.id === selectedApproverId)
+    : registrations
+
+  const filteredRegistrations = approverFiltered.filter(r => {
     if (activeTab === "paid") return r.paymentStatus === "paid"
     if (activeTab === "unpaid") return r.paymentStatus === "unpaid"
     return true
   })
 
-  const paidCount = registrations.filter(r => r.paymentStatus === "paid").length
-  const unpaidCount = registrations.filter(r => r.paymentStatus === "unpaid").length
+  const paidCount = approverFiltered.filter(r => r.paymentStatus === "paid").length
+  const unpaidCount = approverFiltered.filter(r => r.paymentStatus === "unpaid").length
 
   return (
     <div className="space-y-8">
-      
+
       {/* Search & Action Bar */}
       <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-4">
         <h3 className="text-lg font-heading font-bold text-foreground">Ticket Verification & Search</h3>
@@ -103,7 +219,7 @@ export function ModeratorBinary26Client({ initialRegistrations }: ModeratorBinar
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by ticket number, phone, email, or name..."
+              placeholder="Search by ticket number, student ID, phone, email, or name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -122,7 +238,7 @@ export function ModeratorBinary26Client({ initialRegistrations }: ModeratorBinar
               type="button"
               onClick={() => {
                 setSearchQuery("")
-                setRegistrations(initialRegistrations)
+                setRegistrations(fullList)
               }}
               className="px-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm hover:bg-accent"
             >
@@ -130,6 +246,102 @@ export function ModeratorBinary26Client({ initialRegistrations }: ModeratorBinar
             </button>
           )}
         </form>
+
+        {/* Verifier filter: dropdown + name/email search, with per-verifier counts */}
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Filter by verifier
+          </span>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setApproverOpen((v) => !v)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-background border border-border text-foreground text-sm font-medium hover:bg-accent transition-all min-w-52 justify-between"
+            >
+              <span className="inline-flex items-center gap-2 truncate">
+                <User className="w-4 h-4 text-primary shrink-0" strokeWidth={1.5} />
+                <span className="truncate">
+                  {selectedApprover ? selectedApprover.name : "All verifiers"}
+                </span>
+              </span>
+              {selectedApprover ? (
+                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold shrink-0">
+                  {selectedApprover.count}
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[11px] font-bold shrink-0">
+                  {paidCount}
+                </span>
+              )}
+              <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${approverOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {approverOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setApproverOpen(false)} />
+                <div className="absolute z-20 mt-2 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-border bg-surface shadow-xl p-2 space-y-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Search verifier by name or email..."
+                      value={approverSearch}
+                      onChange={(e) => setApproverSearch(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedApproverId(null); setApproverOpen(false) }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+                      !selectedApproverId ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <span>All verifiers</span>
+                    <span className="text-[11px] font-bold text-muted-foreground">{paidCount} tickets</span>
+                  </button>
+                  {approverOptions.length === 0 ? (
+                    <p className="px-3 py-2 text-xs text-muted-foreground">No verifier matches your search.</p>
+                  ) : (
+                    approverOptions.map((a) => (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => { setSelectedApproverId(a.id); setApproverOpen(false); setActiveTab("paid") }}
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                          selectedApproverId === a.id ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-accent"
+                        }`}
+                      >
+                        <span className="min-w-0 text-left">
+                          <span className="block truncate">{a.name}</span>
+                          {a.email && <span className="block truncate text-[11px] font-normal text-muted-foreground">{a.email}</span>}
+                        </span>
+                        <span className="text-[11px] font-bold text-muted-foreground shrink-0">{a.count} ticket{a.count === 1 ? "" : "s"}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {selectedApprover && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/25 text-primary text-xs font-semibold">
+              <span>
+                {selectedApprover.name} · {approverFiltered.length} ticket{approverFiltered.length === 1 ? "" : "s"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedApproverId(null)}
+                className="p-0.5 rounded-full hover:bg-primary/20 transition-colors"
+                aria-label="Clear verifier filter"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
+        </div>
 
         {actionMessage && (
           <div className={`p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
@@ -181,80 +393,312 @@ export function ModeratorBinary26Client({ initialRegistrations }: ModeratorBinar
                 <th className="p-4">Pickup Point</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Verified By (Moderator)</th>
+                <th className="p-4">Paid At</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border text-sm">
               {filteredRegistrations.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="p-8 text-center text-muted-foreground">
                     No registrations found.
                   </td>
                 </tr>
               ) : (
                 filteredRegistrations.map((reg) => (
-                  <tr key={reg.id} className="hover:bg-muted/30 transition-all">
-                    <td className="p-4 font-mono font-bold text-primary">
-                      {reg.ticketNumber}
-                    </td>
-                    <td className="p-4">
-                      <div className="font-medium text-foreground">{reg.fullName}</div>
-                      <div className="text-xs text-muted-foreground">{reg.phone} • {reg.email}</div>
-                    </td>
-                    <td className="p-4">
-                      <span className="font-semibold">Batch {reg.batch}</span>
-                      <span className="text-xs text-muted-foreground block">Sec {reg.section}</span>
-                    </td>
-                    <td className="p-4 text-muted-foreground">
-                      {reg.pickupPoint}
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${
-                        reg.paymentStatus === 'paid' 
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
-                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
-                      }`}>
-                        {reg.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="p-4 text-xs text-muted-foreground">
-                      {reg.paymentStatus === 'paid' && reg.marker ? (
-                        <div>
-                          <div className="font-medium text-foreground">{reg.marker.name || "Unknown Moderator"}</div>
-                          <div>{reg.marker.email}</div>
-                        </div>
-                      ) : (
-                        <span className="italic">—</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right">
-                      {reg.paymentStatus === 'unpaid' ? (
-                        <button
-                          onClick={() => handleMarkPaid(reg.ticketNumber)}
-                          disabled={loadingTicket === reg.ticketNumber}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all text-xs inline-flex items-center gap-1.5 disabled:opacity-50"
-                        >
-                          {loadingTicket === reg.ticketNumber ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Check className="w-3.5 h-3.5" />
-                          )}
-                          <span>Mark Paid</span>
-                        </button>
-                      ) : (
-                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Verified</span>
+                  <Fragment key={reg.id}>
+                    <tr className="hover:bg-muted/30 transition-all">
+                      <td className="p-4 font-mono font-bold text-primary">
+                        {reg.ticketNumber}
+                      </td>
+                      <td className="p-4">
+                        <div className="font-medium text-foreground">{reg.fullName}</div>
+                        {reg.studentId ? (
+                          <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px] font-semibold tracking-wide text-foreground">
+                            {reg.studentId}
+                          </div>
+                        ) : (
+                          <div className="mt-1 text-[11px] italic text-muted-foreground">No student ID (legacy)</div>
+                        )}
+                        <div className="text-xs text-muted-foreground mt-1">{reg.phone} • {reg.email}</div>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-semibold">Batch {reg.batch}</span>
+                        <span className="text-xs text-muted-foreground block">Sec {reg.section}</span>
+                      </td>
+                      <td className="p-4 text-muted-foreground">
+                        {reg.pickupPoint}
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${
+                          reg.paymentStatus === 'paid'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                        }`}>
+                          {reg.paymentStatus}
                         </span>
-                      )}
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="p-4 text-xs text-muted-foreground">
+                        {reg.paymentStatus === 'paid' && reg.marker ? (
+                          <div>
+                            <div className="font-medium text-foreground">{reg.marker.name || "Unknown Moderator"}</div>
+                            <div>{reg.marker.email}</div>
+                          </div>
+                        ) : (
+                          <span className="italic">—</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-xs text-muted-foreground whitespace-nowrap">
+                        {reg.paymentStatus === 'paid' && reg.markedPaidAt ? (
+                          <span className="font-medium text-foreground">{formatDateTime(reg.markedPaidAt)}</span>
+                        ) : (
+                          <span className="italic">—</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex flex-col items-end gap-1.5">
+                          {reg.paymentStatus === 'unpaid' ? (
+                            <button
+                              onClick={() => setConfirmReg(reg)}
+                              disabled={loadingTicket === reg.ticketNumber}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all text-xs inline-flex items-center gap-1.5 disabled:opacity-50"
+                            >
+                              {loadingTicket === reg.ticketNumber ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Check className="w-3.5 h-3.5" />
+                              )}
+                              <span>Mark Paid</span>
+                            </button>
+                          ) : (
+                            <span className="flex flex-col items-end gap-1.5">
+                              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Verified</span>
+                              </span>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => { setRevertReg(reg); setRevertReason("") }}
+                                  disabled={loadingTicket === reg.ticketNumber}
+                                  title="Admin-only: revert this ticket to unpaid"
+                                  className="px-3 py-1.5 rounded-lg bg-surface border border-destructive/30 text-destructive font-medium hover:bg-destructive/10 transition-all text-xs inline-flex items-center gap-1.5 disabled:opacity-50"
+                                >
+                                  {loadingTicket === reg.ticketNumber ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Undo2 className="w-3.5 h-3.5" />
+                                  )}
+                                  <span>Revert to Unpaid</span>
+                                </button>
+                              )}
+                            </span>
+                          )}
+                          {(reg.paymentEvents?.length ?? 0) > 0 && (
+                            <button
+                              onClick={() => setExpandedId(expandedId === reg.id ? null : reg.id)}
+                              className="text-[11px] font-medium text-muted-foreground hover:text-primary inline-flex items-center gap-1 transition-colors"
+                            >
+                              <History className="w-3 h-3" />
+                              <span>{expandedId === reg.id ? "Hide history" : `History (${reg.paymentEvents.length})`}</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                    {expandedId === reg.id && (reg.paymentEvents?.length ?? 0) > 0 && (
+                      <tr className="bg-muted/20">
+                        <td colSpan={8} className="p-4">
+                          <div className="space-y-2 max-w-2xl">
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                              Payment history — {reg.ticketNumber}
+                            </p>
+                            {reg.paymentEvents.map((ev) => (
+                              <div key={ev.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border bg-background px-3 py-2 text-xs">
+                                <span className={`px-2 py-0.5 rounded-full font-semibold uppercase text-[10px] ${
+                                  ev.action === 'paid'
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                }`}>
+                                  {ev.action === 'paid' ? 'Marked paid' : 'Reverted to unpaid'}
+                                </span>
+                                <span className="font-medium text-foreground">
+                                  {ev.actor?.name || "Unknown"} {ev.actor?.email ? <span className="font-normal text-muted-foreground">({ev.actor.email})</span> : null}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {ev.createdAt ? new Date(ev.createdAt).toLocaleString() : ""}
+                                </span>
+                                {ev.reason && (
+                                  <span className="w-full text-muted-foreground">
+                                    <span className="font-medium text-foreground">Reason:</span> {ev.reason}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Mark-paid confirmation modal */}
+      {confirmReg && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => (loadingTicket ? null : setConfirmReg(null))}
+        >
+          <div
+            className="bg-surface border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-heading font-bold text-foreground">Confirm cash received?</h3>
+                  <p className="text-xs text-muted-foreground">Double-check the identity before marking paid.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setConfirmReg(null)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <dl className="rounded-xl border border-border bg-background p-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Ticket</dt>
+                <dd className="font-mono font-bold text-primary">{confirmReg.ticketNumber}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Student ID</dt>
+                <dd className="font-mono font-semibold text-foreground">{confirmReg.studentId || "—"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Name</dt>
+                <dd className="font-medium text-foreground">{confirmReg.fullName}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Phone</dt>
+                <dd className="text-foreground">{confirmReg.phone}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Batch / Sec</dt>
+                <dd className="text-foreground">{confirmReg.batch} / {confirmReg.section}</dd>
+              </div>
+            </dl>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmReg(null)}
+                disabled={loadingTicket === confirmReg.ticketNumber}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-surface border border-border text-foreground font-medium hover:bg-accent transition-all text-sm disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmMarkPaid}
+                disabled={loadingTicket === confirmReg.ticketNumber}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all text-sm inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loadingTicket === confirmReg.ticketNumber ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                <span>Confirm — Mark Paid</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin revert modal */}
+      {revertReg && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => (loadingTicket ? null : setRevertReg(null))}
+        >
+          <div
+            className="bg-surface border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-heading font-bold text-foreground">Revert to unpaid?</h3>
+                  <p className="text-xs text-muted-foreground">Admin-only. This action is logged with your name.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setRevertReg(null)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-border bg-background p-4 text-sm space-y-1">
+              <p><span className="text-muted-foreground">Ticket:</span> <span className="font-mono font-bold text-primary">{revertReg.ticketNumber}</span></p>
+              <p><span className="text-muted-foreground">Student:</span> <span className="font-medium text-foreground">{revertReg.fullName}</span> {revertReg.studentId && <span className="font-mono text-xs text-muted-foreground">({revertReg.studentId})</span>}</p>
+              {revertReg.marker && (
+                <p><span className="text-muted-foreground">Currently marked paid by:</span> <span className="font-medium text-foreground">{revertReg.marker.name || revertReg.marker.email || "Unknown"}</span></p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="revert-reason" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Reason (required)
+              </label>
+              <textarea
+                id="revert-reason"
+                rows={3}
+                value={revertReason}
+                onChange={(e) => setRevertReason(e.target.value)}
+                placeholder="e.g. Wrong ticket selected — cash was for BIN26-XXXX"
+                maxLength={500}
+                className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-destructive/50 transition-all resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRevertReg(null)}
+                disabled={loadingTicket === revertReg.ticketNumber}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-surface border border-border text-foreground font-medium hover:bg-accent transition-all text-sm disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmRevert}
+                disabled={loadingTicket === revertReg.ticketNumber || revertReason.trim().length < 3}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-destructive text-destructive-foreground font-medium hover:opacity-90 transition-all text-sm inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loadingTicket === revertReg.ticketNumber ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Undo2 className="w-4 h-4" />
+                )}
+                <span>Confirm Revert</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

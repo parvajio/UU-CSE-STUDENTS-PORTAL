@@ -14,7 +14,7 @@ import { questions } from "./questions"
 import { questionFiles } from "./question-files"
 import { questionLikes } from "./question-likes"
 import { questionTags } from "./question-tags"
-import { binary26Registrations, binary26Gallery } from "./binary26"
+import { binary26Registrations, binary26Gallery, binary26PaymentEvents } from "./binary26"
 import { departments } from "./departments"
 import { clubs } from "./clubs"
 import { clubMembers } from "./club-members"
@@ -46,7 +46,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
 }))
 
-export const binary26RegistrationsRelations = relations(binary26Registrations, ({ one }) => ({
+export const binary26RegistrationsRelations = relations(binary26Registrations, ({ one, many }) => ({
   user: one(users, {
     fields: [binary26Registrations.userId],
     references: [users.id],
@@ -56,6 +56,18 @@ export const binary26RegistrationsRelations = relations(binary26Registrations, (
     fields: [binary26Registrations.markedPaidBy],
     references: [users.id],
     relationName: "paidMarker",
+  }),
+  paymentEvents: many(binary26PaymentEvents),
+}))
+
+export const binary26PaymentEventsRelations = relations(binary26PaymentEvents, ({ one }) => ({
+  registration: one(binary26Registrations, {
+    fields: [binary26PaymentEvents.registrationId],
+    references: [binary26Registrations.id],
+  }),
+  actor: one(users, {
+    fields: [binary26PaymentEvents.actorId],
+    references: [users.id],
   }),
 }))
 

@@ -6,6 +6,7 @@ export const binary26Registrations = pgTable("binary26_registrations", {
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   ticketNumber: text("ticket_number").notNull().unique(),
   fullName: text("full_name").notNull(),
+  studentId: text("student_id"),
   phone: text("phone").notNull(),
   email: text("email").notNull(),
   batch: text("batch").notNull(), // "58" to "68"
@@ -16,6 +17,15 @@ export const binary26Registrations = pgTable("binary26_registrations", {
   markedPaidAt: timestamp("marked_paid_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow().$onUpdate(() => new Date().toISOString()),
+})
+
+export const binary26PaymentEvents = pgTable("binary26_payment_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  registrationId: uuid("registration_id").notNull().references(() => binary26Registrations.id, { onDelete: "cascade" }),
+  action: text("action").notNull(), // "paid" | "unpaid"
+  actorId: uuid("actor_id").references(() => users.id, { onDelete: "set null" }),
+  reason: text("reason"),
+  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
 })
 
 export const binary26Gallery = pgTable("binary26_gallery", {

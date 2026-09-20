@@ -52,6 +52,14 @@ export async function UserTicketsCard() {
 
             <div className="text-xs text-muted-foreground space-y-1">
               <p><strong>Name:</strong> {reg.fullName}</p>
+              <p>
+                <strong>Student ID:</strong>{" "}
+                {reg.studentId ? (
+                  <span className="font-mono font-semibold text-foreground">{reg.studentId}</span>
+                ) : (
+                  <span className="italic">Not provided (legacy ticket)</span>
+                )}
+              </p>
               <p><strong>Batch:</strong> {reg.batch} • Section {reg.section}</p>
               <p className="flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-primary" />
