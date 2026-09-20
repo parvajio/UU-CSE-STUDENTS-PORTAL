@@ -92,6 +92,20 @@
       "when": 1789580393692,
       "tag": "0012_whole_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789896284464,
+      "tag": "0013_tough_marvel_boy",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789901204292,
+      "tag": "0014_huge_lucky_pierre",
+      "breakpoints": true
     }
   ]
 }

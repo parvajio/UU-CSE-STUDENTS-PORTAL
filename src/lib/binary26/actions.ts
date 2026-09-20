@@ -4,7 +4,7 @@ import { eq, or, ilike, desc } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
-import { binary26Registrations, binary26Gallery, siteConfig, users } from "@/lib/db/schema"
+import { binary26Registrations, binary26PaymentEvents, binary26Gallery, siteConfig, users } from "@/lib/db/schema"
 
 export type Binary26ActionResult =
   | { success: true; ticketNumber?: string; data?: unknown }
@@ -16,6 +16,7 @@ function fail(error: string): Binary26ActionResult {
 
 export async function submitBinary26Registration(input: {
   fullName: string
+  studentId: string
   phone: string
   email: string
   batch: string
@@ -28,6 +29,7 @@ export async function submitBinary26Registration(input: {
   }
 
   const fullName = input.fullName?.trim()
+  const studentId = input.studentId?.trim().toUpperCase()
   const phone = input.phone?.trim()
   const email = input.email?.trim().toLowerCase()
   const batch = input.batch?.trim()
@@ -35,6 +37,13 @@ export async function submitBinary26Registration(input: {
   const pickupPoint = input.pickupPoint?.trim()
 
   if (!fullName) return fail("Full name is required.")
+  if (!studentId) return fail("Student ID is required.")
+  if (studentId.length < 3 || studentId.length > 30) {
+    return fail("Student ID must be between 3 and 30 characters.")
+  }
+  if (!/^[A-Za-z0-9\-/]+$/.test(studentId)) {
+    return fail("Student ID may only contain letters, numbers, dashes and slashes.")
+  }
   if (!phone) return fail("Phone number is required.")
   if (!email || !email.includes("@")) return fail("Valid email is required.")
   
@@ -56,6 +65,7 @@ export async function submitBinary26Registration(input: {
       userId: session.user.id,
       ticketNumber,
       fullName,
+      studentId,
       phone,
       email,
       batch,
@@ -101,6 +111,10 @@ export async function getAllRegistrations() {
       with: {
         user: true,
         marker: true,
+        paymentEvents: {
+          orderBy: [desc(binary26PaymentEvents.createdAt)],
+          with: { actor: true },
+        },
       },
       orderBy: [desc(binary26Registrations.createdAt)],
     })
@@ -127,6 +141,7 @@ export async function markBinary26Paid(ticketNumber: string): Promise<Binary26Ac
     })
 
     if (!existing) return fail("Ticket not found.")
+    if (existing.paymentStatus === "paid") return fail("Ticket is already marked as paid.")
 
     await db.update(binary26Registrations)
       .set({
@@ -136,12 +151,73 @@ export async function markBinary26Paid(ticketNumber: string): Promise<Binary26Ac
       })
       .where(eq(binary26Registrations.ticketNumber, cleanedTicket))
 
+    await db.insert(binary26PaymentEvents).values({
+      registrationId: existing.id,
+      action: "paid",
+      actorId: session.user.id,
+    })
+
     revalidatePath("/moderator/binary-26")
     revalidatePath("/binary-26")
     return { success: true }
   } catch (err) {
     console.error("Failed to mark paid:", err)
     return fail("Failed to update payment status.")
+  }
+}
+
+export async function unmarkBinary26Paid(
+  ticketNumber: string,
+  reason: string
+): Promise<Binary26ActionResult> {
+  const session = await auth()
+  if (!session?.user?.id) return fail("Unauthorized")
+  // Reversal is admin-only: a moderator must never be able to silently
+  // unmark a paid ticket (intentional or compromised-account abuse).
+  if (session.user.role !== "admin") {
+    return fail("Only admins can revert a paid ticket to unpaid.")
+  }
+
+  const cleanedTicket = ticketNumber?.trim().toUpperCase()
+  if (!cleanedTicket) return fail("Invalid ticket number.")
+
+  const cleanedReason = reason?.trim()
+  if (!cleanedReason || cleanedReason.length < 3) {
+    return fail("A reason is required to revert a payment (min 3 characters).")
+  }
+  if (cleanedReason.length > 500) {
+    return fail("Reason must be 500 characters or fewer.")
+  }
+
+  try {
+    const existing = await db.query.binary26Registrations.findFirst({
+      where: eq(binary26Registrations.ticketNumber, cleanedTicket),
+    })
+
+    if (!existing) return fail("Ticket not found.")
+    if (existing.paymentStatus !== "paid") return fail("Ticket is not marked as paid.")
+
+    await db.update(binary26Registrations)
+      .set({
+        paymentStatus: "unpaid",
+        markedPaidBy: null,
+        markedPaidAt: null,
+      })
+      .where(eq(binary26Registrations.ticketNumber, cleanedTicket))
+
+    await db.insert(binary26PaymentEvents).values({
+      registrationId: existing.id,
+      action: "unpaid",
+      actorId: session.user.id,
+      reason: cleanedReason,
+    })
+
+    revalidatePath("/moderator/binary-26")
+    revalidatePath("/binary-26")
+    return { success: true }
+  } catch (err) {
+    console.error("Failed to revert payment:", err)
+    return fail("Failed to revert payment status.")
   }
 }
 
@@ -155,6 +231,7 @@ export async function searchBinary26Ticket(query: string) {
     const results = await db.query.binary26Registrations.findMany({
       where: or(
         ilike(binary26Registrations.ticketNumber, q),
+        ilike(binary26Registrations.studentId, q),
         ilike(binary26Registrations.phone, q),
         ilike(binary26Registrations.email, q),
         ilike(binary26Registrations.fullName, q)
@@ -162,6 +239,10 @@ export async function searchBinary26Ticket(query: string) {
       with: {
         user: true,
         marker: true,
+        paymentEvents: {
+          orderBy: [desc(binary26PaymentEvents.createdAt)],
+          with: { actor: true },
+        },
       },
       orderBy: [desc(binary26Registrations.createdAt)],
     })

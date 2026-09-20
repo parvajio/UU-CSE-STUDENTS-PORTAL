@@ -41,7 +41,7 @@ export default async function ModeratorBinary26Page() {
           </Link>
         </div>
 
-        <ModeratorBinary26Client initialRegistrations={registrations} />
+        <ModeratorBinary26Client initialRegistrations={registrations} isAdmin={session.user.role === "admin"} />
 
       </div>
     </div>
