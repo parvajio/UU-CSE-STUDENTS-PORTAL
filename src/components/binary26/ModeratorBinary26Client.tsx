@@ -2,7 +2,20 @@
 
 import { Fragment, useMemo, useState } from "react"
 import { getAllRegistrations, markBinary26Paid, searchBinary26Ticket, unmarkBinary26Paid } from "@/lib/binary26/actions"
-import { Search, CheckCircle2, AlertCircle, Check, Loader2, History, Undo2, X, ShieldAlert, ChevronDown, User } from "lucide-react"
+import { Search, CheckCircle2, AlertCircle, Check, Loader2, History, Undo2, X, ShieldAlert, ChevronDown, User, Download, Printer, FileSpreadsheet } from "lucide-react"
+
+function escapeCsv(value: string | null | undefined) {
+  const s = value ?? ""
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
+
+function escapeHtml(value: string | null | undefined) {
+  return (value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
 
 function formatDateTime(ts: string) {
   const d = new Date(ts)
@@ -77,6 +90,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
   const [selectedApproverId, setSelectedApproverId] = useState<string | null>(null)
   const [approverOpen, setApproverOpen] = useState(false)
   const [approverSearch, setApproverSearch] = useState("")
+  const [exportOpen, setExportOpen] = useState(false)
 
   const refreshList = async () => {
     try {
@@ -207,6 +221,114 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
 
   const paidCount = approverFiltered.filter(r => r.paymentStatus === "paid").length
   const unpaidCount = approverFiltered.filter(r => r.paymentStatus === "unpaid").length
+
+  // ---- Export (always exports exactly the rows currently visible in the table) ----
+  const exportFileName = (ext: string) => {
+    const parts = ["binary26", activeTab]
+    if (selectedApprover) {
+      parts.push(
+        selectedApprover.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "verifier"
+      )
+    }
+    parts.push(new Date().toISOString().slice(0, 10))
+    return `${parts.filter(Boolean).join("-")}.${ext}`
+  }
+
+  const handleExportCsv = () => {
+    setExportOpen(false)
+    if (filteredRegistrations.length === 0) return
+    const header = ["Ticket Number", "Full Name", "Student ID", "Phone", "Email", "Batch", "Section", "Pickup Point", "Status", "Verified By", "Verifier Email", "Paid At"]
+    const lines = filteredRegistrations.map((r) =>
+      [
+        r.ticketNumber,
+        r.fullName,
+        r.studentId,
+        r.phone,
+        r.email,
+        r.batch,
+        r.section,
+        r.pickupPoint,
+        r.paymentStatus,
+        r.marker?.name,
+        r.marker?.email,
+        r.markedPaidAt ? formatDateTime(r.markedPaidAt) : "",
+      ]
+        .map(escapeCsv)
+        .join(",")
+    )
+    // BOM prefix so Excel opens UTF-8 (Bangla names, etc.) correctly.
+    const csv = "﻿" + [header.join(","), ...lines].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = exportFileName("csv")
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+    setActionMessage({ text: `Downloaded ${filteredRegistrations.length} ticket${filteredRegistrations.length === 1 ? "" : "s"} as CSV.`, type: "success" })
+  }
+
+  const handlePrintPdf = () => {
+    setExportOpen(false)
+    if (filteredRegistrations.length === 0) return
+    const w = window.open("", "_blank", "width=1000,height=750")
+    if (!w) {
+      setActionMessage({ text: "Popup blocked — allow popups for this site to print the list.", type: "error" })
+      return
+    }
+    const filters: string[] = [`View: ${activeTab}`]
+    if (selectedApprover) filters.push(`Verifier: ${selectedApprover.name}${selectedApprover.email ? ` (${selectedApprover.email})` : ""}`)
+    if (searchQuery.trim()) filters.push(`Search: “${searchQuery.trim()}”`)
+    const exportedPaid = filteredRegistrations.filter((r) => r.paymentStatus === "paid").length
+    const rows = filteredRegistrations
+      .map(
+        (r, i) => `<tr>
+          <td>${i + 1}</td>
+          <td class="mono">${escapeHtml(r.ticketNumber)}</td>
+          <td>${escapeHtml(r.fullName)}</td>
+          <td class="mono">${escapeHtml(r.studentId) || "—"}</td>
+          <td>${escapeHtml(r.phone)}</td>
+          <td>${escapeHtml(r.email)}</td>
+          <td>${escapeHtml(r.batch)} / ${escapeHtml(r.section)}</td>
+          <td>${escapeHtml(r.pickupPoint)}</td>
+          <td>${escapeHtml(r.paymentStatus)}</td>
+          <td>${escapeHtml(r.marker?.name) || "—"}</td>
+          <td>${r.markedPaidAt ? escapeHtml(formatDateTime(r.markedPaidAt)) : "—"}</td>
+        </tr>`
+      )
+      .join("")
+    w.document.write(`<!doctype html>
+<html><head><meta charset="utf-8"><title>Binary 26 Tickets — ${escapeHtml(activeTab)}</title>
+<style>
+  @page { size: landscape; margin: 12mm; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 24px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .meta { font-size: 12px; color: #444; margin-bottom: 12px; }
+  .meta span { margin-right: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th, td { border: 1px solid #999; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: #eee; }
+  .mono { font-family: monospace; }
+</style></head><body>
+  <h1>Binary 26 — Ticket List</h1>
+  <div class="meta">
+    <span>Generated: ${escapeHtml(new Date().toLocaleString())}</span>
+    <span>Total: ${filteredRegistrations.length}</span>
+    <span>Paid: ${exportedPaid}</span>
+    <span>Unpaid: ${filteredRegistrations.length - exportedPaid}</span><br>
+    <span>${filters.map(escapeHtml).join(" &nbsp;•&nbsp; ")}</span>
+  </div>
+  <table><thead><tr>
+    <th>#</th><th>Ticket</th><th>Name</th><th>Student ID</th><th>Phone</th><th>Email</th>
+    <th>Batch/Sec</th><th>Pickup</th><th>Status</th><th>Verified By</th><th>Paid At</th>
+  </tr></thead><tbody>${rows}</tbody></table>
+</body></html>`)
+    w.document.close()
+    w.focus()
+    window.setTimeout(() => w.print(), 350)
+  }
 
   return (
     <div className="space-y-8">
@@ -353,32 +475,81 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-border pb-4">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            activeTab === "all" ? "bg-primary text-primary-foreground shadow-sm" : "bg-surface border border-border text-foreground hover:bg-accent"
-          }`}
-        >
-          All Registrations ({registrations.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("unpaid")}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            activeTab === "unpaid" ? "bg-amber-500 text-white shadow-sm" : "bg-surface border border-border text-foreground hover:bg-accent"
-          }`}
-        >
-          Unpaid ({unpaidCount})
-        </button>
-        <button
-          onClick={() => setActiveTab("paid")}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            activeTab === "paid" ? "bg-emerald-600 text-white shadow-sm" : "bg-surface border border-border text-foreground hover:bg-accent"
-          }`}
-        >
-          Paid ({paidCount})
-        </button>
+      {/* Tabs + Export */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeTab === "all" ? "bg-primary text-primary-foreground shadow-sm" : "bg-surface border border-border text-foreground hover:bg-accent"
+            }`}
+          >
+            All Registrations ({approverFiltered.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("unpaid")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeTab === "unpaid" ? "bg-amber-500 text-white shadow-sm" : "bg-surface border border-border text-foreground hover:bg-accent"
+            }`}
+          >
+            Unpaid ({unpaidCount})
+          </button>
+          <button
+            onClick={() => setActiveTab("paid")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeTab === "paid" ? "bg-emerald-600 text-white shadow-sm" : "bg-surface border border-border text-foreground hover:bg-accent"
+            }`}
+          >
+            Paid ({paidCount})
+          </button>
+        </div>
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setExportOpen((v) => !v)}
+            disabled={filteredRegistrations.length === 0}
+            title="Download the currently filtered list for offline use"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface border border-border text-foreground text-sm font-medium hover:bg-accent transition-all disabled:opacity-50"
+          >
+            <Download className="w-4 h-4 text-primary" strokeWidth={1.5} />
+            <span>Export ({filteredRegistrations.length})</span>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${exportOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {exportOpen && filteredRegistrations.length > 0 && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setExportOpen(false)} />
+              <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-border bg-surface shadow-xl p-2 space-y-1">
+                <p className="px-3 pt-1.5 pb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Exports current view
+                </p>
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-accent transition-colors text-left"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={1.5} />
+                  <span>
+                    <span className="block font-medium">Download CSV</span>
+                    <span className="block text-[11px] text-muted-foreground">Excel-compatible offline spreadsheet</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrintPdf}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-accent transition-colors text-left"
+                >
+                  <Printer className="w-4 h-4 text-primary shrink-0" strokeWidth={1.5} />
+                  <span>
+                    <span className="block font-medium">Print / Save as PDF</span>
+                    <span className="block text-[11px] text-muted-foreground">Opens print view — choose “Save as PDF”</span>
+                  </span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Table */}
