@@ -9,7 +9,7 @@ import { enforceSubmissionLimit } from "@/lib/rate-limit"
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  if (session.user.role !== "admin" && session.user.role !== "moderator") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   const limit = enforceSubmissionLimit(session.user.id)
   if (!limit.allowed) {
@@ -21,7 +21,18 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, description, departmentId, logoUrl, coverImgUrl } = body
+    const {
+      name,
+      description,
+      departmentId,
+      logoUrl,
+      coverImgUrl,
+      msgGroupUrl,
+      pageUrl,
+      fbGroupUrl,
+      contacts,
+      mail,
+    } = body
 
     if (!name || !departmentId) {
       return NextResponse.json({ error: "Name and departmentId are required." }, { status: 400 })
@@ -36,7 +47,19 @@ export async function POST(req: Request) {
 
     const [row] = await db
       .insert(clubs)
-      .values({ name, description, departmentId, logoUrl, coverImgUrl, status: "approved" })
+      .values({
+        name,
+        description: description ?? null,
+        departmentId,
+        logoUrl: logoUrl ?? null,
+        coverImgUrl: coverImgUrl ?? null,
+        msgGroupUrl: msgGroupUrl ?? null,
+        pageUrl: pageUrl ?? null,
+        fbGroupUrl: fbGroupUrl ?? null,
+        contacts: contacts ?? null,
+        mail: mail ?? null,
+        status: "approved",
+      })
       .returning()
 
     return NextResponse.json(row, { status: 201 })

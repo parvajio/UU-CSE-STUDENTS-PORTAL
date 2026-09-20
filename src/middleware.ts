@@ -31,7 +31,7 @@ const routePermissions: Record<string, Role[]> = {
   "/moderator/binary-26": ["moderator", "admin"],
   "/manage/roles": ["admin"],
   "/manage/faculty": ["admin"],
-  "/manage/clubs": ["admin"],
+  "/manage/clubs": ["admin", "moderator"],
   "/manage/alumni": ["admin"],
   "/manage/events": ["admin"],
   "/manage/skills": ["admin"],

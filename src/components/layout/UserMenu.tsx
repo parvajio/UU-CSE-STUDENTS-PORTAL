@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { signOut } from "next-auth/react"
-import { BookOpen, Calendar, ClipboardList, LogOut, Settings2, ShieldCheck, UserRound, Ticket } from "lucide-react"
+import { BookOpen, Calendar, ClipboardList, LogOut, Settings2, Shield, ShieldCheck, UserRound, Ticket } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -77,6 +77,14 @@ export function UserMenu({ user }: { user: NavbarUser }) {
             <Link href="/manage/routine" className="cursor-pointer">
               <Calendar className="size-4" strokeWidth={1.5} />
               Manage Routine
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        {user.role === "admin" || user.role === "moderator" ? (
+          <DropdownMenuItem asChild>
+            <Link href="/manage/clubs" className="cursor-pointer">
+              <Shield className="size-4" strokeWidth={1.5} />
+              Manage Clubs
             </Link>
           </DropdownMenuItem>
         ) : null}

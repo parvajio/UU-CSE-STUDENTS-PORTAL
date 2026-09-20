@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  if (session.user.role !== "admin" && session.user.role !== "moderator") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   const limit = enforceSubmissionLimit(session.user.id)
   if (!limit.allowed) {
@@ -51,18 +51,41 @@ export async function POST(req: Request) {
 
     const profile = await db.query.profiles.findFirst({
       where: eq(profiles.id, profileId),
-      columns: { status: true },
+      columns: { status: true, userId: true },
     })
     if (!profile || profile.status !== "approved") {
       return NextResponse.json({ error: "Profile not found or not approved" }, { status: 404 })
     }
 
-    const [row] = await db
-      .insert(clubMembers)
-      .values({ clubId, profileId, roleInClub, position, designation, joinedAt: new Date().toISOString() })
-      .returning()
+    const existing = await db.query.clubMembers.findFirst({
+      where: and(eq(clubMembers.clubId, clubId), eq(clubMembers.profileId, profileId)),
+      columns: { id: true },
+    })
+    if (existing) {
+      return NextResponse.json({ error: "Profile is already a member of this club" }, { status: 409 })
+    }
 
-    return NextResponse.json(row, { status: 201 })
+    try {
+      const [row] = await db
+        .insert(clubMembers)
+        .values({
+          clubId,
+          profileId,
+          // Carry the linked login when known so a later self-join by the
+          // same user hits the (clubId, userId) unique index instead of
+          // creating a second row.
+          userId: profile.userId,
+          roleInClub,
+          position,
+          designation,
+          joinedAt: new Date().toISOString(),
+        })
+        .returning()
+
+      return NextResponse.json(row, { status: 201 })
+    } catch {
+      return NextResponse.json({ error: "Profile is already a member of this club" }, { status: 409 })
+    }
   } catch (err: unknown) {
     return NextResponse.json({ error: "Failed to add member" }, { status: 500 })
   }
@@ -71,18 +94,25 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  if (session.user.role !== "admin" && session.user.role !== "moderator") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   try {
     const body = await req.json()
-    const { clubId, profileId } = body
+    const { clubId, profileId, memberId } = body
 
-    const deleted = await db
-      .delete(clubMembers)
-      .where(
-        and(eq(clubMembers.clubId, clubId), eq(clubMembers.profileId, profileId))
-      )
-      .returning()
+    // Profile-less self-joined rows are removed by row id; profile-backed
+    // rows by (clubId, profileId).
+    const deleted = memberId
+      ? await db
+          .delete(clubMembers)
+          .where(and(eq(clubMembers.id, memberId), eq(clubMembers.clubId, clubId)))
+          .returning()
+      : await db
+          .delete(clubMembers)
+          .where(
+            and(eq(clubMembers.clubId, clubId), eq(clubMembers.profileId, profileId))
+          )
+          .returning()
 
     if (!deleted.length) return NextResponse.json({ error: "Member not found" }, { status: 404 })
 

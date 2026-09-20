@@ -20,7 +20,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ clubId: string 
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  if (session.user.role !== "admin" && session.user.role !== "moderator") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   const limit = enforceSubmissionLimit(session.user.id)
   if (!limit.allowed) {
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  if (session.user.role !== "admin" && session.user.role !== "moderator") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   try {
     const body = await req.json()

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "idx_club_members_club_profile_unique" ON "club_members" USING btree ("club_id","profile_id");

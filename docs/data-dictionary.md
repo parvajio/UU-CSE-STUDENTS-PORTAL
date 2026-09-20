@@ -222,11 +222,14 @@ Composite unique `(questionId, tag)` prevents duplicate tags on the same questio
 |---|---|---|---|
 | id | uuid | PK | |
 | clubId | uuid | FK → clubs.id, `onDelete: CASCADE` | |
-| profileId | uuid | FK → profiles.id, `onDelete: CASCADE` | |
-| roleInClub | enum | `member` \| `executive` \| `advisor` | Required |
+| userId | uuid | FK → users.id, nullable, `onDelete: CASCADE` | Always set on self-service joins; also set on admin adds when the profile has a linked login |
+| profileId | uuid | FK → profiles.id, nullable (as of migration `0012`), `onDelete: CASCADE` | Always set on admin adds; set on self-joins only when the user has a profile (enables avatar → profile-page deep links) |
+| roleInClub | enum | `member` \| `executive` \| `advisor` | Required. Self-service Join always creates `member`; `executive`/`advisor` are admin-assigned |
 | position | text | nullable | e.g. "President", "General Secretary" |
 | designation | text | nullable | Free-text e.g. "Group Admin" |
 | joinedAt | timestamp | default now | |
+
+**Check `chk_club_members_user_or_profile`**: `userId` and `profileId` are never both null. **Uniques:** `(clubId, profileId)` (duplicate admin adds fail) **and** `(clubId, userId)` (double self-joins fail; NULLs are distinct so the two indexes cover the two write paths). **Self-service membership:** any signed-in user can `POST /api/clubs/[clubId]/membership` to join as `member` — no profile required — and `DELETE` the same route to leave. Join links the user's profile when one exists and sends a `club-joined` welcome notification pointing at the club's group links. Creating a club event fans out one `club-event` notification per joined member with a linked account (batched insert in `POST /api/events`). **Click-through:** executive cards and member avatars with a `profileId` link to `/experts/[profileId]`; avatars without a profile render a "Profile not created yet" tooltip instead.
 
 ---
 

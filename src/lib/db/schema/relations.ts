@@ -37,6 +37,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     relationName: "approvedQuestions",
   }),
   questionLikes: many(questionLikes),
+  clubMembers: many(clubMembers),
   binary26Registrations: many(binary26Registrations, {
     relationName: "userRegistrations",
   }),
@@ -62,8 +63,7 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
   user: one(users, {
     fields: [profiles.userId],
     references: [users.id],
-  }),
-  approver: one(users, {
+  }),  approver: one(users, {
     fields: [profiles.approvedBy],
     references: [users.id],
   }),
@@ -212,6 +212,10 @@ export const clubMembersRelations = relations(clubMembers, ({ one }) => ({
   profile: one(profiles, {
     fields: [clubMembers.profileId],
     references: [profiles.id],
+  }),
+  user: one(users, {
+    fields: [clubMembers.userId],
+    references: [users.id],
   }),
 }))
 

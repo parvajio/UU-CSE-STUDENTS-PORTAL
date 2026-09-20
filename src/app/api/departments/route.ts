@@ -8,7 +8,7 @@ import { enforceSubmissionLimit } from "@/lib/rate-limit"
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  if (session.user.role !== "admin" && session.user.role !== "moderator") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   const limit = enforceSubmissionLimit(session.user.id)
   if (!limit.allowed) {
@@ -19,8 +19,21 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json()
-    const { name, slug, description, imageUrl } = body
+    const contentType = req.headers.get("content-type") ?? ""
+    let name: unknown
+    let slug: unknown
+    let description: unknown
+    let imageUrl: unknown
+    if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
+      const form = await req.formData()
+      name = form.get("name")
+      slug = form.get("slug")
+      description = form.get("description")
+      imageUrl = form.get("imageUrl")
+    } else {
+      const body = await req.json()
+      ;({ name, slug, description, imageUrl } = body)
+    }
 
     if (!name || !slug) {
       return NextResponse.json({ error: "Name and slug are required." }, { status: 400 })

@@ -42,10 +42,10 @@ export function GalleryAlbumClient({
     setFeedback(null)
     startTransition(async () => {
       try {
-        const formData = new FormData(e.currentTarget)
         const res = await fetch(`/api/clubs/${clubId}/gallery`, {
           method: "POST",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clubId, title, description }),
         })
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || "Failed to create album")

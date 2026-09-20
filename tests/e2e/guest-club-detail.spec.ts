@@ -12,10 +12,10 @@ test.describe("Guest visits /clubs/[clubId] and verifies all content sections re
 
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
     await expect(page.getByText("About")).toBeVisible()
-    await expect(page.getByText("Members")).toBeVisible()
-    await expect(page.getByText("Gallery")).toBeVisible()
-    await expect(page.getByText("Achievements")).toBeVisible()
-    await expect(page.getByText("Events")).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Members", exact: true })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Gallery", exact: true })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Achievements", exact: true })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Events", exact: true })).toBeVisible()
   })
 
   test("guest sees club name, description, logo, and cover image", async ({ page }) => {
@@ -47,7 +47,7 @@ test.describe("Guest visits /clubs/[clubId] and verifies all content sections re
     const href = await getHref(page.locator("a[href^='/clubs/']").first())
     await page.goto(href)
 
-    await expect(page.getByText("Members")).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Members", exact: true })).toBeVisible()
     const memberRows = page.locator("div.flex.items-center.gap-3")
     const count = await memberRows.count()
     if (count > 0) {
@@ -60,7 +60,7 @@ test.describe("Guest visits /clubs/[clubId] and verifies all content sections re
     const href = await getHref(page.locator("a[href^='/clubs/']").first())
     await page.goto(href)
 
-    await expect(page.getByText("Gallery")).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Gallery", exact: true })).toBeVisible()
   })
 
   test("guest sees achievements section", async ({ page }) => {
@@ -68,7 +68,7 @@ test.describe("Guest visits /clubs/[clubId] and verifies all content sections re
     const href = await getHref(page.locator("a[href^='/clubs/']").first())
     await page.goto(href)
 
-    await expect(page.getByText("Achievements")).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Achievements", exact: true })).toBeVisible()
   })
 
   test("guest sees events section with countdown timers", async ({ page }) => {
@@ -76,7 +76,7 @@ test.describe("Guest visits /clubs/[clubId] and verifies all content sections re
     const href = await getHref(page.locator("a[href^='/clubs/']").first())
     await page.goto(href)
 
-    await expect(page.getByText("Events")).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Events", exact: true })).toBeVisible()
   })
 
   test("guest sees empty state when no content exists", async ({ page }) => {
