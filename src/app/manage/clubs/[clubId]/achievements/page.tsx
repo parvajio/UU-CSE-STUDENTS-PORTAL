@@ -13,24 +13,25 @@ import { AchievementsClient } from "@/components/clubs/AchievementsClient"
 export default async function ManageAchievementsPage({
   params,
 }: {
-  params: { clubId: string }
+  params: Promise<{ clubId: string }>
 }) {
+  const { clubId } = await params
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
   if (session.user.role !== "admin" && session.user.role !== "moderator") redirect("/")
 
-  const data = await getClubDetail(params.clubId)
+  const data = await getClubDetail(clubId)
   if (!data) notFound()
 
   const achievements = await db.query.clubAchievements.findMany({
-    where: eq(clubAchievements.clubId, params.clubId),
+    where: eq(clubAchievements.clubId, clubId),
     orderBy: [clubAchievements.createdAt],
   })
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <Link
-        href={`/manage/clubs/${params.clubId}`}
+        href={`/manage/clubs/${clubId}`}
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="size-4" strokeWidth={1.5} />
@@ -45,7 +46,7 @@ export default async function ManageAchievementsPage({
         </p>
       </div>
 
-      <AchievementsClient clubId={params.clubId} initialAchievements={achievements} />
+      <AchievementsClient clubId={clubId} initialAchievements={achievements} />
     </main>
   )
 }
