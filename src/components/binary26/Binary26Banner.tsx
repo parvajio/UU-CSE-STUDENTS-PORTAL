@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Calendar, Clock, Sparkles, ArrowRight, Ticket } from "lucide-react"
+import { Clock, Sparkles, ArrowRight, Ticket, MapPinned } from "lucide-react"
 
 interface Binary26BannerProps {
   eventTime: string
@@ -62,7 +62,7 @@ export function Binary26Banner({ eventTime, title, location }: Binary26BannerPro
               {title}
             </h2>
             <p className="text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
+              <MapPinned className="w-4 h-4 text-primary" />
               <span>{location}</span>
               <span className="mx-1">•</span>
               <Clock className="w-4 h-4 text-primary" />

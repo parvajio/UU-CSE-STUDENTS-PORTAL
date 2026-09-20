@@ -27,6 +27,7 @@ import {
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { linkifyText } from "@/lib/linkify"
+import { splitGroupUrls } from "@/lib/club-links"
 
 interface ClubMember {
   id: string
@@ -277,13 +278,15 @@ export function ClubDetailPage({
   const upcomingEvents = sortedEvents.filter((e) => e.status !== "completed" && e.id !== nextEvent?.id)
   const totalImages = albums.reduce((n, a) => n + a.images.length, 0)
 
+  // msgGroupUrl may hold multiple newline-separated URLs (dynamic inputs in manage form).
+  const groupUrls = splitGroupUrls(club.msgGroupUrl).filter(Boolean)
   const links = [
-    club.msgGroupUrl && {
-      href: club.msgGroupUrl,
+    ...groupUrls.map((href, i) => ({
+      href,
       icon: MessagesSquare,
-      title: "Chat group",
-      hint: `Join the conversation · ${hostnameOf(club.msgGroupUrl)}`,
-    },
+      title: groupUrls.length > 1 ? `Chat group ${i + 1}` : "Chat group",
+      hint: `Join the conversation · ${hostnameOf(href)}`,
+    })),
     club.pageUrl && {
       href: club.pageUrl,
       icon: Globe,
@@ -502,8 +505,8 @@ export function ClubDetailPage({
                 <p className="mt-3 text-sm italic text-muted-foreground">No links shared yet.</p>
               ) : (
                 <ul className="mt-3 space-y-2">
-                  {links.map((l) => (
-                    <li key={l.href}>
+                  {links.map((l, i) => (
+                    <li key={`${l.href}-${i}`}>
                       <a
                         href={l.href}
                         target="_blank"

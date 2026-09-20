@@ -12,19 +12,23 @@ export function DepartmentGroup({
   clubList: typeof import("@/lib/db/schema").clubs.$inferSelect[]
 }) {
   return (
-    <section aria-label={department.name}>
-      <div className="mb-4 flex flex-wrap items-center gap-2.5">
-        <span aria-hidden className="h-7 w-1 rounded-full bg-[linear-gradient(180deg,#5B5FEF,#8B5CF6)]" />
-        <h2 className="font-heading text-xl font-semibold text-foreground">
-          {department.name}
-        </h2>
-        <Badge variant="secondary" className="rounded-full text-xs">
-          {clubList.length} club{clubList.length !== 1 ? "s" : ""}
-        </Badge>
+    <section aria-label={department.name} id={`dept-${department.slug}`} className="scroll-mt-24">
+      <div className="mb-4">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span aria-hidden className="h-7 w-1 rounded-full bg-[linear-gradient(180deg,#5B5FEF,#8B5CF6)]" />
+          <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground">
+            {department.name}
+          </h2>
+          <Badge variant="secondary" className="rounded-full text-xs font-medium">
+            {clubList.length} club{clubList.length !== 1 ? "s" : ""}
+          </Badge>
+        </div>
+        {department.description && (
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            {department.description}
+          </p>
+        )}
       </div>
-      {department.description && (
-        <p className="mb-4 max-w-2xl text-sm text-muted-foreground">{department.description}</p>
-      )}
 
       {clubList.length === 0 ? (
         <EmptyState
@@ -35,7 +39,7 @@ export function DepartmentGroup({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {clubList.map((club) => (
-            <ClubCard key={club.id} club={club} />
+            <ClubCard key={club.id} club={club} departmentName={department.name} />
           ))}
         </div>
       )}

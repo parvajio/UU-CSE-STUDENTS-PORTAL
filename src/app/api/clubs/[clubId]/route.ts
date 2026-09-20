@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { clubs } from "@/lib/db/schema/clubs"
 import { eq } from "drizzle-orm"
 import { enforceSubmissionLimit } from "@/lib/rate-limit"
+import { normalizeGroupUrlInput } from "@/lib/club-links"
 import { notFound } from "next/navigation"
 
 export async function GET(req: Request, ctx: { params: Promise<{ clubId: string }> }) {
@@ -39,6 +40,14 @@ export async function PUT(req: Request, ctx: { params: Promise<{ clubId: string 
 
     if (clientUpdatedAt && club.updatedAt && new Date(clientUpdatedAt) < new Date(club.updatedAt)) {
       return NextResponse.json({ error: "Conflict: record has been modified since last fetch", status: 409 }, { status: 409 })
+    }
+
+    // Accept an array for msgGroupUrl (dynamic multi-input form) — collapse to the stored string.
+    if ("msgGroupUrl" in updates && updates.msgGroupUrl !== undefined) {
+      const normalized = normalizeGroupUrlInput(
+        (updates as Record<string, unknown>).msgGroupUrl
+      )
+      ;(updates as Record<string, unknown>).msgGroupUrl = normalized || null
     }
 
     const [row] = await db
