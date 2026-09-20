@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Loader2, AlertTriangle, UploadCloud } from "lucide-react"
+import { Loader2, AlertTriangle, UploadCloud, Plus, X } from "lucide-react"
 import { generateUploadDropzone } from "@uploadthing/react"
 import type { OurFileRouter } from "@/lib/uploadthing"
+import { splitGroupUrls, joinGroupUrls } from "@/lib/club-links"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -123,7 +124,10 @@ export function ClubManagementForm({
   const [description, setDescription] = useState(initialData?.description ?? "")
   const [logoUrl, setLogoUrl] = useState(initialData?.logoUrl ?? "")
   const [coverImgUrl, setCoverImgUrl] = useState(initialData?.coverImgUrl ?? "")
-  const [msgGroupUrl, setMsgGroupUrl] = useState(initialData?.msgGroupUrl ?? "")
+  // Multiple group links, stored newline-separated in the single msgGroupUrl column.
+  const [groupLinks, setGroupLinks] = useState<string[]>(() =>
+    splitGroupUrls(initialData?.msgGroupUrl)
+  )
   const [pageUrl, setPageUrl] = useState(initialData?.pageUrl ?? "")
   const [fbGroupUrl, setFbGroupUrl] = useState(initialData?.fbGroupUrl ?? "")
   const [contacts, setContacts] = useState(initialData?.contacts ?? "")
@@ -136,6 +140,18 @@ export function ClubManagementForm({
     setFeedback({ type: "error", text: `Image upload failed: ${message}. Please retry the upload before saving.` })
   }
 
+  function updateGroupLink(index: number, value: string) {
+    setGroupLinks((prev) => prev.map((u, i) => (i === index ? value : u)))
+  }
+
+  function addGroupLink() {
+    setGroupLinks((prev) => [...prev, ""])
+  }
+
+  function removeGroupLink(index: number) {
+    setGroupLinks((prev) => (prev.length <= 1 ? [""] : prev.filter((_, i) => i !== index)))
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setFeedback(null)
@@ -146,7 +162,7 @@ export function ClubManagementForm({
       departmentId,
       logoUrl,
       coverImgUrl,
-      msgGroupUrl: msgGroupUrl.trim(),
+      msgGroupUrl: joinGroupUrls(groupLinks),
       pageUrl: pageUrl.trim(),
       fbGroupUrl: fbGroupUrl.trim(),
       contacts: contacts.trim(),
@@ -263,15 +279,58 @@ export function ClubManagementForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="club-msg-group">Messenger / WhatsApp group URL</Label>
-          <Input
-            id="club-msg-group"
-            type="url"
-            value={msgGroupUrl}
-            onChange={(e) => setMsgGroupUrl(e.target.value)}
-            placeholder="https://m.me/… or https://chat.whatsapp.com/…"
-            disabled={isPending}
-          />
+          <div className="flex items-center justify-between gap-2">
+            <Label id="club-group-links-label">Messenger / WhatsApp group URLs</Label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={addGroupLink}
+              disabled={isPending}
+              aria-label="Add another group link"
+              title="Add another group link"
+              className="h-7 px-2 text-xs text-primary hover:text-primary"
+            >
+              <Plus className="size-4" strokeWidth={1.5} />
+              Add
+            </Button>
+          </div>
+          <div className="space-y-2" role="group" aria-labelledby="club-group-links-label">
+            {groupLinks.map((url, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Input
+                  id={i === 0 ? "club-msg-group" : `club-msg-group-${i + 1}`}
+                  type="url"
+                  value={url}
+                  onChange={(e) => updateGroupLink(i, e.target.value)}
+                  placeholder={
+                    i === 0
+                      ? "https://m.me/… or https://chat.whatsapp.com/…"
+                      : `Group link ${i + 1} — https://…`
+                  }
+                  disabled={isPending}
+                  aria-label={i === 0 ? "Messenger or WhatsApp group URL" : `Group link ${i + 1}`}
+                  className="flex-1"
+                />
+                {groupLinks.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeGroupLink(i)}
+                    disabled={isPending}
+                    aria-label={`Remove group link ${i + 1}`}
+                    className="h-10 w-10 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="size-4" strokeWidth={1.5} />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Add one input per group — use the plus button for multiple Messenger / WhatsApp / Telegram groups.
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="club-page">Page URL</Label>

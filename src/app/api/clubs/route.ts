@@ -5,6 +5,7 @@ import { clubs } from "@/lib/db/schema/clubs"
 import { departments } from "@/lib/db/schema/departments"
 import { eq } from "drizzle-orm"
 import { enforceSubmissionLimit } from "@/lib/rate-limit"
+import { normalizeGroupUrlInput } from "@/lib/club-links"
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
         departmentId,
         logoUrl: logoUrl ?? null,
         coverImgUrl: coverImgUrl ?? null,
-        msgGroupUrl: msgGroupUrl ?? null,
+        msgGroupUrl: normalizeGroupUrlInput(msgGroupUrl) || null,
         pageUrl: pageUrl ?? null,
         fbGroupUrl: fbGroupUrl ?? null,
         contacts: contacts ?? null,

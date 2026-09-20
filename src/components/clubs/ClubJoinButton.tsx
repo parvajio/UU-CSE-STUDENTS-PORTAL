@@ -21,6 +21,7 @@ import {
   UserPlus,
 } from "lucide-react"
 import type { ClubMember } from "./ClubMembers"
+import { splitGroupUrls } from "@/lib/club-links"
 
 export interface ViewerInfo {
   userId: string
@@ -120,13 +121,15 @@ export function ClubJoinButton({
     }
   }
 
+  // msgGroupUrl may hold multiple newline-separated URLs (dynamic inputs in manage form).
+  const groupUrls = splitGroupUrls(groupLinks.msgGroupUrl).filter(Boolean)
   const groupButtons = [
-    groupLinks.msgGroupUrl && {
-      href: groupLinks.msgGroupUrl,
+    ...groupUrls.map((href, i) => ({
+      href,
       icon: MessagesSquare,
-      label: "Chat group",
+      label: groupUrls.length > 1 ? `Chat group ${i + 1}` : "Chat group",
       hint: "Join the conversation",
-    },
+    })),
     groupLinks.fbGroupUrl && {
       href: groupLinks.fbGroupUrl,
       icon: Share2,
@@ -244,8 +247,8 @@ export function ClubJoinButton({
           </DialogHeader>
           {groupButtons.length > 0 && (
             <ul className="space-y-2">
-              {groupButtons.map((g) => (
-                <li key={g.href}>
+              {groupButtons.map((g, i) => (
+                <li key={`${g.href}-${i}`}>
                   <a
                     href={g.href}
                     target="_blank"
