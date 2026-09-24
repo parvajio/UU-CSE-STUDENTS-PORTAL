@@ -97,8 +97,15 @@ export function QuestionDetailView({
           />
           <span className="min-w-0">{question.title}</span>
         </h1>
-        <span className="soft-tag soft-tag--default px-2 py-0.5 text-xs">
-          {PROGRAM_TYPE_LABELS[question.programType]}
+        <span className="inline-flex items-center gap-2">
+          {question.status === "pending" ? (
+            <span className="soft-tag soft-tag--pending px-2 py-0.5 text-xs">
+              Under review
+            </span>
+          ) : null}
+          <span className="soft-tag soft-tag--default px-2 py-0.5 text-xs">
+            {PROGRAM_TYPE_LABELS[question.programType]}
+          </span>
         </span>
       </div>
 

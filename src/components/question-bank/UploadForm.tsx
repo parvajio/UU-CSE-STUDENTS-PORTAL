@@ -259,10 +259,10 @@ export function UploadForm({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Submitted for review</CardTitle>
+          <CardTitle>Posted as under review</CardTitle>
           <CardDescription>
-            Your question paper is in the moderation queue. It will be visible
-            to other students once a moderator approves it.
+            Your question paper is now live in the question bank marked as
+            under review while moderators check it.
           </CardDescription>
         </CardHeader>
         <CardFooter>
@@ -279,8 +279,8 @@ export function UploadForm({
       <CardHeader>
         <CardTitle>Upload a question paper</CardTitle>
         <CardDescription>
-          Add a past paper or question for your batch. It will be reviewed
-          before it becomes visible to everyone.
+          Add a past paper or question for your batch. It will be posted
+          immediately as under review.
         </CardDescription>
       </CardHeader>
 
@@ -574,7 +574,7 @@ export function UploadForm({
             {isPending ? (
               <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
             ) : null}
-            {isPending ? "Submitting…" : "Submit for review"}
+            {isPending ? "Submitting…" : "Post question"}
           </Button>
         </CardFooter>
       </form>

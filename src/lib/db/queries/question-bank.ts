@@ -47,6 +47,7 @@ import type { ViewerRole } from "./directory"
 type QuestionSearchRow = {
   id: string
   title: string | null
+  status: "pending" | "approved" | "rejected"
   batchNumber: number
   programType: ProgramType
   season: Season | null
@@ -221,7 +222,11 @@ function buildUniversalTerm(term: string): SQL | undefined {
 }
 
 function buildWhereClause(params: QuestionFilterParams): SQL[] {
-  const conditions: SQL[] = [eq(questions.status, "approved")]
+  // Instant-publish: pending ("under review") questions are listed alongside
+  // approved ones. Rejected questions stay hidden from the bank.
+  const conditions: SQL[] = [
+    inArray(questions.status, ["pending", "approved"]),
+  ]
 
   const term = params.query?.trim()
   if (term) {
@@ -290,6 +295,7 @@ export async function searchQuestions(
       columns: {
         id: true,
         title: true,
+        status: true,
         batchNumber: true,
         programType: true,
         season: true,
@@ -331,6 +337,7 @@ export async function searchQuestions(
     const base: GuestQuestionCard = {
       id: row.id,
       title: row.title,
+      status: row.status,
       createdAt: row.createdAt,
       batchNumber: row.batchNumber,
       programType: row.programType,
@@ -367,7 +374,7 @@ export async function getTopCourses(n: number = TOP_CHIPS_N): Promise<TopCourseC
       latest: max(questions.createdAt),
     })
     .from(questions)
-    .where(eq(questions.status, "approved"))
+    .where(inArray(questions.status, ["pending", "approved"]))
     .groupBy(questions.courseId)
     .orderBy(desc(count()), desc(max(questions.createdAt)))
     .limit(limit)
@@ -403,7 +410,7 @@ export async function getRecentBatches(
       count: count(),
     })
     .from(questions)
-    .where(eq(questions.status, "approved"))
+    .where(inArray(questions.status, ["pending", "approved"]))
     .groupBy(questions.batchNumber)
     .orderBy(desc(questions.batchNumber), desc(count()))
     .limit(limit)
@@ -426,7 +433,7 @@ export async function getPopularTags(
     })
     .from(questionTags)
     .innerJoin(questions, eq(questions.id, questionTags.questionId))
-    .where(eq(questions.status, "approved"))
+    .where(inArray(questions.status, ["pending", "approved"]))
     .groupBy(questionTags.tag)
     .orderBy(desc(count()), asc(questionTags.tag))
     .limit(limit)
@@ -462,6 +469,7 @@ export async function getQuestionDetail(
     columns: {
       id: true,
       title: true,
+      status: true,
       batchNumber: true,
       programType: true,
       season: true,
@@ -480,7 +488,10 @@ export async function getQuestionDetail(
         with: { profile: { columns: { fullName: true } } },
       },
     },
-    where: and(eq(questions.id, id), eq(questions.status, "approved")),
+    where: and(
+      eq(questions.id, id),
+      inArray(questions.status, ["pending", "approved"])
+    ),
   })
 
   if (!row) return null
@@ -506,6 +517,7 @@ export async function getQuestionDetail(
   const base: GuestQuestionDetail = {
     id: q.id,
     title: q.title,
+    status: q.status,
     batchNumber: q.batchNumber,
     programType: q.programType,
     season: q.season,

@@ -23,7 +23,7 @@ export async function POST(
     columns: { id: true, status: true },
     where: eq(questions.id, id),
   })
-  if (!question || question.status !== "approved") {
+  if (!question || (question.status !== "approved" && question.status !== "pending")) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 

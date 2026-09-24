@@ -25,13 +25,12 @@ export async function GET(
   }
 
   const row = await db.query.questions.findFirst({
-    columns: { id: true, title: true, status: true, uploadedBy: true },
+    columns: { id: true, title: true, status: true },
     where: eq(questions.id, id),
   })
 
   const allowed =
-    row &&
-    (row.status === "approved" || row.uploadedBy === session.user.id)
+    row && (row.status === "approved" || row.status === "pending")
   if (!allowed) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }

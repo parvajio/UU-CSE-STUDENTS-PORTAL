@@ -26,7 +26,7 @@ export default async function UploadQuestionPage() {
         </h1>
         <p className="mt-2 text-muted-foreground">
           Share a past paper or question with your department. It&apos;ll be
-          reviewed by a moderator before it goes live.
+          posted immediately as under review while moderators check it.
         </p>
       </div>
 
