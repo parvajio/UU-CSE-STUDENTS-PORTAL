@@ -35,11 +35,6 @@ const questionFileSchema = z.object({
 
 export const createQuestionInputSchema = z
   .object({
-    title: z
-      .string()
-      .trim()
-      .min(1, "Title is required.")
-      .max(200, "Title must be 200 characters or fewer."),
     // Q-001: combobox-only classification — exactly one curated courseId.
     courseId: z.string().uuid("Please choose a valid course."),
     batchNumber: z

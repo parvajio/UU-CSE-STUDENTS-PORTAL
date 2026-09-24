@@ -13,7 +13,7 @@ export function QuestionImageGallery({
 }: {
   questionId: string
   files: QuestionFile[]
-  questionTitle: string
+  questionTitle: string | null
 }) {
   const images = files.filter((file) => file.fileType === "image")
   const [selected, setSelected] = useState(0)
@@ -64,7 +64,7 @@ export function QuestionImageGallery({
           <img
             key={active.order}
             src={active.fileUrl}
-            alt={`${questionTitle} — page ${selected + 1} of ${images.length}`}
+            alt={`${questionTitle ?? "Question paper"} — page ${selected + 1} of ${images.length}`}
             loading="lazy"
             className="h-auto w-full rounded-lg"
           />

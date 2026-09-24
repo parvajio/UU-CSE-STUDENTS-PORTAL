@@ -46,7 +46,7 @@ import type { ViewerRole } from "./directory"
 
 type QuestionSearchRow = {
   id: string
-  title: string
+  title: string | null
   batchNumber: number
   programType: ProgramType
   season: Season | null
@@ -150,8 +150,8 @@ function escapeLikePattern(value: string): string {
   return value.replace(/[\\%_]/g, (ch) => `\\${ch}`)
 }
 
-// Universal free-text search: partial/substring match across question title,
-// course code/title, tags, teacher name, submitter name, season/program labels,
+// Universal free-text search: partial/substring match across course
+// code/title, tags, teacher name, submitter name, season/program labels,
 // and (for numeric terms) year + batch number. Still ANDed with structured filters.
 function buildUniversalTerm(term: string): SQL | undefined {
   const trimmed = term.trim()
@@ -162,7 +162,6 @@ function buildUniversalTerm(term: string): SQL | undefined {
   const numeric = /^\d+$/.test(trimmed) ? Number(trimmed) : null
 
   const clauses: SQL[] = [
-    sql`${questions.titleTsv} @@ plainto_tsquery('english', ${trimmed})`,
     exists(
       db
         .select()

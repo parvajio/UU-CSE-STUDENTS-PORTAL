@@ -42,7 +42,7 @@ export type PopularTagChip = {
 
 export type QuestionCardBase = {
   id: string
-  title: string
+  title: string | null
   createdAt: string
   batchNumber: number
   programType: ProgramType

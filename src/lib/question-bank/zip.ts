@@ -2,9 +2,9 @@ import JSZip from "jszip"
 import type { QuestionFile } from "@/types/question-bank"
 import { recordDownload } from "@/lib/question-bank/actions"
 
-function sanitizeFileName(name: string): string {
+function sanitizeFileName(name: string | null | undefined): string {
   return (
-    name
+    (name ?? "")
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -39,7 +39,7 @@ async function fetchBlob(fileUrl: string): Promise<Blob> {
 
 export async function downloadImagesAsZip(question: {
   id: string
-  title: string
+  title: string | null
   files: QuestionFile[]
 }): Promise<void> {
   await recordDownload(question.id)

@@ -84,7 +84,6 @@ export async function createQuestion(
   const batchItems = [
     db.insert(questions).values({
       id: questionId,
-      title: data.title,
       courseId: data.courseId,
       batchNumber: data.batchNumber,
       programType: data.programType,

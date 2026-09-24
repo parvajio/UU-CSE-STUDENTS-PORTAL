@@ -105,7 +105,6 @@ export function UploadForm({
   const [year, setYear] = useState("")
   const [teacherName, setTeacherName] = useState("")
   const [examType, setExamType] = useState<ExamType | "">("")
-  const [title, setTitle] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
 
@@ -201,10 +200,6 @@ export function UploadForm({
     event.preventDefault()
     setFormError(null)
 
-    if (!title.trim()) {
-      setFormError("Please enter a title for the question paper.")
-      return
-    }
     if (!courseId) {
       setFormError("Please choose a subject/course from the list.")
       return
@@ -238,7 +233,6 @@ export function UploadForm({
     }
 
     const payload: CreateQuestionInput = {
-      title: title.trim(),
       courseId,
       batchNumber,
       programType,
@@ -292,17 +286,6 @@ export function UploadForm({
 
       <form onSubmit={handleSubmit} noValidate>
         <CardContent className="grid gap-5 sm:grid-cols-2">
-          <div className="grid gap-2 sm:col-span-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Database Management System Sessional Final"
-              required
-            />
-          </div>
-
           <div className="grid gap-2 sm:col-span-2">
             <Label htmlFor="course">Subject/course</Label>
             <CourseCombobox

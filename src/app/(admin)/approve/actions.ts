@@ -114,7 +114,7 @@ const decisionHandlers: Partial<Record<ResourceType, DecisionHandler>> = {
       await db.insert(notifications).values(
         buildNotification(kind, {
           userId: row.uploadedBy,
-          label: row.title,
+          label: row.title ?? "Question paper",
           reason: ctx.reason,
           resourceType: "question",
           resourceId,
