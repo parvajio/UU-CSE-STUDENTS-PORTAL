@@ -23,10 +23,11 @@ test.describe("Admin manages achievements and events", () => {
     await expect(page.getByText("Test Achievement")).toBeVisible()
 
     await page.goto(`/manage/clubs/${clubId}/events`)
+    await page.getByRole("button", { name: "New Event" }).click()
     await page.getByLabel("Name").fill("Test Event")
     await page.getByLabel("Date").fill(new Date().toISOString().split("T")[0])
     await page.getByLabel("Description").fill("Test event description")
-    await page.getByRole("button", { name: "Create Event" }).click()
+    await page.getByRole("button", { name: "Create event", exact: true }).click()
 
     await page.goto(`/clubs/${clubId}`)
     await expect(page.getByText("Test Achievement")).toBeVisible()

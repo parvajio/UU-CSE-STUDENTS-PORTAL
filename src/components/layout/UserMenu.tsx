@@ -82,6 +82,14 @@ export function UserMenu({ user }: { user: NavbarUser }) {
         ) : null}
         {user.role === "admin" || user.role === "moderator" ? (
           <DropdownMenuItem asChild>
+            <Link href="/manage/events" className="cursor-pointer">
+              <Calendar className="size-4" strokeWidth={1.5} />
+              Manage Events
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        {user.role === "admin" || user.role === "moderator" ? (
+          <DropdownMenuItem asChild>
             <Link href="/manage/clubs" className="cursor-pointer">
               <Shield className="size-4" strokeWidth={1.5} />
               Manage Clubs

@@ -145,6 +145,23 @@ export function computeEventStatus(startTime: string | null, endTime: string | n
   return "ongoing"
 }
 
+export async function getEventById(eventId: string) {
+  const e = await db.query.events.findFirst({
+    where: eq(events.id, eventId),
+    with: {
+      club: {
+        columns: { id: true, name: true },
+      },
+    },
+  })
+  if (!e) return null
+  return {
+    ...e,
+    status: computeEventStatus(e.startTime, e.endTime),
+    clubName: e.club?.name ?? "",
+  }
+}
+
 export async function getEventsForPage(clubId?: string | null) {
   if (clubId) {
     const clubEvents = await db.query.events.findMany({

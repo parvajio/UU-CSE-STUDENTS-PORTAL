@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react"
 import { getClubDetail } from "@/lib/db/queries/clubs"
 import { db } from "@/lib/db"
 import { clubGalleryAlbums } from "@/lib/db/schema/club-gallery-albums"
-import { clubs } from "@/lib/db/schema/clubs"
+import { clubGalleryImages } from "@/lib/db/schema/club-gallery-images"
 import { eq } from "drizzle-orm"
 import { GalleryAlbumClient } from "@/components/clubs/GalleryAlbumClient"
 
@@ -26,7 +26,28 @@ export default async function ManageGalleryPage({
   const albums = await db.query.clubGalleryAlbums.findMany({
     where: eq(clubGalleryAlbums.clubId, clubId),
     orderBy: [clubGalleryAlbums.displayOrder],
+    with: {
+      clubGalleryImages: {
+        orderBy: [clubGalleryImages.displayOrder],
+      },
+    },
   })
+
+  const serialized = albums.map((a) => ({
+    id: a.id,
+    clubId: a.clubId,
+    title: a.title,
+    description: a.description,
+    displayOrder: a.displayOrder,
+    createdAt: a.createdAt,
+    updatedAt: a.updatedAt,
+    images: a.clubGalleryImages.map((i) => ({
+      id: i.id,
+      imageUrl: i.imageUrl,
+      caption: i.caption,
+      displayOrder: i.displayOrder,
+    })),
+  }))
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -46,7 +67,7 @@ export default async function ManageGalleryPage({
         </p>
       </div>
 
-      <GalleryAlbumClient clubId={clubId} initialAlbums={albums} />
+      <GalleryAlbumClient clubId={clubId} initialAlbums={serialized} />
     </main>
   )
 }

@@ -13,6 +13,11 @@ export async function GET(req: Request, ctx: { params: Promise<{ clubId: string 
   const albums = await db.query.clubGalleryAlbums.findMany({
     where: eq(clubGalleryAlbums.clubId, clubId),
     orderBy: [clubGalleryAlbums.displayOrder],
+    with: {
+      clubGalleryImages: {
+        orderBy: [clubGalleryImages.displayOrder],
+      },
+    },
   })
   return NextResponse.json({ albums })
 }
@@ -51,6 +56,42 @@ export async function POST(req: Request) {
     return NextResponse.json(row, { status: 201 })
   } catch (err: unknown) {
     return NextResponse.json({ error: "Failed to create album" }, { status: 500 })
+  }
+}
+
+export async function PUT(req: Request) {
+  const session = await auth()
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (session.user.role !== "admin" && session.user.role !== "moderator") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+
+  try {
+    const body = await req.json()
+    const { albumId, title, description, displayOrder } = body
+
+    if (!albumId) {
+      return NextResponse.json({ error: "Album ID is required." }, { status: 400 })
+    }
+    if (title !== undefined && !title.trim()) {
+      return NextResponse.json({ error: "Title cannot be empty." }, { status: 400 })
+    }
+
+    const updates: Partial<{ title: string; description: string | null; displayOrder: number; updatedAt: string }> = {
+      updatedAt: new Date().toISOString(),
+    }
+    if (title !== undefined) updates.title = title.trim()
+    if (description !== undefined) updates.description = description?.trim() ? description.trim() : null
+    if (displayOrder !== undefined) updates.displayOrder = Number(displayOrder) || 0
+
+    const [row] = await db
+      .update(clubGalleryAlbums)
+      .set(updates)
+      .where(eq(clubGalleryAlbums.id, albumId))
+      .returning()
+
+    if (!row) return NextResponse.json({ error: "Album not found" }, { status: 404 })
+    return NextResponse.json(row)
+  } catch (err: unknown) {
+    return NextResponse.json({ error: "Failed to update album" }, { status: 500 })
   }
 }
 
