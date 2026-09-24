@@ -2,15 +2,16 @@ import Link from "next/link"
 import { auth } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { getEventsForPage } from "@/lib/db/queries/clubs"
-import { Badge } from "@/components/ui/badge"
+import { getApprovedClubs, getEventsForPage } from "@/lib/db/queries/clubs"
+import { ManageEventsClient } from "@/components/clubs/ManageEventsClient"
 
 export default async function ManageAllEventsPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
   if (session.user.role !== "admin" && session.user.role !== "moderator") redirect("/")
 
-  const allEvents = await getEventsForPage()
+  // Newest-created first (createdAt desc) — same order as the public /events page.
+  const [allEvents, clubs] = await Promise.all([getEventsForPage(), getApprovedClubs()])
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -26,36 +27,16 @@ export default async function ManageAllEventsPage() {
           All Events
         </h1>
         <p className="text-muted-foreground mt-1">
-          Every event across all clubs and standalone events. Create or edit events from a club&apos;s manage page.
+          Every event across all clubs and standalone meetups, newest first. Create events as an
+          individual or under a club — club events also appear on the club page and the public
+          events page with a club tag.
         </p>
       </div>
 
-      {allEvents.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No events yet.</p>
-      ) : (
-        <div className="space-y-2">
-          {allEvents.map((event) => (
-            <div key={event.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground text-sm truncate">{event.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {event.date ? new Date(event.date).toLocaleDateString() : "No date"}
-                  {event.clubName ? ` · From ${event.clubName}` : " · Standalone"}
-                </p>
-              </div>
-              <Badge variant="secondary">{event.status}</Badge>
-              {event.clubId && (
-                <Link
-                  href={`/manage/clubs/${event.clubId}/events`}
-                  className="text-xs text-primary hover:underline shrink-0"
-                >
-                  Manage
-                </Link>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <ManageEventsClient
+        initialEvents={allEvents}
+        clubs={clubs.map((c) => ({ id: c.id, name: c.name }))}
+      />
     </main>
   )
 }

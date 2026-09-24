@@ -197,6 +197,17 @@ export function MobileNav({ user }: { user: NavbarUser | null }) {
                       Manage Routine
                     </Link>
                     <Link
+                      href="/manage/events"
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                        pathname === "/manage/events" && "bg-primary/10 text-primary font-semibold"
+                      )}
+                    >
+                      <Calendar className="size-4 text-muted-foreground" strokeWidth={1.5} />
+                      Manage Events
+                    </Link>
+                    <Link
                       href="/manage/clubs"
                       onClick={() => setOpen(false)}
                       className={cn(
