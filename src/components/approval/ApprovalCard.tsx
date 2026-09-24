@@ -249,7 +249,7 @@ export function ApprovalCard({ item }: { item: PendingItem }) {
               <DialogDescription>
                 Submitted {formatDate(item.submittedAt)}.{" "}
                 {isQuestion
-                  ? "Approving makes it visible in the question bank immediately."
+                  ? "This paper is already live as under review. Approving clears the badge; rejecting removes it from the bank."
                   : "Approving makes it visible in the directory immediately."}
               </DialogDescription>
             </DialogHeader>

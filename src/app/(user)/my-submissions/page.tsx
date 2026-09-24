@@ -195,7 +195,7 @@ export default async function MySubmissionsPage() {
                       ) : null}
 
                       <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-                        {q.status === "approved" ? (
+                        {q.status !== "rejected" ? (
                           <Button asChild variant="outline" size="sm">
                             <Link href={`/question-bank/${q.id}`}>
                               View / Preview

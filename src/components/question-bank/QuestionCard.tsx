@@ -100,8 +100,15 @@ export function QuestionCard({
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           {/* Eyebrow: exam type (hero tag) + upload date */}
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[13px] font-semibold text-primary dark:bg-primary/20">
-              {EXAM_TYPE_LABELS[question.examType]}
+            <span className="inline-flex items-center gap-2">
+              <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[13px] font-semibold text-primary dark:bg-primary/20">
+                {EXAM_TYPE_LABELS[question.examType]}
+              </span>
+              {question.status === "pending" ? (
+                <span className="soft-tag soft-tag--pending px-2 py-0.5 text-xs">
+                  Under review
+                </span>
+              ) : null}
             </span>
             <span className="shrink-0 text-xs text-muted-foreground">
               {formatDate(question.createdAt)}
