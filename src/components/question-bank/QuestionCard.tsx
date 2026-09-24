@@ -1,7 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Download, ExternalLink, Eye, FileText, GraduationCap, UserRound } from "lucide-react";
+import {
+  BookOpen,
+  CalendarDays,
+  Download,
+  ExternalLink,
+  Eye,
+  GraduationCap,
+  School,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EXAM_TYPE_LABELS } from "@/lib/question-bank/validation";
@@ -17,6 +27,32 @@ import type {
   GuestQuestionCard,
   QuestionCard as QuestionCardData,
 } from "@/types/question-bank";
+
+function MetaCell({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Users;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground">
+        <Icon className="size-4" strokeWidth={1.5} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+          {label}
+        </span>
+        <span className="block truncate text-[13px] font-semibold text-foreground">
+          {value}
+        </span>
+      </span>
+    </div>
+  );
+}
 
 export function QuestionCard({
   question,
@@ -35,7 +71,9 @@ export function QuestionCard({
     ? `${SEASON_LABELS[question.season]}${
         question.year ? ` ${question.year}` : ""
       }`
-    : null;
+    : question.year
+      ? `${question.year}`
+      : null;
 
   function handleZipDownload() {
     if (!("files" in question)) return;
@@ -46,118 +84,136 @@ export function QuestionCard({
     });
   }
 
+  const isList = variant === "list";
+
   return (
-    <Card className="group relative flex h-full flex-col overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
-      {/* Colorful top accent bar */}
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-indigo-500 to-violet-500 opacity-80 group-hover:opacity-100 transition-opacity" />
+    <Card className="group relative flex h-full flex-col overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+      {/* Card signature: gradient top accent bar (per design-direction §6) */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-indigo-500 to-violet-500 opacity-80 transition-opacity group-hover:opacity-100" />
 
       <CardContent
         className={cn(
-          "flex flex-1 flex-col gap-3 p-5 pt-6",
-          variant === "list" &&
-            "sm:flex-row sm:items-start sm:justify-between sm:gap-6",
+          "flex flex-1 flex-col gap-4 p-5 pt-6",
+          isList && "sm:flex-row sm:gap-6",
         )}
       >
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
-          {/* Top row: Course Code badge & Date */}
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          {/* Eyebrow: exam type (hero tag) + upload date */}
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary dark:bg-primary/20">
-              <FileText className="size-3.5" strokeWidth={1.75} />
-              {question.courseCode}
+            <span className="inline-flex items-center rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[13px] font-semibold text-primary dark:bg-primary/20">
+              {EXAM_TYPE_LABELS[question.examType]}
             </span>
-            <span className="text-xs font-medium text-muted-foreground">
+            <span className="shrink-0 text-xs text-muted-foreground">
               {formatDate(question.createdAt)}
             </span>
           </div>
 
-          {/* Title & Course */}
+          {/* Identity: course name first, code second */}
           <Link
             href={`/question-bank/${question.id}`}
             className="-mx-1 rounded-md px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            <h3 className="font-heading text-base font-semibold text-foreground transition-colors group-hover:text-primary line-clamp-2">
-              {question.title}
-            </h3>
-            <p className="mt-1 text-sm font-medium text-muted-foreground truncate">
-              {question.courseTitle}
+            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+              <BookOpen className="size-3.5 shrink-0" strokeWidth={1.5} />
+              <span className="truncate">{question.courseCode}</span>
             </p>
+            <h3 className="mt-1 line-clamp-2 font-heading text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+              {question.courseTitle}
+            </h3>
+            {question.title ? (
+              <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+                {question.title}
+              </p>
+            ) : null}
           </Link>
 
-          {/* Batch & Exam Type */}
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground bg-muted px-2 py-0.5 rounded">
-              Batch {question.batchNumber}
-            </span>
-            <span>·</span>
-            <span className="font-medium text-primary/90">
-              {EXAM_TYPE_LABELS[question.examType]}
-            </span>
-          </div>
-
-          {/* Program Type & Season badges */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
-              {PROGRAM_TYPE_LABELS[question.programType]}
-            </span>
+          {/* At-a-glance facts: one grid, not scattered rows */}
+          <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border/70 bg-muted/40 p-3">
+            <MetaCell
+              icon={Users}
+              label="Batch"
+              value={`${question.batchNumber}`}
+            />
             {seasonYear ? (
-              <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                {seasonYear}
-              </span>
+              <MetaCell icon={CalendarDays} label="Term" value={seasonYear} />
             ) : null}
-          </div>
-
-          {/* Teacher & Submitter info */}
-          <div className="space-y-1 pt-2 text-xs text-muted-foreground border-t border-border/60">
+            <MetaCell
+              icon={School}
+              label="Program"
+              value={PROGRAM_TYPE_LABELS[question.programType]}
+            />
             {question.teacherName ? (
-              <div className="flex items-center gap-1.5 truncate">
-                <GraduationCap className="size-3.5 shrink-0 text-indigo-500" strokeWidth={1.75} />
-                <span className="truncate">
-                  Teacher: <span className="font-medium text-foreground">{question.teacherName}</span>
-                </span>
-              </div>
+              <MetaCell
+                icon={GraduationCap}
+                label="Teacher"
+                value={question.teacherName}
+              />
             ) : null}
-            {question.submitterName ? (
-              <div className="flex items-center gap-1.5 truncate">
-                <UserRound className="size-3.5 shrink-0 text-violet-500" strokeWidth={1.75} />
-                <span className="truncate">
-                  Shared by: <span className="font-medium text-foreground">{question.submitterName}</span>
-                </span>
-              </div>
-            ) : null}
-          </div>
+          </dl>
 
-          {/* Metrics row: Likes, Views, Downloads */}
-          <div className="mt-auto flex items-center justify-between border-t border-border pt-3 text-sm text-muted-foreground">
+          {question.submitterName ? (
+            <p className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+              <UserRound
+                className="size-3.5 shrink-0"
+                strokeWidth={1.5}
+              />
+              <span className="truncate">
+                Shared by{" "}
+                <span className="font-medium text-foreground">
+                  {question.submitterName}
+                </span>
+              </span>
+            </p>
+          ) : null}
+        </div>
+
+        {/* Engagement + actions */}
+        <div
+          className={cn(
+            "flex flex-col gap-3",
+            isList
+              ? "mt-auto border-t border-border pt-4 sm:mt-0 sm:w-60 sm:shrink-0 sm:justify-center sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0"
+              : "mt-auto border-t border-border pt-4",
+          )}
+        >
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
             <QuestionLikeButton
               questionId={question.id}
               liked={!isGuest && question.isLikedByViewer}
               count={question.likeCount}
               authenticated={!isGuest}
             />
-            <div className="flex items-center gap-3 font-medium">
+            <div className="flex items-center gap-3 font-medium tabular-nums">
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <Eye className="size-3.5 text-blue-500" strokeWidth={1.75} />
+                <Eye className="size-3.5" strokeWidth={1.5} />
                 {question.viewCount}
               </span>
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <Download className="size-3.5 text-emerald-500" strokeWidth={1.75} />
+                <Download className="size-3.5" strokeWidth={1.5} />
                 {question.downloadCount}
               </span>
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-2 pt-1">
-            <Button asChild variant="outline" size="sm" className="flex-1 hover:border-primary">
+          <div className={cn("flex gap-2", isList && "sm:flex-col")}>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="flex-1 hover:border-primary"
+            >
               <Link href={`/question-bank/${question.id}`}>
                 Preview
-                <ExternalLink className="size-3.5 ml-1" strokeWidth={1.75} />
+                <ExternalLink
+                  className="ml-1 size-3.5"
+                  strokeWidth={1.5}
+                />
               </Link>
             </Button>
             {isGuest ? (
-              <Button asChild variant="default" size="sm" className="flex-1 bg-gradient-to-r from-primary to-indigo-600 text-white hover:opacity-90">
+              <Button asChild variant="default" size="sm" className="flex-1">
                 <Link href={downloadHref} target="_blank" rel="noreferrer">
-                  <Download className="size-3.5 mr-1" strokeWidth={1.75} />
+                  <Download className="mr-1 size-3.5" strokeWidth={1.5} />
                   Download
                 </Link>
               </Button>
@@ -168,16 +224,16 @@ export function QuestionCard({
                 size="sm"
                 variant="default"
                 label="Download"
-                className="flex-1 bg-gradient-to-r from-primary to-indigo-600 text-white hover:opacity-90"
+                className="flex-1"
               />
             ) : (
               <Button
                 variant="default"
                 size="sm"
                 onClick={handleZipDownload}
-                className="flex-1 bg-gradient-to-r from-primary to-indigo-600 text-white hover:opacity-90"
+                className="flex-1"
               >
-                <Download className="size-3.5 mr-1" strokeWidth={1.75} />
+                <Download className="mr-1 size-3.5" strokeWidth={1.5} />
                 Download
               </Button>
             )}

@@ -13,7 +13,7 @@ import type {
 export const APPROVAL_PAGE_SIZE = 20
 
 export type QuestionDetails = {
-  title: string
+  title: string | null
   courseTitle: string | null
   courseCode: string | null
   batchNumber: number
@@ -148,7 +148,7 @@ const approvalQueries: Partial<Record<ResourceType, ApprovalQuery>> = {
             id: row.id,
             resourceType: "question" as const,
             resourceId: row.id,
-            title: row.title,
+            title: row.title ?? course?.code ?? "Question paper",
             submitterName: uploader?.profile?.fullName ?? "Unknown",
             submittedAt: row.createdAt,
             status: "pending" as const,

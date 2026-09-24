@@ -12,7 +12,7 @@ export function QuestionDownloadButton({
   files,
 }: {
   questionId: string
-  title: string
+  title: string | null
   files: QuestionFile[]
 }) {
   const [pending, setPending] = useState(false)

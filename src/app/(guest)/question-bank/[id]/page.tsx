@@ -15,7 +15,10 @@ export async function generateMetadata({
   const viewerRole = session?.user?.role ?? "guest"
   const question = await getQuestionDetail(id, viewerRole)
   return {
-    title: question?.title ?? "Question not found",
+    title:
+      question?.title ??
+      (question ? `${question.courseCode} ${question.courseTitle}`.trim() : null) ??
+      "Question not found",
   }
 }
 

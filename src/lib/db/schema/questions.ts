@@ -1,5 +1,4 @@
-import { sql } from "drizzle-orm"
-import { customType, pgTable, pgEnum, uuid, text, integer, timestamp, index } from "drizzle-orm/pg-core"
+import { pgTable, pgEnum, uuid, text, integer, timestamp, index } from "drizzle-orm/pg-core"
 import { courses } from "./courses"
 import { users } from "./users"
 
@@ -29,22 +28,13 @@ export const questionStatusEnum = pgEnum("question_status", [
   "rejected",
 ])
 
-const tsvector = customType<{ data: string; driverData: string }>({
-  dataType() {
-    return "tsvector"
-  },
-})
-
 export const questions = pgTable(
   "questions",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    title: text("title").notNull(),
-    // Postgres-maintained (GENERATED ALWAYS AS ... STORED) — DB keeps it in sync with `title`
-    // automatically; no app-side writes (remediation 2026-08-08, T003).
-    titleTsv: tsvector("title_tsv")
-      .generatedAlwaysAs(sql`to_tsvector('english', "title")`)
-      .notNull(),
+    // Nullable (title removed from upload form 2026-09): legacy rows keep
+    // their title; new rows are NULL. Not read for new uploads.
+    title: text("title"),
     // Required + restrict (004 revision): classification is combobox-only, exactly one courseId.
     courseId: uuid("course_id")
       .notNull()
@@ -69,8 +59,6 @@ export const questions = pgTable(
     updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow().$onUpdate(() => new Date().toISOString()),
   },
   (table) => ({
-    titleTsvIdx: index("idx_questions_title_tsv")
-      .using("gin", table.titleTsv),
     statusBatchIdx: index("idx_questions_status_batch")
       .on(table.status, table.batchNumber),
     courseIdIdx: index("idx_questions_course_id")
