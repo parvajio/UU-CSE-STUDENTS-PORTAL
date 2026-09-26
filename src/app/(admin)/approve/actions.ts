@@ -5,7 +5,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
-import { notifications, profiles, questions } from "@/lib/db/schema"
+import { notifications, profiles, questions, routineSlotReports } from "@/lib/db/schema"
 import { canApprove, type ResourceType } from "@/lib/auth/permissions"
 
 type DecisionKind = "approved" | "rejected"
@@ -117,6 +117,45 @@ const decisionHandlers: Partial<Record<ResourceType, DecisionHandler>> = {
           label: row.title ?? "Question paper",
           reason: ctx.reason,
           resourceType: "question",
+          resourceId,
+        })
+      )
+    }
+
+    return { success: true }
+  },
+  routine_report: async (kind, resourceId, ctx) => {
+    const row = await db.query.routineSlotReports.findFirst({
+      where: eq(routineSlotReports.id, resourceId),
+      columns: { reportedBy: true, snapshotClassCode: true },
+    })
+    if (!row) {
+      return { success: false, error: "Item not found." }
+    }
+
+    const updated = await db
+      .update(routineSlotReports)
+      .set({
+        status: kind,
+        approvedBy: ctx.approvedBy,
+        approvedAt: ctx.approvedAt,
+      })
+      .where(and(eq(routineSlotReports.id, resourceId), eq(routineSlotReports.status, "pending")))
+      .returning({ id: routineSlotReports.id })
+
+    if (updated.length === 0) {
+      return { success: false, error: "This item was already processed." }
+    }
+
+    if (row.reportedBy) {
+      await db.insert(notifications).values(
+        buildNotification(kind, {
+          userId: row.reportedBy,
+          label: row.snapshotClassCode
+            ? `Routine report (${row.snapshotClassCode})`
+            : "Routine report",
+          reason: ctx.reason,
+          resourceType: "routine_report",
           resourceId,
         })
       )

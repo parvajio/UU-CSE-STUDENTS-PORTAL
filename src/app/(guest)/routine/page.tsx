@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
 import { routineSlots } from "@/lib/db/schema"
+import { auth } from "@/lib/auth/auth"
 import RoutineClientView from "@/components/routine/RoutineClientView"
 
 export const metadata = {
@@ -8,7 +9,7 @@ export const metadata = {
 }
 
 export default async function RoutinePage() {
-  const allSlots = await db.select().from(routineSlots)
+  const [allSlots, session] = await Promise.all([db.select().from(routineSlots), auth()])
 
   const batchesSet = new Set<string>()
   const sectionsSet = new Set<string>()
@@ -40,6 +41,7 @@ export default async function RoutinePage() {
         initialSlots={allSlots}
         batches={batches}
         sections={sections}
+        authenticated={Boolean(session?.user?.id)}
       />
     </div>
   )

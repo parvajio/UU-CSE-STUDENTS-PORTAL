@@ -26,7 +26,7 @@ import {
   PROGRAM_TYPE_LABELS,
   SEASON_LABELS,
 } from "@/lib/question-bank/constants"
-import type { PendingItem, QuestionDetails } from "@/lib/db/queries/approval"
+import type { PendingItem, QuestionDetails, RoutineReportDetails } from "@/lib/db/queries/approval"
 
 type ProfileSkill = {
   id: string
@@ -52,6 +52,11 @@ type ProfileDetails = {
   currentCompany?: string | null
   jobPosition?: string | null
   skills?: ProfileSkill[]
+}
+
+function resourceLabel(resourceType: string): string {
+  if (resourceType === "routine_report") return "Routine report"
+  return capitalize(resourceType)
 }
 
 function initials(name: string): string {
@@ -169,6 +174,86 @@ function QuestionReview({
   )
 }
 
+function RoutineReportReview({ details }: { details: RoutineReportDetails }) {
+  const snapshotBits = [
+    details.snapshotBatch && details.snapshotSection
+      ? `Batch ${details.snapshotBatch}-${details.snapshotSection}`
+      : null,
+    details.snapshotDay ?? null,
+    details.snapshotStartPeriod ? `Period ${details.snapshotStartPeriod}` : null,
+  ].filter(Boolean)
+
+  const applyParams = new URLSearchParams()
+  if (details.slotId) applyParams.set("applySlot", details.slotId)
+  if (details.suggestedClassCode) applyParams.set("code", details.suggestedClassCode)
+  if (details.suggestedTeacherInitial) applyParams.set("teacher", details.suggestedTeacherInitial)
+  if (details.suggestedRoom) applyParams.set("room", details.suggestedRoom)
+  const applyHref =
+    details.slotId && details.slotExists
+      ? `/manage/routine?${applyParams.toString()}`
+      : null
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <h4 className="font-heading text-lg font-semibold text-foreground">
+          {snapshotBits.length > 0 ? snapshotBits.join(" · ") : "Routine slot report"}
+        </h4>
+        <p className="mt-1 whitespace-pre-line text-sm text-foreground">
+          {details.message}
+        </p>
+      </div>
+
+      <div className="grid gap-2 rounded-lg border p-3 text-sm">
+        <p className="font-medium text-foreground">Reported values (at report time)</p>
+        <p className="text-muted-foreground">
+          {details.snapshotClassCode ?? "—"}
+          {details.snapshotTeacherInitial ? ` · ${details.snapshotTeacherInitial}` : ""}
+          {details.snapshotRoom ? ` · Room ${details.snapshotRoom}` : ""}
+        </p>
+        <p className="font-medium text-foreground">Live slot now</p>
+        {details.liveSlot ? (
+          <p className="text-muted-foreground">
+            {details.liveSlot.classCode}
+            {details.liveSlot.teacherInitial ? ` · ${details.liveSlot.teacherInitial}` : ""}
+            {details.liveSlot.room ? ` · Room ${details.liveSlot.room}` : ""}
+            <span className="ml-1">
+              (Batch {details.liveSlot.batch}-{details.liveSlot.section} · {details.liveSlot.day}
+              {details.liveSlot.startPeriod ? ` · Period ${details.liveSlot.startPeriod}` : ""})
+            </span>
+          </p>
+        ) : (
+          <p className="text-sm text-amber-600 dark:text-amber-400">
+            Slot no longer exists (deleted or replaced by a newer upload). Resolve based on the snapshot above.
+          </p>
+        )}
+        {(details.suggestedClassCode || details.suggestedTeacherInitial || details.suggestedRoom) && (
+          <>
+            <p className="font-medium text-foreground">User suggestion</p>
+            <div className="flex flex-wrap gap-2">
+              {details.suggestedClassCode && <Badge variant="outline">{details.suggestedClassCode}</Badge>}
+              {details.suggestedTeacherInitial && <Badge variant="outline">{details.suggestedTeacherInitial}</Badge>}
+              {details.suggestedRoom && <Badge variant="outline">Room {details.suggestedRoom}</Badge>}
+            </div>
+          </>
+        )}
+      </div>
+
+      {applyHref ? (
+        <Button asChild variant="outline" size="sm" className="w-fit">
+          <Link href={applyHref} target="_blank" rel="noreferrer">
+            Copy suggestions into Manage Routine edit form
+          </Link>
+        </Button>
+      ) : null}
+
+      <p className="text-xs text-muted-foreground">
+        Approving only closes this ticket — fix the slot itself in Manage Routine first (use the button above to prefill the edit form).
+      </p>
+    </div>
+  )
+}
+
 export function ApprovalCard({ item }: { item: PendingItem }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -179,7 +264,9 @@ export function ApprovalCard({ item }: { item: PendingItem }) {
 
   const details = item.details as ProfileDetails
   const questionDetails = item.details as QuestionDetails
+  const routineReportDetails = item.details as RoutineReportDetails
   const isQuestion = item.resourceType === "question"
+  const isRoutineReport = item.resourceType === "routine_report"
 
   const socials: Array<{ label: string; value: string }> = [
     ...(details.linkedinUrl ? [{ label: "LinkedIn", value: details.linkedinUrl }] : []),
@@ -225,7 +312,7 @@ export function ApprovalCard({ item }: { item: PendingItem }) {
               {item.submitterName}
             </h3>
             <Badge variant="outline" className="shrink-0">
-              {capitalize(item.resourceType)}
+              {resourceLabel(item.resourceType)}
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -242,6 +329,8 @@ export function ApprovalCard({ item }: { item: PendingItem }) {
               <DialogTitle>
                 {isQuestion ? (
                   <>Review question &ldquo;{item.title}&rdquo;</>
+                ) : isRoutineReport ? (
+                  <>Review routine report</>
                 ) : (
                   <>Review {item.submitterName}&apos;s profile</>
                 )}
@@ -250,6 +339,8 @@ export function ApprovalCard({ item }: { item: PendingItem }) {
                 Submitted {formatDate(item.submittedAt)}.{" "}
                 {isQuestion
                   ? "This paper is already live as under review. Approving clears the badge; rejecting removes it from the bank."
+                  : isRoutineReport
+                  ? "Approving closes the ticket as fixed (fix the slot in Manage Routine first); rejecting dismisses it."
                   : "Approving makes it visible in the directory immediately."}
               </DialogDescription>
             </DialogHeader>
@@ -259,6 +350,8 @@ export function ApprovalCard({ item }: { item: PendingItem }) {
                 details={questionDetails}
                 resourceId={item.resourceId}
               />
+            ) : isRoutineReport ? (
+              <RoutineReportReview details={routineReportDetails} />
             ) : (
               <>
                 <div className="flex flex-col gap-5">

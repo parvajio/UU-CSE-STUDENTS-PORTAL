@@ -15,6 +15,8 @@ import { questionFiles } from "./question-files"
 import { questionLikes } from "./question-likes"
 import { questionTags } from "./question-tags"
 import { binary26Registrations, binary26Gallery, binary26PaymentEvents } from "./binary26"
+import { routineSlots } from "./routine-slots"
+import { routineSlotReports } from "./routine-slot-reports"
 import { departments } from "./departments"
 import { clubs } from "./clubs"
 import { clubMembers } from "./club-members"
@@ -43,6 +45,12 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   markedBinary26Payments: many(binary26Registrations, {
     relationName: "paidMarker",
+  }),
+  routineReportsFiled: many(routineSlotReports, {
+    relationName: "routineReportReporter",
+  }),
+  routineReportsReviewed: many(routineSlotReports, {
+    relationName: "routineReportApprover",
   }),
 }))
 
@@ -257,5 +265,26 @@ export const eventsRelations = relations(events, ({ one }) => ({
   club: one(clubs, {
     fields: [events.clubId],
     references: [clubs.id],
+  }),
+}))
+
+export const routineSlotsRelations = relations(routineSlots, ({ many }) => ({
+  reports: many(routineSlotReports),
+}))
+
+export const routineSlotReportsRelations = relations(routineSlotReports, ({ one }) => ({
+  slot: one(routineSlots, {
+    fields: [routineSlotReports.slotId],
+    references: [routineSlots.id],
+  }),
+  reporter: one(users, {
+    fields: [routineSlotReports.reportedBy],
+    references: [users.id],
+    relationName: "routineReportReporter",
+  }),
+  approver: one(users, {
+    fields: [routineSlotReports.approvedBy],
+    references: [users.id],
+    relationName: "routineReportApprover",
   }),
 }))

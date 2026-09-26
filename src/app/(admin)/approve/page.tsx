@@ -93,7 +93,7 @@ export default async function ApprovePage({
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {capitalize(t)} ({counts[t] ?? 0})
+            {t === "routine_report" ? "Routine reports" : capitalize(t)} ({counts[t] ?? 0})
           </Link>
         ))}
       </div>

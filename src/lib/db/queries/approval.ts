@@ -1,6 +1,6 @@
 import { asc, count, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { profiles, questions } from "@/lib/db/schema"
+import { profiles, questions, routineSlotReports } from "@/lib/db/schema"
 import { canApprove, type ResourceType } from "@/lib/auth/permissions"
 import type { Role } from "@/lib/auth/types"
 import type {
@@ -24,6 +24,33 @@ export type QuestionDetails = {
   examType: ExamType
   files: QuestionFile[]
   tags: string[]
+}
+
+export type RoutineReportLiveSlot = {
+  batch: string
+  section: string
+  day: string
+  startPeriod: number | null
+  classCode: string
+  teacherInitial: string | null
+  room: string | null
+} | null
+
+export type RoutineReportDetails = {
+  message: string
+  slotId: string | null
+  suggestedClassCode: string | null
+  suggestedTeacherInitial: string | null
+  suggestedRoom: string | null
+  snapshotBatch: string | null
+  snapshotSection: string | null
+  snapshotDay: string | null
+  snapshotStartPeriod: number | null
+  snapshotClassCode: string | null
+  snapshotTeacherInitial: string | null
+  snapshotRoom: string | null
+  liveSlot: RoutineReportLiveSlot
+  slotExists: boolean
 }
 
 export type PendingItem = {
@@ -179,6 +206,89 @@ const approvalQueries: Partial<Record<ResourceType, ApprovalQuery>> = {
         .select({ value: count() })
         .from(questions)
         .where(eq(questions.status, "pending"))
+      return rows[0]?.value ?? 0
+    },
+  },
+  routine_report: {
+    async fetchPending(page, pageSize) {
+      const offset = (Math.max(page, 1) - 1) * pageSize
+      const [rows, countRows] = await Promise.all([
+        db.query.routineSlotReports.findMany({
+          where: eq(routineSlotReports.status, "pending"),
+          with: {
+            slot: {
+              columns: {
+                batch: true,
+                section: true,
+                day: true,
+                startPeriod: true,
+                classCode: true,
+                teacherInitial: true,
+                room: true,
+              },
+            },
+            reporter: {
+              with: { profile: { columns: { fullName: true } } },
+            },
+          },
+          orderBy: (table, { desc }) => [desc(table.createdAt)],
+          offset,
+          limit: pageSize,
+        }),
+        db
+          .select({ value: count() })
+          .from(routineSlotReports)
+          .where(eq(routineSlotReports.status, "pending")),
+      ])
+      const total = countRows[0]?.value ?? 0
+      return {
+        items: rows.map((row) => {
+          const batch = row.snapshotBatch ?? row.slot?.batch ?? "—"
+          const section = row.snapshotSection ?? row.slot?.section ?? "—"
+          return {
+            id: row.id,
+            resourceType: "routine_report" as const,
+            resourceId: row.id,
+            title: `Routine report · Batch ${batch}-${section}`,
+            submitterName: row.reporter?.profile?.fullName ?? "Student",
+            submittedAt: row.createdAt,
+            status: "pending" as const,
+            details: {
+              message: row.message,
+              slotId: row.slotId,
+              suggestedClassCode: row.suggestedClassCode,
+              suggestedTeacherInitial: row.suggestedTeacherInitial,
+              suggestedRoom: row.suggestedRoom,
+              snapshotBatch: row.snapshotBatch,
+              snapshotSection: row.snapshotSection,
+              snapshotDay: row.snapshotDay,
+              snapshotStartPeriod: row.snapshotStartPeriod,
+              snapshotClassCode: row.snapshotClassCode,
+              snapshotTeacherInitial: row.snapshotTeacherInitial,
+              snapshotRoom: row.snapshotRoom,
+              liveSlot: row.slot
+                ? {
+                    batch: row.slot.batch,
+                    section: row.slot.section,
+                    day: row.slot.day,
+                    startPeriod: row.slot.startPeriod,
+                    classCode: row.slot.classCode,
+                    teacherInitial: row.slot.teacherInitial,
+                    room: row.slot.room,
+                  }
+                : null,
+              slotExists: Boolean(row.slot),
+            },
+          }
+        }),
+        total,
+      }
+    },
+    async countPending() {
+      const rows = await db
+        .select({ value: count() })
+        .from(routineSlotReports)
+        .where(eq(routineSlotReports.status, "pending"))
       return rows[0]?.value ?? 0
     },
   },
