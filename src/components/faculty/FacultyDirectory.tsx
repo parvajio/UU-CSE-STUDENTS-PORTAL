@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { Search, SearchX, X } from "lucide-react"
 import { FacultyCard } from "./FacultyCard"
+import { FacultyDetailModal } from "./FacultyDetailModal"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,6 +24,7 @@ function rankWeight(designation: string): number {
 export function FacultyDirectory({ faculty }: { faculty: FacultyMember[] }) {
   const [query, setQuery] = useState("")
   const [designation, setDesignation] = useState<string | null>(null)
+  const [selected, setSelected] = useState<FacultyMember | null>(null)
 
   const designations = useMemo(() => {
     const counts = new Map<string, number>()
@@ -153,10 +155,16 @@ export function FacultyDirectory({ faculty }: { faculty: FacultyMember[] }) {
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((member) => (
-            <FacultyCard key={member.empId} faculty={member} />
+            <FacultyCard
+              key={member.empId}
+              faculty={member}
+              onSelect={setSelected}
+            />
           ))}
         </div>
       )}
+
+      <FacultyDetailModal faculty={selected} onClose={() => setSelected(null)} />
     </div>
   )
 }
