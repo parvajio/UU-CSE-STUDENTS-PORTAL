@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Calendar, Clock, MapPin, User, BookOpen, Layers } from "lucide-react"
+import ReportSlotDialog from "@/components/routine/ReportSlotDialog"
+import type { RoutineSlot } from "@/lib/db/schema"
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
@@ -13,10 +15,12 @@ export default function RoutineClientView({
   initialSlots,
   batches,
   sections,
+  authenticated = false,
 }: {
-  initialSlots: any[]
+  initialSlots: RoutineSlot[]
   batches: string[]
   sections: string[]
+  authenticated?: boolean
 }) {
   const [selectedBatch, setSelectedBatch] = useState<string>("ALL")
   const [selectedSection, setSelectedSection] = useState<string>("ALL")
@@ -66,7 +70,7 @@ export default function RoutineClientView({
   // Group slots by day first, then by section if "ALL" sections is selected
   const structuredRoutine = useMemo(() => {
     const daysToIterate = selectedDay !== "ALL" ? [selectedDay] : DAYS
-    const map: Record<string, Record<string, any[]>> = {}
+    const map: Record<string, Record<string, RoutineSlot[]>> = {}
 
     daysToIterate.forEach((day) => {
       map[day] = {}
@@ -85,7 +89,7 @@ export default function RoutineClientView({
     // Sort slots within each section by startPeriod or startTime
     Object.keys(map).forEach((day) => {
       Object.keys(map[day]).forEach((sec) => {
-        map[day][sec].sort((a: any, b: any) => {
+        map[day][sec].sort((a: RoutineSlot, b: RoutineSlot) => {
           if (a.startPeriod !== null && b.startPeriod !== null) {
             return a.startPeriod - b.startPeriod
           }
@@ -214,7 +218,7 @@ export default function RoutineClientView({
                       )}
 
                       <div className="space-y-2.5">
-                        {slots.map((slot: any, idx: number) => {
+                        {slots.map((slot: RoutineSlot) => {
                           const classCode = slot.classCode || "N/A"
                           const teacherInitial = slot.teacherInitial || "N/A"
                           const room = slot.room || "N/A"
@@ -226,7 +230,7 @@ export default function RoutineClientView({
 
                           return (
                             <div
-                              key={`${day}-${secName}-${idx}-${classCode}`}
+                              key={slot.id}
                               className="p-3.5 rounded-lg border bg-card hover:bg-accent/5 transition-colors space-y-3 relative overflow-hidden shadow-xs"
                             >
                               {slot.isLab && (
@@ -266,6 +270,10 @@ export default function RoutineClientView({
                                 <div className="inline-flex items-center gap-1 bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2.5 py-1 rounded-md text-xs font-bold shadow-2xs">
                                   <MapPin className="size-3.5 text-emerald-600 dark:text-emerald-400" />
                                   <span>Room {room}</span>
+                                </div>
+
+                                <div className="ml-auto">
+                                  <ReportSlotDialog slot={slot} authenticated={authenticated} />
                                 </div>
                               </div>
                             </div>
