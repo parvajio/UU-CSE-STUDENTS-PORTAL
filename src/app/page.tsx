@@ -142,6 +142,36 @@ export default async function Home() {
                 </Link>
               </div>
             </div>
+
+            {/* Faculty Directory Card */}
+            <div className="relative overflow-hidden rounded-2xl bg-surface border border-border p-8 shadow-[0_2px_12px_rgba(91,95,239,0.06),0_1px_2px_rgba(91,95,239,0.04)] before:absolute before:top-0 before:left-0 before:right-0 before:h-[3px] before:bg-gradient-to-r before:from-primary before:to-secondary hover:-translate-y-1 transition-all duration-200">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium border border-emerald-500/20">
+                  Live
+                </span>
+              </div>
+
+              <h3 className="text-xl font-heading font-semibold mb-3 text-foreground">
+                Faculty Directory
+              </h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Find CSE faculty members by name, designation, email, or university — with one-tap email, copyable contact details, and links to official university profiles.
+              </p>
+
+              <div className="flex items-center justify-between pt-4 border-t border-border/60">
+                <span className="text-xs text-muted-foreground font-medium">Search & designation filters</span>
+                <Link
+                  href="/faculty"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-hover"
+                >
+                  <span>View Faculty</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -162,30 +192,6 @@ export default async function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Faculty Directory */}
-            <div className="relative overflow-hidden rounded-2xl bg-surface/60 border border-border/80 p-6 opacity-90">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                  <GraduationCap className="w-5 h-5" />
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-medium border border-amber-500/20">
-                  Coming Soon
-                </span>
-              </div>
-
-              <h3 className="text-lg font-heading font-semibold mb-2 text-foreground">
-                Faculty Directory
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                Comprehensive directory of departmental faculty members, research interests, office hours, consultation schedules, and publication links.
-              </p>
-
-              <div className="pt-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Route: /faculty</span>
-                <span className="font-medium text-amber-600 dark:text-amber-400">In Development</span>
-              </div>
-            </div>
-
             {/* Student Clubs */}
             <div className="relative overflow-hidden rounded-2xl bg-surface/60 border border-border/80 p-6 opacity-90">
               <div className="flex items-center justify-between mb-4">
