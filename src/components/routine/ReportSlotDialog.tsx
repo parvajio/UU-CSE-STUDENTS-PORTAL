@@ -112,7 +112,7 @@ export default function ReportSlotDialog({
         ) : (
           <div className="grid gap-3">
             <div className="grid gap-1.5">
-              <Label htmlFor={`report-msg-${slot.id}`}>What&apos;s wrong? (required)</Label>
+              <Label htmlFor={`report-msg-${slot.id}`}>What&apos;s wrong? (required, min 10 characters)</Label>
               <Textarea
                 id={`report-msg-${slot.id}`}
                 value={message}
@@ -121,6 +121,18 @@ export default function ReportSlotDialog({
                 rows={3}
                 maxLength={1000}
               />
+              <p
+                className={
+                  message.trim().length < 10
+                    ? "text-xs font-medium text-destructive"
+                    : "text-xs text-muted-foreground"
+                }
+                aria-live="polite"
+              >
+                {message.trim().length < 10
+                  ? `Write at least ${10 - message.trim().length} more character${10 - message.trim().length === 1 ? "" : "s"} to enable submit.`
+                  : `${message.trim().length}/1000 characters.`}
+              </p>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="grid gap-1.5">
