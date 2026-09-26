@@ -58,6 +58,11 @@ export default function RoutineUploadPage() {
   async function confirm() {
     if (sections.length === 0) return
 
+    const ok = window.confirm(
+      "This will permanently delete the current live routine and replace it with this upload. This cannot be undone. Continue?"
+    )
+    if (!ok) return
+
     setSaving(true)
     setErrorMsg(null)
 
@@ -97,7 +102,7 @@ export default function RoutineUploadPage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Routine Management & Upload</h1>
         <p className="text-muted-foreground">
-          Upload class routine PDFs to automatically extract slots via the AI parser, review flagged entries, and publish to the live schedule.
+          Upload class routine PDFs to automatically extract slots via the AI parser, review flagged entries, and publish to the live schedule. Publishing replaces the live routine — all previous history is permanently deleted.
         </p>
       </div>
 
@@ -105,7 +110,7 @@ export default function RoutineUploadPage() {
         <CardHeader>
           <CardTitle>1. Upload PDF & Set Semester</CardTitle>
           <CardDescription>
-            Select the PDF file and specify active semester metadata before extracting.
+            Select the PDF file and specify active semester metadata before extracting. Confirming a new routine deletes all existing slots.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -161,7 +166,7 @@ export default function RoutineUploadPage() {
           {successCount !== null && (
             <div className="p-3 bg-green-500/10 text-green-600 dark:text-green-400 rounded-md text-sm font-medium flex items-center gap-2">
               <CheckCircle2 className="size-4 shrink-0" />
-              Successfully inserted {successCount} routine slots into the database!
+              Replaced live routine — {successCount} slots published, previous history deleted.
             </div>
           )}
         </CardContent>
@@ -173,15 +178,19 @@ export default function RoutineUploadPage() {
             <div>
               <CardTitle>2. Review & Edit Extracted Slots</CardTitle>
               <CardDescription>
-                Found {sections.length} section groups with a total of {totalSlotsCount} slots. {flagged.length} slot(s) require manual review due to missing codes or teacher initials.
+                Found {sections.length} section groups with a total of {totalSlotsCount} slots. {flagged.length} slot(s) require manual review due to missing codes or teacher initials. Confirming deletes the entire previous routine.
               </CardDescription>
             </div>
             <Button onClick={confirm} disabled={saving || busy} className="gap-2">
               {saving ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-              Confirm & Save to Database
+              Replace Live Routine
             </Button>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm font-medium flex items-center gap-2">
+              <AlertTriangle className="size-4 shrink-0" />
+              Confirming will permanently delete all existing routine slots before publishing this upload.
+            </div>
             {flagged.length > 0 && (
               <div className="space-y-3 bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-sm">
@@ -313,7 +322,7 @@ export default function RoutineUploadPage() {
             <div className="flex justify-end pt-4">
               <Button onClick={confirm} disabled={saving || busy} className="gap-2">
                 {saving ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-                Confirm & Save to Database
+                Replace Live Routine
               </Button>
             </div>
           </CardContent>

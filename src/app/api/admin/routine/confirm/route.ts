@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth/auth"
 import { db } from "@/lib/db"
 import { routineSlots } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
 export async function POST(req: Request) {
@@ -46,8 +45,10 @@ export async function POST(req: Request) {
       }))
     })
 
-    // Clear old slots for this semester and insert new ones
-    await db.delete(routineSlots).where(eq(routineSlots.semester, targetSemester))
+    // Replace-all: clear entire routine history so only the newest upload stays live.
+    // NOTE: neon-http driver has no interactive transactions, so delete + insert
+    // run sequentially. A failed insert after the delete can leave the table empty.
+    await db.delete(routineSlots)
 
     if (rows.length > 0) {
       const batchSize = 500
