@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter, Space_Grotesk } from "next/font/google"
 import { ThemeProvider } from "next-themes"
 import { Navbar } from "@/components/layout/Navbar"
+import { SiteBackground } from "@/components/layout/SiteBackground"
 import { SITE_NAME, SITE_DESCRIPTION } from "../../config/site"
 import "./globals.css"
 import "@/styles/tags.css"
@@ -31,6 +32,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <SiteBackground />
           <Navbar />
           {children}
         </ThemeProvider>

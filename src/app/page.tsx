@@ -18,7 +18,7 @@ export default async function Home() {
   const eventSettings = await getBinary26EventSettings()
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-transparent text-foreground">
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-16 pb-24 md:pt-24 md:pb-32">
         {/* Soft background gradient glow */}
