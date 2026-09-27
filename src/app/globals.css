@@ -166,135 +166,10 @@
   border-radius: 20px;
 }
 
-/* ── Site Background Drift ─────────────────────────
-   Slow-drifting color bubbles for `SiteBackground`.
-   Transform-only (cheap to composite), staggered durations
-   so the three bubbles never move in sync. */
-
-@keyframes site-drift-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(90px, 55px) scale(1.12); }
-}
-
-@keyframes site-drift-2 {
-  0%, 100% { transform: translate(0, 0) scale(1.08); }
-  50% { transform: translate(-95px, 60px) scale(1); }
-}
-
-@keyframes site-drift-3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(75px, -65px) scale(1.14); }
-}
-
-@keyframes site-drift-4 {
-  0%, 100% { transform: translate(0, 0) scale(1.1); }
-  50% { transform: translate(-85px, -50px) scale(1); }
-}
-
-@keyframes site-drift-5 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(80px, -75px) scale(1.15); }
-}
-
-@keyframes site-drift-6 {
-  0%, 100% { transform: translate(0, 0) scale(1.05); }
-  33% { transform: translate(-70px, 45px) scale(1.12); }
-  66% { transform: translate(60px, -40px) scale(1); }
-}
-
-.animate-drift-1 {
-  animation: site-drift-1 16s ease-in-out infinite;
-  will-change: transform;
-}
-
-.animate-drift-2 {
-  animation: site-drift-2 20s ease-in-out infinite;
-  will-change: transform;
-}
-
-.animate-drift-3 {
-  animation: site-drift-3 24s ease-in-out infinite;
-  will-change: transform;
-}
-
-.animate-drift-4 {
-  animation: site-drift-4 19s ease-in-out infinite;
-  will-change: transform;
-}
-
-.animate-drift-5 {
-  animation: site-drift-5 26s ease-in-out infinite;
-  will-change: transform;
-}
-
-.animate-drift-6 {
-  animation: site-drift-6 28s ease-in-out infinite;
-  will-change: transform;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-drift-1,
-  .animate-drift-2,
-  .animate-drift-3,
-  .animate-drift-4,
-  .animate-drift-5,
-  .animate-drift-6,
-  .animate-orbit,
-  .animate-orbit-rev,
-  .animate-wave,
-  .animate-hue {
-    animation: none;
-  }
-}
-
-/* ── Site Background Orbit Rings ───────────────────
-   Smooth circle effect layered over the color bubbles: thin static rings
-   plus one conic light arc per group that orbits slowly. */
-
-.conic-arc {
-  border-radius: 9999px;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(45, 212, 191, 0.55) 50deg,
-    transparent 110deg,
-    transparent 360deg
-  );
-  -webkit-mask-image: radial-gradient(closest-side, transparent 82%, black 83%, black 90%, transparent 91%);
-  mask-image: radial-gradient(closest-side, transparent 82%, black 83%, black 90%, transparent 91%);
-}
-
-.dark .conic-arc {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(94, 234, 212, 0.6) 50deg,
-    transparent 110deg,
-    transparent 360deg
-  );
-}
-
-@keyframes site-orbit {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes site-orbit-rev {
-  to { transform: rotate(-360deg); }
-}
-
-.animate-orbit {
-  animation: site-orbit 26s linear infinite;
-  will-change: transform;
-}
-
-.animate-orbit-rev {
-  animation: site-orbit-rev 34s linear infinite;
-  will-change: transform;
-}
-
 /* ── Site Background Wave ──────────────────────────
-   Seamless horizontal drift: the band holds two identical sine SVGs
-   side by side and slides exactly one half-width per loop. */
+   The ONLY background motion: seamless horizontal drift. Each band holds
+   two identical sine SVGs side by side and slides exactly one half-width
+   per loop. Transform-only (compositor-cheap, no repaints). */
 
 @keyframes site-wave {
   to { transform: translateX(-50%); }
@@ -305,14 +180,34 @@
   will-change: transform;
 }
 
-/* ── Site Background Hue Cycle ─────────────────────
-   Smoothly shifts ring + wave colors through the spectrum and back.
-   Applied per-group with staggered durations so hues never match. */
+/* ── Site Background Slow Spin ─────────────────────
+   Rotation for the wavy circumference rings in `SiteBackground`.
+   Transform-only (compositor-cheap); visible because the wavy edge
+   breaks rotational symmetry. Per-ring speed via inline
+   `animation-duration` style. */
 
-@keyframes site-hue {
-  to { filter: hue-rotate(360deg); }
+@keyframes site-spin {
+  to { transform: rotate(360deg); }
 }
 
-.animate-hue {
-  animation: site-hue 36s linear infinite;
+@keyframes site-spin-rev {
+  to { transform: rotate(-360deg); }
+}
+
+.animate-spin-slower {
+  animation: site-spin 55s linear infinite;
+  will-change: transform;
+}
+
+.animate-spin-slower-rev {
+  animation: site-spin-rev 70s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-wave,
+  .animate-spin-slower,
+  .animate-spin-slower-rev {
+    animation: none;
+  }
 }
