@@ -17,7 +17,7 @@ function initials(fullName: string): string {
 
 export function ProfileDetailView({ profile }: { profile: ProfileDetailType }) {
   return (
-    <div className="min-h-screen bg-background pb-16">
+    <div className="min-h-screen bg-transparent pb-16">
       {/* Hero Banner Region */}
       <div className="relative h-48 sm:h-60 w-full bg-gradient-to-r from-[#5B5FEF] via-[#7C3AED] to-[#8B5CF6] overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />

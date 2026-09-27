@@ -16,7 +16,7 @@ export default async function AdminBinary26ManagePage() {
   const initialGallery = await getBinary26Gallery()
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-12">
+    <div className="min-h-screen bg-transparent text-foreground py-12">
       <div className="container mx-auto px-4 max-w-6xl space-y-8">
         
         <div className="flex items-center justify-between">

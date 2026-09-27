@@ -16,7 +16,7 @@ export default async function ModeratorBinary26Page() {
   const registrations = res.success && 'data' in res ? (res.data as any[]) : []
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-12">
+    <div className="min-h-screen bg-transparent text-foreground py-12">
       <div className="container mx-auto px-4 max-w-7xl space-y-8">
         
         <div className="flex items-center justify-between">

@@ -12,7 +12,7 @@ export default async function Binary26Page() {
   const userRegs = session?.user?.id ? await getUserRegistrations() : []
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-12">
+    <div className="min-h-screen bg-transparent text-foreground py-12">
       <div className="container mx-auto px-4 max-w-6xl space-y-16">
         
         {/* Header Section */}
