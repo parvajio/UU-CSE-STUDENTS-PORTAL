@@ -22,7 +22,7 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-16 pb-24 md:pt-24 md:pb-32">
         {/* Soft background gradient glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-primary/15 via-secondary/15 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[280px] bg-gradient-to-tr from-primary/10 via-secondary/10 to-transparent rounded-full blur-3xl opacity-70 pointer-events-none" />
 
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <div className="text-center max-w-3xl mx-auto space-y-6">

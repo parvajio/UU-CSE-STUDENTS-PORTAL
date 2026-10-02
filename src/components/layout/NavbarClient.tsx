@@ -13,7 +13,7 @@ import type { NavbarUser } from "./types"
 
 export function NavbarClient({ user }: { user: NavbarUser | null }) {
   return (
-    <header className="sticky top-0 z-50 border-b border-glass-border bg-surface-glass backdrop-blur-[16px]">
+    <header className="sticky top-0 z-50 border-b border-glass-border bg-surface-glass backdrop-blur-[24px]">
       <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-2 md:gap-8">
           <Link href="/" className="flex shrink-0 items-center gap-2">
