@@ -109,7 +109,7 @@ export function ManageClubsClient({
     <div className="space-y-6">
       {/* Overview stats */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-[var(--card-shadow)]">
+        <div className="flex items-center gap-3 rounded-2xl border card-glass p-4 shadow-[var(--card-shadow)]">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <Building2 className="size-5 text-primary" strokeWidth={1.5} />
           </span>
@@ -118,7 +118,7 @@ export function ManageClubsClient({
             <p className="mt-1 text-xs text-muted-foreground">Departments</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-[var(--card-shadow)]">
+        <div className="flex items-center gap-3 rounded-2xl border card-glass p-4 shadow-[var(--card-shadow)]">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary/15">
             <Users className="size-5 text-secondary" strokeWidth={1.5} />
           </span>
@@ -129,7 +129,7 @@ export function ManageClubsClient({
         </div>
         <Link
           href="/manage/clubs/events"
-          className="group flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-[var(--card-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(91,95,239,0.12)] motion-reduce:transition-none motion-reduce:hover:transform-none"
+          className="group flex items-center gap-3 rounded-2xl border card-glass p-4 shadow-[var(--card-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(91,95,239,0.12)] motion-reduce:transition-none motion-reduce:hover:transform-none"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <CalendarDays className="size-5 text-primary" strokeWidth={1.5} />

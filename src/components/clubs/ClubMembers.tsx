@@ -27,7 +27,7 @@ function initials(member: ClubMember): string {
 
 function ExecutiveCard({ member }: { member: ClubMember }) {
   const body = (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border shadow-[var(--card-shadow)] hover:border-primary/30 hover:shadow-[var(--card-shadow-hover)] transition-all motion-reduce:transition-none">
+    <div className="flex items-center gap-3 p-3 rounded-xl card-glass border border-border/60 shadow-[var(--card-shadow)] hover:border-primary/30 hover:shadow-[var(--card-shadow-hover)] transition-all motion-reduce:transition-none">
       <Avatar className="h-10 w-10 ring-1 ring-border">
         <AvatarImage src={member.avatarUrl ?? undefined} alt={displayName(member)} />
         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
@@ -99,7 +99,7 @@ function MemberAvatarWall({ members }: { members: ClubMember[] }) {
   const overflow = members.length - shown.length
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--card-shadow)]">
+    <div className="rounded-xl border border-border/60 card-glass p-4 shadow-[var(--card-shadow)]">
       <div className="flex items-center gap-3">
         <div className="flex -space-x-2.5 overflow-hidden py-1 pl-1">
           {shown.map((member) => (

@@ -233,7 +233,7 @@ export function EventsExplorer({ events }: { events: PublicEvent[] }) {
             meetups, all in one place.
           </p>
           <dl className="mt-5 flex flex-wrap justify-center gap-2.5">
-            <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 shadow-[0_2px_12px_rgba(91,95,239,0.06)]">
+            <div className="flex items-center gap-2 rounded-full border border-border/60 card-glass px-3.5 py-1.5 shadow-[0_2px_12px_rgba(91,95,239,0.06)]">
               <CalendarDays className="size-4 text-primary" strokeWidth={1.5} />
               <dt className="sr-only">Events</dt>
               <dd className="text-sm font-semibold text-foreground">
@@ -243,7 +243,7 @@ export function EventsExplorer({ events }: { events: PublicEvent[] }) {
                 </span>
               </dd>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 shadow-[0_2px_12px_rgba(91,95,239,0.06)]">
+            <div className="flex items-center gap-2 rounded-full border border-border/60 card-glass px-3.5 py-1.5 shadow-[0_2px_12px_rgba(91,95,239,0.06)]">
               <Users className="size-4 text-primary" strokeWidth={1.5} />
               <dt className="sr-only">Club events</dt>
               <dd className="text-sm font-semibold text-foreground">

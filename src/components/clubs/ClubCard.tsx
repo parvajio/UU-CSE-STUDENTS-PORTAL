@@ -25,7 +25,7 @@ export function ClubCard({
       aria-label={`View ${club.name}`}
       className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
-      <Card className="group flex h-full flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(91,95,239,0.12),0_2px_6px_rgba(91,95,239,0.08)] motion-reduce:transition-none motion-reduce:hover:transform-none">
+      <Card className="group flex h-full flex-col card-glass transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(91,95,239,0.12),0_2px_6px_rgba(91,95,239,0.08)] motion-reduce:transition-none motion-reduce:hover:transform-none">
         {/* Cover banner */}
         <div className="relative h-24 shrink-0 overflow-hidden bg-muted">
           {club.coverImgUrl ? (

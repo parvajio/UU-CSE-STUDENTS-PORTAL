@@ -312,7 +312,7 @@ export function ClubDetailPage({
       </Link>
 
       {/* Hero — cover + overlapping logo */}
-      <header className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--card-shadow)]">
+      <header className="overflow-hidden rounded-2xl border border-border/60 card-glass shadow-[var(--card-shadow)]">
         <div className="relative h-44 sm:h-60">
           {club.coverImgUrl ? (
             <img src={club.coverImgUrl} alt="" className="h-full w-full object-cover" />

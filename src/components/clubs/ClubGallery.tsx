@@ -44,7 +44,7 @@ export function ClubGallery({ albums }: { albums: Album[] }) {
             {album.images.map((image) => (
               <figure
                 key={image.id}
-                className="group overflow-hidden rounded-xl border border-border bg-card shadow-[var(--card-shadow)]"
+                className="group overflow-hidden rounded-xl border border-border/60 card-glass shadow-[var(--card-shadow)]"
               >
                 <div className="overflow-hidden">
                   <img
