@@ -549,7 +549,7 @@ export function GalleryAlbumClient({
                   {selectedAlbum.images.map((img) => (
                     <figure
                       key={img.id}
-                      className="group overflow-hidden rounded-xl border border-border bg-card"
+                      className="group overflow-hidden rounded-xl border border-border/60 card-glass"
                     >
                       <div className="relative overflow-hidden">
                         <img

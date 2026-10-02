@@ -130,7 +130,7 @@ export function FacultyCard({
           onSelect(faculty)
         }
       }}
-      className="group h-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:translate-y-0 motion-reduce:transition-none"
+      className="group h-full cursor-pointer card-glass transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:translate-y-0 motion-reduce:transition-none"
     >
       {/* Cover */}
       <div className="relative h-28 overflow-hidden bg-gradient-to-r from-primary/25 via-primary/10 to-secondary/25">

@@ -65,7 +65,7 @@ export function ProfileCard({
   const authedProfile = profile as Extract<ProfileCardData, { avatarUrl: string | null }>
 
   return (
-    <Card className="relative h-full overflow-hidden border-border/80 bg-card transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] motion-reduce:translate-y-0 motion-reduce:transition-none group">
+    <Card className="relative h-full overflow-hidden border-border/60 card-glass transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--card-shadow-hover)] motion-reduce:translate-y-0 motion-reduce:transition-none group">
       <Link
         href={`/experts/${profile.id}`}
         className="absolute inset-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"

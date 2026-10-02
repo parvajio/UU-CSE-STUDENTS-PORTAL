@@ -141,7 +141,7 @@ export default async function EventDetailPage({
       </div>
 
       {/* Details */}
-      <Card className="mt-4">
+      <Card className="mt-4 card-glass">
         <CardContent className="p-5 sm:p-6">
           <h2 className="font-heading text-lg font-semibold text-foreground">Details</h2>
           <dl className="mt-3 space-y-3">
@@ -163,7 +163,7 @@ export default async function EventDetailPage({
       </Card>
 
       {/* Description */}
-      <Card className="mt-4">
+      <Card className="mt-4 card-glass">
         <CardContent className="p-5 sm:p-6">
           <h2 className="font-heading text-lg font-semibold text-foreground">About</h2>
           <div className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
@@ -182,7 +182,7 @@ export default async function EventDetailPage({
       {event.clubId && event.clubName && (
         <Link
           href={`/clubs/${event.clubId}`}
-          className="group mt-4 flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-[0_2px_12px_rgba(91,95,239,0.06)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(91,95,239,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:transform-none"
+          className="group mt-4 flex items-center gap-3 rounded-2xl border border-border/60 card-glass p-4 shadow-[0_2px_12px_rgba(91,95,239,0.06)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(91,95,239,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:transform-none"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary/15 font-heading text-lg font-bold text-secondary">
             {event.clubName.charAt(0).toUpperCase()}

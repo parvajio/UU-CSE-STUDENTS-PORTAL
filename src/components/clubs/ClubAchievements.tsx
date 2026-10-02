@@ -25,7 +25,7 @@ export function ClubAchievements({ achievements }: { achievements: Achievement[]
       {achievements.map((achievement) => (
         <article
           key={achievement.id}
-          className="overflow-hidden rounded-xl bg-card border border-border shadow-[var(--card-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--card-shadow-hover)] motion-reduce:transition-none motion-reduce:hover:transform-none"
+          className="overflow-hidden rounded-xl card-glass border border-border/60 shadow-[var(--card-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--card-shadow-hover)] motion-reduce:transition-none motion-reduce:hover:transform-none"
         >
           {achievement.imageUrl && (
             <div className="relative">

@@ -165,3 +165,24 @@
   border: 1px solid var(--color-glass-border);
   border-radius: 20px;
 }
+
+/* ── Subtle glass card — display cards only ────────── */
+/* Low-opacity surface + blur for profile/club/event/featured cards.
+   Keep forms, data tables, and dense lists (question bank, manage
+   tables, approval queue) on solid surfaces for readability.
+   Unlayered on purpose: beats Tailwind's layered `bg-card` utility so a
+   single className swap is enough (no need to touch card.tsx base). */
+.card-glass {
+  background: color-mix(in srgb, var(--color-card) 75%, transparent);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border-color: color-mix(in srgb, var(--color-border) 60%, transparent);
+  box-shadow: var(--card-shadow);
+}
+
+@supports not (background: color-mix(in srgb, white 75%, transparent)) {
+  .card-glass {
+    background: var(--color-card);
+    border-color: var(--color-border);
+  }
+}
