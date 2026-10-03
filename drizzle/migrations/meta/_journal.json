@@ -120,6 +120,13 @@
       "when": 1790442345243,
       "tag": "0016_giant_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791014520213,
+      "tag": "0017_ambiguous_slayback",
+      "breakpoints": true
     }
   ]
 }

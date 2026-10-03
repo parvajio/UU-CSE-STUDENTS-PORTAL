@@ -1,7 +1,9 @@
-import { pgTable, uuid, text, integer, boolean, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, uuid, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core"
 
-export const routineSlots = pgTable("routine_slots", {
-  id: uuid("id").primaryKey().defaultRandom(),
+export const routineSlots = pgTable(
+  "routine_slots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
   batch: text("batch").notNull(),
   section: text("section").notNull(),
   day: text("day").notNull(),
@@ -21,7 +23,15 @@ export const routineSlots = pgTable("routine_slots", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date().toISOString()),
-})
+},
+  (table) => ({
+    batchSectionDayIdx: index("idx_routine_slots_batch_section_day").on(
+      table.batch,
+      table.section,
+      table.day,
+    ),
+  }),
+)
 
 export type RoutineSlot = typeof routineSlots.$inferSelect
 export type NewRoutineSlot = typeof routineSlots.$inferInsert

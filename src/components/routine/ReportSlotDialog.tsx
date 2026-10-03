@@ -93,6 +93,7 @@ export default function ReportSlotDialog({
           Report
         </Button>
       </DialogTrigger>
+      {open ? (
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Report routine issue</DialogTitle>
@@ -193,6 +194,7 @@ export default function ReportSlotDialog({
           )}
         </DialogFooter>
       </DialogContent>
+      ) : null}
     </Dialog>
   )
 }
