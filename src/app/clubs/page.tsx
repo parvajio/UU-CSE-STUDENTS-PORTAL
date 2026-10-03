@@ -7,7 +7,7 @@ export default async function ClubsPage() {
   const groups = await getDepartmentsWithClubs()
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
+    <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
       {groups.length === 0 ? (
         <>
           <div className="mb-8">

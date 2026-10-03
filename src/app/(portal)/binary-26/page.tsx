@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth/auth"
 import { getBinary26Gallery, getBinary26EventSettings, getUserRegistrations } from "@/lib/binary26/actions"
 import { Binary26Form } from "@/components/binary26/Binary26Form"
 import { Binary26Gallery } from "@/components/binary26/Binary26Gallery"
-import { Ticket, Calendar, MapPin, CheckCircle, Clock, ArrowRight, ShieldAlert } from "lucide-react"
+import { Ticket, Calendar, MapPin, ArrowRight, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 
 export default async function Binary26Page() {
@@ -12,31 +12,36 @@ export default async function Binary26Page() {
   const userRegs = session?.user?.id ? await getUserRegistrations() : []
 
   return (
-    <div className="min-h-screen bg-transparent text-foreground py-12">
-      <div className="container mx-auto px-4 max-w-6xl space-y-16">
+    <div className="min-h-screen bg-transparent text-foreground py-6 sm:py-8">
+      <div className="container mx-auto px-4 max-w-6xl space-y-8">
         
-        {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/25 text-primary text-xs font-semibold tracking-wide">
-            <Ticket className="w-3.5 h-3.5" />
-            <span>Official Event Registration</span>
+        {/* Compact header — title + meta on one row so the form gets space first */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pt-2">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+              <Ticket className="w-3.5 h-3.5" />
+              <span>Official Event Registration</span>
+            </p>
+            <h1 className="mt-1 font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+              {eventSettings.title}
+            </h1>
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                {new Date(eventSettings.eventTime).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+              </span>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-primary" />
+                {eventSettings.location}
+              </span>
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-heading font-bold tracking-tight text-foreground">
-            {eventSettings.title}
-          </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Register for Binary 26, secure your ticket, and complete your offline payment at the 5th floor. Join your peers and batchmates for the ultimate departmental gathering.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-6 pt-2 text-sm font-medium text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span>{new Date(eventSettings.eventTime).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span>{eventSettings.location}</span>
-            </div>
-          </div>
+          {session?.user?.id && userRegs.length > 0 && (
+            <p className="shrink-0 text-xs text-muted-foreground">
+              {userRegs.length} {userRegs.length === 1 ? "ticket" : "tickets"} registered
+            </p>
+          )}
         </div>
 
         {/* User Existing Tickets Summary (if logged in) */}
