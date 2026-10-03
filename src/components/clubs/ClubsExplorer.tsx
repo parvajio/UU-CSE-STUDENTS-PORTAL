@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Building2, Search, SearchX, Sparkles, Users, X } from "lucide-react"
+import { Search, SearchX, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DepartmentGroup } from "./DepartmentGroup"
@@ -46,65 +46,24 @@ export function ClubsExplorer({ groups }: { groups: DepartmentGroupData[] }) {
 
   return (
     <div>
-      {/* Hero — no background fill, only glossy glow behind centered text */}
-      <section className="relative overflow-hidden px-6 py-10 text-center sm:py-14">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-0 h-64 w-[42rem] max-w-none -translate-x-1/2 rounded-full bg-primary/[0.12] blur-3xl dark:bg-primary/[0.18]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-24 top-10 size-56 rounded-full bg-secondary/[0.10] blur-3xl dark:bg-secondary/[0.16]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 top-10 size-56 rounded-full bg-secondary/[0.10] blur-3xl dark:bg-secondary/[0.16]"
-        />
-        {/* Glossy sheen */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.35] to-transparent dark:from-white/[0.06]"
-        />
-        <div className="relative">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs font-medium text-primary">
-            <Sparkles className="size-3.5" strokeWidth={1.5} />
-            Student life
-          </span>
-          <h1 className="mx-auto mt-3 max-w-2xl font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+      {/* Compact header — title + counts on one row so club cards get space first */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pt-2">
+        <div className="min-w-0">
+          <h1 className="font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             Student Clubs
           </h1>
-          <p className="mx-auto mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-            Find your people — coding circles, robotics crews, debate floors
-            and everything in between. Every club lives under its department,
-            so start where you study.
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Coding circles, robotics crews, debate floors — find yours.
           </p>
-          <dl className="mt-5 flex flex-wrap justify-center gap-2.5">
-            <div className="flex items-center gap-2 rounded-full border border-border/60 card-glass px-3.5 py-1.5 shadow-[0_2px_12px_rgba(91,95,239,0.06)]">
-              <Users className="size-4 text-primary" strokeWidth={1.5} />
-              <dt className="sr-only">Clubs</dt>
-              <dd className="text-sm font-semibold text-foreground">
-                {totalClubs}{" "}
-                <span className="font-normal text-muted-foreground">
-                  {totalClubs === 1 ? "club" : "clubs"}
-                </span>
-              </dd>
-            </div>
-            <div className="flex items-center gap-2 rounded-full border border-border/60 card-glass px-3.5 py-1.5 shadow-[0_2px_12px_rgba(91,95,239,0.06)]">
-              <Building2 className="size-4 text-primary" strokeWidth={1.5} />
-              <dt className="sr-only">Departments</dt>
-              <dd className="text-sm font-semibold text-foreground">
-                {groups.length}{" "}
-                <span className="font-normal text-muted-foreground">
-                  {groups.length === 1 ? "department" : "departments"}
-                </span>
-              </dd>
-            </div>
-          </dl>
         </div>
-      </section>
+        <p className="shrink-0 text-xs text-muted-foreground" aria-live="polite">
+          {totalClubs} {totalClubs === 1 ? "club" : "clubs"} · {groups.length}{" "}
+          {groups.length === 1 ? "department" : "departments"}
+        </p>
+      </div>
 
       {/* Search + filter — plain surface so inputs stay crisp and legible */}
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search
             aria-hidden
@@ -141,21 +100,14 @@ export function ClubsExplorer({ groups }: { groups: DepartmentGroupData[] }) {
           )}
         </div>
       </div>
-      <p className="mt-2.5 text-xs text-muted-foreground" aria-live="polite">
-        {isFiltering ? (
-          <>
-            Showing {visibleClubs} of {totalClubs} {totalClubs === 1 ? "club" : "clubs"}
-          </>
-        ) : (
-          <>
-            {totalClubs} {totalClubs === 1 ? "club" : "clubs"} across {groups.length}{" "}
-            {groups.length === 1 ? "department" : "departments"}
-          </>
-        )}
-      </p>
+      {isFiltering && (
+        <p className="mt-2 text-xs text-muted-foreground" aria-live="polite">
+          Showing {visibleClubs} of {totalClubs} {totalClubs === 1 ? "club" : "clubs"}
+        </p>
+      )}
 
       {/* Groups */}
-      <div className="mt-6">
+      <div className="mt-4">
         {visibleGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-6 py-14 text-center">
             <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10">
