@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, Lock } from "lucide-react"
+import { ArrowRight, Hammer, Lock } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { SkillTag } from "./SkillTag"
@@ -29,7 +29,14 @@ export function ProfileCard({
   if (isGuest) {
     return (
       <Card className="relative overflow-hidden border-border/60 bg-card/60 backdrop-blur-sm transition-all duration-200">
-        <div className="h-16 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent" />
+        <div className="relative h-16 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent">
+          {profile.isFeatured ? (
+            <span className="soft-tag soft-tag--glass absolute top-4 right-3 px-2 py-0.5 text-xs font-semibold">
+              <Hammer className="mr-1 size-3" strokeWidth={1.5} />
+              I build that shit
+            </span>
+          ) : null}
+        </div>
         <CardContent className="relative px-5 pb-5 pt-0">
           <div className="-mt-7 mb-3 flex items-end justify-between">
             <Avatar className="size-14 border-2 border-background shadow-md">
@@ -71,7 +78,14 @@ export function ProfileCard({
         className="absolute inset-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={`View profile for ${authedProfile.fullName}`}
       />
-      <div className="h-20 bg-gradient-to-r from-primary/20 via-primary/10 to-accent/20" />
+      <div className="relative h-20 bg-gradient-to-r from-primary/20 via-primary/10 to-accent/20">
+        {authedProfile.isFeatured ? (
+          <span className="soft-tag soft-tag--glass absolute top-4 right-3 px-2 py-0.5 text-xs font-semibold">
+            <Hammer className="mr-1 size-3" strokeWidth={1.5} />
+            I build that shit
+          </span>
+        ) : null}
+      </div>
       <CardContent className="relative px-5 pb-5 pt-0">
         <div className="-mt-8 mb-3 flex items-end justify-between">
           <Avatar className="size-16 border-2 border-background shadow-md">

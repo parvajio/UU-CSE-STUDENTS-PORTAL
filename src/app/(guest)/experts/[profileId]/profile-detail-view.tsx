@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowLeft, Building2, IdCard } from "lucide-react"
+import { ArrowLeft, Building2, Hammer, IdCard } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ProfileSocials } from "@/components/directory/ProfileSocials"
 import { ProfilePortfolioSections } from "@/components/directory/ProfilePortfolioSections"
@@ -51,6 +51,12 @@ export function ProfileDetailView({ profile }: { profile: ProfileDetailType }) {
                 <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
                   {profile.fullName}
                 </h1>
+                {profile.isFeatured ? (
+                  <span className="soft-tag soft-tag--spark px-2.5 py-1 text-xs font-semibold">
+                    <Hammer className="mr-1 size-3.5" strokeWidth={1.5} />
+                    I build that shit
+                  </span>
+                ) : null}
                 {profile.isAlumni ? (
                   <span className="soft-tag soft-tag--default px-2.5 py-1 text-xs font-semibold">
                     Alumni
