@@ -27,6 +27,7 @@ export const profiles = pgTable(
     portfolioUrl: text("portfolio_url"),
     githubUrl: text("github_url"),
     isAlumni: boolean("is_alumni").notNull().default(false),
+    isFeatured: boolean("is_featured").notNull().default(false),
     currentCompany: text("current_company"),
     jobPosition: text("job_position"),
     status: profileStatusEnum("status").notNull().default("pending"),

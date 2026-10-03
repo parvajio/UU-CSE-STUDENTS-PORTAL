@@ -26,6 +26,7 @@ export type GuestSearchProfile = {
   id: string
   fullName: string
   batchNumber: number
+  isFeatured: boolean
   skills: SearchProfileSkill[]
 }
 
@@ -58,6 +59,7 @@ export type ProfileDetail = {
   portfolioUrl?: string | null
   githubUrl?: string | null
   isAlumni?: boolean
+  isFeatured?: boolean
   currentCompany?: string | null
   jobPosition?: string | null
   status?: string
@@ -126,7 +128,7 @@ export async function searchDirectory(
 
   const rows = await db.query.profiles.findMany({
     columns: isGuest
-      ? { id: true, fullName: true, batchNumber: true }
+      ? { id: true, fullName: true, batchNumber: true, isFeatured: true }
       : {
           id: true,
           fullName: true,
@@ -134,6 +136,7 @@ export async function searchDirectory(
           section: true,
           avatarUrl: true,
           isAlumni: true,
+          isFeatured: true,
           bio: true,
           facebookUrl: true,
           linkedinUrl: true,
@@ -143,7 +146,7 @@ export async function searchDirectory(
         },
     with: withSkills,
     where: and(...conditions),
-    orderBy: (profiles, { asc }) => [asc(profiles.fullName)],
+    orderBy: (profiles, { asc, desc }) => [desc(profiles.isFeatured), asc(profiles.fullName)],
     limit,
   })
 
@@ -162,7 +165,7 @@ export async function getProfileDetail(
   const profile = await db.query.profiles.findFirst({
     where: and(eq(profiles.id, profileId), eq(profiles.status, "approved")),
     columns: isGuest
-      ? { id: true, fullName: true, batchNumber: true }
+      ? { id: true, fullName: true, batchNumber: true, isFeatured: true }
       : {
           id: true,
           userId: true,
@@ -178,6 +181,7 @@ export async function getProfileDetail(
           portfolioUrl: true,
           githubUrl: true,
           isAlumni: true,
+          isFeatured: true,
           currentCompany: true,
           jobPosition: true,
           status: true,

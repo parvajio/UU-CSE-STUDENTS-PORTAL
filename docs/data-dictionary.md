@@ -29,6 +29,7 @@ Shared pattern used across every user-submitted table: `status`, `approvedBy`, `
 | batchNumber | integer | required | e.g. `61`, `68` — new batch every ~4 months, so render as a dropdown generated dynamically up to the current max (an admin-configurable `CURRENT_BATCH` value), not a hardcoded option list |
 | section | text | required, e.g. `C` | small fixed dropdown (A–F or whatever range the department actually uses) |
 | isAlumni | boolean | default `false` | flips a student's own profile into an alumni record — no separate alumni entity; see "Alumni" note below |
+| isFeatured | boolean | default `false` | pins the profile 1st in the experts directory (`ORDER BY isFeatured DESC, fullName ASC`) and shows the spark builder badge on the card cover + detail page. Single featured row in practice (portal builder credit) — reusable if more spotlights are ever needed |
 | currentCompany | text | nullable | shown only when `isAlumni = true` |
 | jobPosition | text | nullable | shown only when `isAlumni = true` |
 | avatarUrl | text | nullable | |
