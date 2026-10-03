@@ -1,11 +1,17 @@
 import Link from "next/link"
-import { GraduationCap, Mail, MapPin } from "lucide-react"
+import {
+  ArrowUpRight,
+  GraduationCap,
+  Mail,
+  MapPin,
+} from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { SITE_NAME } from "../../../config/site"
 import { db } from "@/lib/db"
 import { clubs } from "@/lib/db/schema/clubs"
 import { profiles } from "@/lib/db/schema/profiles"
 import { eq } from "drizzle-orm"
+import { BackToTopButton, CopyEmailButton } from "./FooterActions"
 
 export const FEATURED_CLUB_ID = "067a3f21-a4be-4a99-87f9-630c7785d520"
 export const DEVELOPER_PROFILE_ID = "7cfe12fc-7abf-4515-bf95-e2766480d728"
@@ -24,21 +30,22 @@ const FALLBACK_DEVELOPER = {
     "https://ik.imagekit.io/parvajio/my%20photos/wbg2.png?updatedAt=1741167504336",
 }
 
+// Same order as the navbar so the footer feels predictable.
 const EXPLORE_LINKS = [
   { href: "/experts", label: "Experts" },
-  { href: "/question-bank", label: "Question Bank" },
   { href: "/faculty", label: "Faculty" },
+  { href: "/question-bank", label: "Question Bank" },
+  { href: "/routine", label: "Routine" },
   { href: "/clubs", label: "Clubs" },
   { href: "/events", label: "Events" },
-  { href: "/routine", label: "Routine" },
+  { href: "/binary-26", label: "Binary 26" },
 ]
 
-const PORTAL_LINKS = [
-  { href: "/binary-26", label: "Binary 26" },
-  { href: "/upload-question", label: "Contribute Questions" },
-  { href: "/my-submissions", label: "My Submissions" },
+const GET_STARTED_LINKS = [
+  { href: "/upload-question", label: "Contribute questions" },
+  { href: "/my-submissions", label: "My submissions" },
+  { href: "/register", label: "Create account" },
   { href: "/login", label: "Log in" },
-  { href: "/register", label: "Create Account" },
 ]
 
 function FacebookIcon({ className }: { className?: string }) {
@@ -94,31 +101,54 @@ async function getFooterIdentities() {
   }
 }
 
+const sectionHeadingClass =
+  "font-heading text-xs font-semibold uppercase tracking-wider text-foreground"
+
+const footerLinkClass =
+  "inline-flex items-center rounded-sm text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline hover:decoration-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+
+const socialButtonClass =
+  "flex size-10 items-center justify-center rounded-xl border border-border text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+
 export async function Footer() {
   const { club, developer } = await getFooterIdentities()
   const year = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-border bg-surface text-foreground">
-      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand + social */}
-          <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2">
+    <footer className="relative border-t border-border bg-surface text-foreground">
+      {/* Signature gradient hairline — the footer's one distinguishing treatment. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-primary via-secondary to-primary"
+      />
+
+      <div className="mx-auto w-full max-w-7xl px-4 pb-8 pt-12 sm:px-6 lg:pt-14">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_0.8fr_0.9fr_1.4fr] lg:gap-12">
+          {/* Brand */}
+          <div>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <GraduationCap className="size-5" strokeWidth={1.5} />
               </span>
               <span className="font-heading text-lg font-semibold">{SITE_NAME}</span>
             </Link>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              The official academic and community portal for the Department of
-              Computer Science and Engineering, Uttara University.
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
+              The official academic and community portal for the Department
+              of Computer Science and Engineering, Uttara University.
             </p>
-            <div className="flex items-center gap-2">
+            <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
+              <MapPin className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} />
+              <span>Dept. of CSE, Uttara University, Dhaka</span>
+            </p>
+            <div className="mt-5 flex items-center gap-2">
               <a
                 href={`mailto:${CLUB_CONTACT_EMAIL}`}
                 aria-label="Email the CSE Student Association"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                title="Email us"
+                className={socialButtonClass}
               >
                 <Mail className="size-4" strokeWidth={1.5} />
               </a>
@@ -126,26 +156,22 @@ export async function Footer() {
                 href={CLUB_FACEBOOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="CSE Student Association on Facebook"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                aria-label="CSE Student Association on Facebook (opens in a new tab)"
+                title="Follow us on Facebook"
+                className={socialButtonClass}
               >
                 <FacebookIcon className="size-4" />
               </a>
             </div>
           </div>
 
-          {/* Explore */}
-          <nav aria-label="Explore" className="space-y-4">
-            <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Explore
-            </h3>
-            <ul className="space-y-2.5">
+          {/* Explore — mirrors the navbar order */}
+          <nav aria-label="Explore">
+            <h2 className={sectionHeadingClass}>Explore</h2>
+            <ul className="mt-4 space-y-1">
               {EXPLORE_LINKS.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-primary"
-                  >
+                  <Link href={link.href} className={`${footerLinkClass} px-0 py-1`}>
                     {link.label}
                   </Link>
                 </li>
@@ -153,112 +179,110 @@ export async function Footer() {
             </ul>
           </nav>
 
-          {/* Portal */}
-          <nav aria-label="Portal" className="space-y-4">
-            <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Portal
-            </h3>
-            <ul className="space-y-2.5">
-              {PORTAL_LINKS.map((link) => (
+          {/* Get started */}
+          <nav aria-label="Get started">
+            <h2 className={sectionHeadingClass}>Get started</h2>
+            <ul className="mt-4 space-y-1">
+              {GET_STARTED_LINKS.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-primary"
-                  >
+                  <Link href={link.href} className={`${footerLinkClass} px-0 py-1`}>
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
+            <p className="mt-4 max-w-[22ch] text-xs leading-relaxed text-muted-foreground">
+              New here? Create an account to unlock downloads and
+              contributions.
+            </p>
           </nav>
 
-          {/* Credits — right column: developer first, then club + contact */}
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Developed by
-              </h3>
+          {/* Contact + credits — one consolidated card */}
+          <div>
+            <h2 className={sectionHeadingClass}>Contact & credits</h2>
+            <address
+              className="mt-4 space-y-3 rounded-2xl border border-border bg-background p-4 not-italic [box-shadow:var(--card-shadow)]"
+            >
               <Link
                 href={`/experts/${DEVELOPER_PROFILE_ID}`}
-                aria-label={`${developer.fullName} — view profile`}
-                className="group flex items-center gap-3 rounded-2xl border border-border p-3 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_8px_24px_rgba(91,95,239,0.12)]"
+                aria-label={`${developer.fullName} — view developer profile`}
+                className="group flex items-center gap-3 rounded-xl p-1 transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <Avatar className="size-11 shrink-0 border border-border">
+                <Avatar className="size-10 shrink-0 border border-border">
                   {developer.avatarUrl ? (
-                    <AvatarImage src={developer.avatarUrl} alt={developer.fullName} />
+                    <AvatarImage src={developer.avatarUrl} alt="" />
                   ) : null}
-                  <AvatarFallback className="bg-primary/10 font-semibold text-primary">
+                  <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                     {initials(developer.fullName)}
                   </AvatarFallback>
                 </Avatar>
                 <span className="min-w-0">
+                  <span className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    Developed by
+                  </span>
                   <span className="block truncate text-sm font-semibold transition-colors group-hover:text-primary">
                     {developer.fullName}
                   </span>
-                  <span className="block text-xs text-muted-foreground">
-                    View developer profile
-                  </span>
                 </span>
+                <ArrowUpRight
+                  className="ml-auto size-4 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                  strokeWidth={1.5}
+                />
               </Link>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Featured by
-              </h3>
+
+              <div aria-hidden="true" className="border-t border-border" />
+
               <Link
                 href={`/clubs/${FEATURED_CLUB_ID}`}
-                className="flex items-center gap-3 rounded-2xl border border-border p-3 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_8px_24px_rgba(91,95,239,0.12)]"
+                aria-label={`${club.name} — view club page`}
+                className="group flex items-center gap-3 rounded-xl p-1 transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <Avatar className="size-11 shrink-0 border border-border">
+                <Avatar className="size-10 shrink-0 border border-border">
                   {club.logoUrl ? (
-                    <AvatarImage src={club.logoUrl} alt={`${club.name} logo`} />
+                    <AvatarImage src={club.logoUrl} alt="" />
                   ) : null}
-                  <AvatarFallback className="bg-primary/10 font-semibold text-primary">
+                  <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                     {initials(club.name)}
                   </AvatarFallback>
                 </Avatar>
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold">{club.name}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    Uttara University
+                  <span className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    Featured by
+                  </span>
+                  <span className="block truncate text-sm font-semibold transition-colors group-hover:text-primary">
+                    {club.name}
                   </span>
                 </span>
+                <ArrowUpRight
+                  className="ml-auto size-4 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                  strokeWidth={1.5}
+                />
               </Link>
-              <ul className="space-y-2.5 pt-1 text-sm text-muted-foreground">
-                <li>
-                  <a
-                    href={`mailto:${CLUB_CONTACT_EMAIL}`}
-                    className="inline-flex max-w-full items-center gap-2 transition-colors hover:text-primary"
-                  >
-                    <Mail className="size-4 shrink-0" strokeWidth={1.5} />
-                    <span className="truncate">{CLUB_CONTACT_EMAIL}</span>
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={CLUB_FACEBOOK_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 transition-colors hover:text-primary"
-                  >
-                    <FacebookIcon className="size-4 shrink-0" />
-                    <span>Follow us on Facebook</span>
-                  </a>
-                </li>
-                <li className="flex items-center gap-2">
-                  <MapPin className="size-4 shrink-0" strokeWidth={1.5} />
-                  <span>Dept. of CSE, Uttara University, Dhaka</span>
-                </li>
-              </ul>
-            </div>
+
+              <div aria-hidden="true" className="border-t border-border" />
+
+              <div className="flex items-center gap-1 rounded-xl px-1 py-0.5">
+                <Mail className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+                <a
+                  href={`mailto:${CLUB_CONTACT_EMAIL}`}
+                  className="min-w-0 flex-1 truncate text-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {CLUB_CONTACT_EMAIL}
+                </a>
+                <CopyEmailButton email={CLUB_CONTACT_EMAIL} />
+              </div>
+            </address>
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-8 border-t border-border pt-6">
-          <p className="text-center text-xs text-muted-foreground sm:text-left">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">
+          <p className="order-2 text-center text-xs text-muted-foreground sm:order-1 sm:text-left">
             © {year} {SITE_NAME} · Dept. of CSE, Uttara University
           </p>
+          <div className="order-1 sm:order-2">
+            <BackToTopButton />
+          </div>
         </div>
       </div>
     </footer>
