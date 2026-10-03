@@ -29,21 +29,22 @@ export function ProfileCard({
   if (isGuest) {
     return (
       <Card className="relative overflow-hidden border-border/60 bg-card/60 backdrop-blur-sm transition-all duration-200">
-        <div className="relative h-16 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent">
-          {profile.isFeatured ? (
-            <span className="soft-tag soft-tag--glass absolute top-4 right-3 px-2 py-0.5 text-xs font-semibold">
-              <Hammer className="mr-1 size-3" strokeWidth={1.5} />
-              I build that shit
-            </span>
-          ) : null}
-        </div>
+        <div className="h-16 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent" />
         <CardContent className="relative px-5 pb-5 pt-0">
           <div className="-mt-7 mb-3 flex items-end justify-between">
-            <Avatar className="size-14 border-2 border-background shadow-md">
-              <AvatarFallback className="text-sm font-medium">
-                {initials(profile.fullName)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              {profile.isFeatured ? (
+                <span className="avatar-note">
+                  <Hammer className="size-3" strokeWidth={1.5} />
+                  I build that shit
+                </span>
+              ) : null}
+              <Avatar className="size-14 border-2 border-background shadow-md">
+                <AvatarFallback className="text-sm font-medium">
+                  {initials(profile.fullName)}
+                </AvatarFallback>
+              </Avatar>
+            </div>
           </div>
           <div className="min-w-0">
             <h3 className="truncate font-heading text-base font-semibold text-foreground">
@@ -78,24 +79,25 @@ export function ProfileCard({
         className="absolute inset-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={`View profile for ${authedProfile.fullName}`}
       />
-      <div className="relative h-20 bg-gradient-to-r from-primary/20 via-primary/10 to-accent/20">
-        {authedProfile.isFeatured ? (
-          <span className="soft-tag soft-tag--glass absolute top-4 right-3 px-2 py-0.5 text-xs font-semibold">
-            <Hammer className="mr-1 size-3" strokeWidth={1.5} />
-            I build that shit
-          </span>
-        ) : null}
-      </div>
+      <div className="h-20 bg-gradient-to-r from-primary/20 via-primary/10 to-accent/20" />
       <CardContent className="relative px-5 pb-5 pt-0">
         <div className="-mt-8 mb-3 flex items-end justify-between">
-          <Avatar className="size-16 border-2 border-background shadow-md">
-            {authedProfile.avatarUrl ? (
-              <AvatarImage src={authedProfile.avatarUrl} alt={authedProfile.fullName} />
+          <div className="relative">
+            {authedProfile.isFeatured ? (
+              <span className="avatar-note">
+                <Hammer className="size-3" strokeWidth={1.5} />
+                I build that shit
+              </span>
             ) : null}
-            <AvatarFallback className="text-base font-medium">
-              {initials(authedProfile.fullName)}
-            </AvatarFallback>
-          </Avatar>
+            <Avatar className="size-16 border-2 border-background shadow-md">
+              {authedProfile.avatarUrl ? (
+                <AvatarImage src={authedProfile.avatarUrl} alt={authedProfile.fullName} />
+              ) : null}
+              <AvatarFallback className="text-base font-medium">
+                {initials(authedProfile.fullName)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
           {authedProfile.isAlumni ? (
             <span className="soft-tag soft-tag--default px-2 py-0.5 text-xs font-medium">
               Alumni

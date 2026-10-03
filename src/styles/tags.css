@@ -178,37 +178,64 @@
   border-color: color-mix(in srgb, var(--color-spark) 35%, transparent);
 }
 
-/* ── Glass cover badge (builder badge floating over card covers) ── */
-/* Glass surface so the cover gradient shows through; blue text/border
-   keeps it on-brand. Tokens already adapt to dark mode. */
+/* ── Avatar note (IG/Messenger-style bubble on the avatar's top-right rim) ── */
+/* Sharp bottom-left corner hints at a chat tail pointing at the avatar.
+   Pops in once on mount, then bobs gently. */
 
-.soft-tag--glass {
+.avatar-note {
+  position: absolute;
+  left: 75%;
+  bottom: 76%;
+  z-index: 20;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
   background: var(--color-surface-glass);
   backdrop-filter: blur(12px) saturate(150%);
   -webkit-backdrop-filter: blur(12px) saturate(150%);
-  color: var(--color-primary);
-  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
-  animation: tag-glow 2.4s ease-in-out infinite;
+  border: 1px solid var(--color-glass-border);
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+  box-shadow: var(--card-shadow);
+  transform-origin: bottom left;
+  animation: note-pop 450ms ease-out both, note-float 2.8s ease-in-out 550ms infinite;
 }
 
-/* Subtle attention pulse for the builder badge — glow only, no movement */
+@keyframes note-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) translateY(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
 
-@keyframes tag-glow {
+/* Gentle continuous bob after the entrance pop */
+
+@keyframes note-float {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(91, 95, 239, 0),
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+    transform: translateY(0);
   }
   50% {
-    box-shadow: 0 0 12px 2px rgba(91, 95, 239, 0.45),
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+    transform: translateY(-4px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .soft-tag--glass {
+  .avatar-note {
     animation: none;
   }
 }
