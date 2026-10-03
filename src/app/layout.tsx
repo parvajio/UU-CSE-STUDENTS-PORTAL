@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter, Space_Grotesk } from "next/font/google"
 import { ThemeProvider } from "next-themes"
 import { Navbar } from "@/components/layout/Navbar"
+import { Footer } from "@/components/layout/Footer"
 import { SiteBackground } from "@/components/layout/SiteBackground"
 import { SITE_NAME, SITE_DESCRIPTION } from "../../config/site"
 import "./globals.css"
@@ -34,7 +35,10 @@ export default function RootLayout({
         >
           <SiteBackground />
           <Navbar />
-          {children}
+          <div className="flex min-h-[calc(100vh-4rem)] flex-col">
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
         </ThemeProvider>
       </body>
     </html>
