@@ -79,7 +79,7 @@ export function RoutineGridSkeleton({
     <div role="status" className={cn("space-y-6", className)}>
       <span className="sr-only">Loading class routine…</span>
       <div aria-hidden="true" className="space-y-6">
-        <Card className="border bg-card/50 p-4 shadow-sm backdrop-blur-sm">
+        <Card className="border bg-card p-4 shadow-sm">
           <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }, (_, index) => (
               <div key={index} className="space-y-1.5">

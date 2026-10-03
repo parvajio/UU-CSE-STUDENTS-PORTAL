@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "idx_routine_slots_batch_section_day" ON "routine_slots" USING btree ("batch","section","day");
