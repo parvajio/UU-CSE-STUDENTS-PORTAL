@@ -243,31 +243,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Footer Callout */}
-      <section className="py-16 border-t border-border/60 bg-surface/20 text-center">
-        <div className="container mx-auto px-4 max-w-4xl space-y-4">
-          <h3 className="text-xl font-heading font-semibold text-foreground">
-            Are you a CSE Student or Alumni?
-          </h3>
-          <p className="text-muted-foreground max-w-xl mx-auto text-sm">
-            Log in to build your professional portfolio, contribute past exam questions to the question bank, and connect with peers.
-          </p>
-          <div className="pt-2 flex items-center justify-center gap-3">
-            <Link
-              href="/login"
-              className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-all"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="px-5 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-all"
-            >
-              Create Account
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }
