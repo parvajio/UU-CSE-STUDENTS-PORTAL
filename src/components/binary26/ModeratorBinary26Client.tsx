@@ -1,8 +1,8 @@
 "use client"
 
 import { Fragment, useMemo, useState } from "react"
-import { getAllRegistrations, markBinary26Paid, searchBinary26Ticket, unmarkBinary26Paid } from "@/lib/binary26/actions"
-import { Search, CheckCircle2, AlertCircle, Check, Loader2, History, Undo2, X, ShieldAlert, ChevronDown, User, Download, Printer, FileSpreadsheet } from "lucide-react"
+import { getAllRegistrations, markBinary26Paid, searchBinary26Ticket, unmarkBinary26Paid, updateBinary26OfflineCode } from "@/lib/binary26/actions"
+import { Search, CheckCircle2, AlertCircle, Check, Loader2, History, Undo2, X, ShieldAlert, ChevronDown, User, Download, Printer, FileSpreadsheet, Pencil } from "lucide-react"
 
 function escapeCsv(value: string | null | undefined) {
   const s = value ?? ""
@@ -43,6 +43,7 @@ interface PaymentEventRecord {
 interface RegistrationRecord {
   id: string
   ticketNumber: string
+  offlineTicketCode: string | null
   fullName: string
   studentId: string | null
   phone: string
@@ -81,6 +82,8 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
   const [loadingTicket, setLoadingTicket] = useState<string | null>(null)
   const [actionMessage, setActionMessage] = useState<{ text: string; type: "success" | "error" } | null>(null)
   const [confirmReg, setConfirmReg] = useState<RegistrationRecord | null>(null)
+  const [offlineCode, setOfflineCode] = useState("")
+  const [editingReg, setEditingReg] = useState<RegistrationRecord | null>(null)
   const [revertReg, setRevertReg] = useState<RegistrationRecord | null>(null)
   const [revertReason, setRevertReason] = useState("")
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -128,20 +131,67 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
     }
   }
 
+  const openMarkPaidModal = (reg: RegistrationRecord) => {
+    setConfirmReg(reg)
+    setOfflineCode(reg.offlineTicketCode ?? "")
+    setActionMessage(null)
+  }
+
+  const openEditCodeModal = (reg: RegistrationRecord) => {
+    setEditingReg(reg)
+    setOfflineCode(reg.offlineTicketCode ?? "")
+    setActionMessage(null)
+  }
+
+  const offlineCodeValid = offlineCode.trim().length >= 2
+
   const handleConfirmMarkPaid = async () => {
     if (!confirmReg) return
+    if (!offlineCodeValid) {
+      setActionMessage({ text: "Offline ticket code is required (min 2 characters).", type: "error" })
+      return
+    }
     const ticketNumber = confirmReg.ticketNumber
     setLoadingTicket(ticketNumber)
     setActionMessage(null)
 
     try {
-      const res = await markBinary26Paid(ticketNumber)
+      const res = await markBinary26Paid(ticketNumber, offlineCode)
       if (res.success) {
         setActionMessage({ text: `Ticket ${ticketNumber} successfully marked as Paid!`, type: "success" })
         setConfirmReg(null)
+        setOfflineCode("")
         await refreshList()
       } else if (!res.success) {
         setActionMessage({ text: res.error || "Failed to mark as paid.", type: "error" })
+      }
+    } catch (err) {
+      console.error(err)
+      setActionMessage({ text: "An error occurred.", type: "error" })
+    } finally {
+      setLoadingTicket(null)
+    }
+  }
+
+  const handleConfirmEditCode = async () => {
+    if (!editingReg) return
+    if (!offlineCodeValid) {
+      setActionMessage({ text: "Offline ticket code is required (min 2 characters).", type: "error" })
+      return
+    }
+    const ticketNumber = editingReg.ticketNumber
+    setLoadingTicket(ticketNumber)
+    setActionMessage(null)
+
+    try {
+      const res = await updateBinary26OfflineCode(ticketNumber, offlineCode)
+      if (res.success) {
+        setActionMessage({ text: `Offline code for ticket ${ticketNumber} updated!`, type: "success" })
+        setEditingReg(null)
+        setOfflineCode("")
+        await refreshList()
+      } else if (!res.success) {
+        setActionMessage({ text: res.error || "Failed to update offline code.", type: "error" })
       }
     } catch (err) {
       console.error(err)
@@ -237,10 +287,11 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
   const handleExportCsv = () => {
     setExportOpen(false)
     if (filteredRegistrations.length === 0) return
-    const header = ["Ticket Number", "Full Name", "Student ID", "Phone", "Email", "Batch", "Section", "Pickup Point", "Status", "Verified By", "Verifier Email", "Paid At"]
+    const header = ["Ticket Number", "Offline Code", "Full Name", "Student ID", "Phone", "Email", "Batch", "Section", "Pickup Point", "Status", "Verified By", "Verifier Email", "Paid At"]
     const lines = filteredRegistrations.map((r) =>
       [
         r.ticketNumber,
+        r.offlineTicketCode,
         r.fullName,
         r.studentId,
         r.phone,
@@ -287,6 +338,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
         (r, i) => `<tr>
           <td>${i + 1}</td>
           <td class="mono">${escapeHtml(r.ticketNumber)}</td>
+          <td class="mono">${escapeHtml(r.offlineTicketCode) || "—"}</td>
           <td>${escapeHtml(r.fullName)}</td>
           <td class="mono">${escapeHtml(r.studentId) || "—"}</td>
           <td>${escapeHtml(r.phone)}</td>
@@ -321,7 +373,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
     <span>${filters.map(escapeHtml).join(" &nbsp;•&nbsp; ")}</span>
   </div>
   <table><thead><tr>
-    <th>#</th><th>Ticket</th><th>Name</th><th>Student ID</th><th>Phone</th><th>Email</th>
+    <th>#</th><th>Ticket</th><th>Offline Code</th><th>Name</th><th>Student ID</th><th>Phone</th><th>Email</th>
     <th>Batch/Sec</th><th>Pickup</th><th>Status</th><th>Verified By</th><th>Paid At</th>
   </tr></thead><tbody>${rows}</tbody></table>
 </body></html>`)
@@ -341,7 +393,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by ticket number, student ID, phone, email, or name..."
+              placeholder="Search by ticket number, offline code, student ID, phone, email, or name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -559,6 +611,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
             <thead>
               <tr className="border-b border-border bg-muted/40 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <th className="p-4">Ticket ID</th>
+                <th className="p-4">Offline Code</th>
                 <th className="p-4">Student Info</th>
                 <th className="p-4">Batch / Sec</th>
                 <th className="p-4">Pickup Point</th>
@@ -571,7 +624,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
             <tbody className="divide-y divide-border text-sm">
               {filteredRegistrations.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="p-8 text-center text-muted-foreground">
                     No registrations found.
                   </td>
                 </tr>
@@ -581,6 +634,9 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
                     <tr className="hover:bg-muted/30 transition-all">
                       <td className="p-4 font-mono font-bold text-primary">
                         {reg.ticketNumber}
+                      </td>
+                      <td className="p-4 font-mono text-xs font-semibold text-foreground whitespace-nowrap">
+                        {reg.offlineTicketCode ?? <span className="italic font-sans font-normal text-muted-foreground">—</span>}
                       </td>
                       <td className="p-4">
                         <div className="font-medium text-foreground">{reg.fullName}</div>
@@ -629,24 +685,46 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
                       <td className="p-4 text-right">
                         <div className="flex flex-col items-end gap-1.5">
                           {reg.paymentStatus === 'unpaid' ? (
-                            <button
-                              onClick={() => setConfirmReg(reg)}
-                              disabled={loadingTicket === reg.ticketNumber}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all text-xs inline-flex items-center gap-1.5 disabled:opacity-50"
-                            >
-                              {loadingTicket === reg.ticketNumber ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Check className="w-3.5 h-3.5" />
+                            <span className="flex flex-col items-end gap-1.5">
+                              <button
+                                onClick={() => openMarkPaidModal(reg)}
+                                disabled={loadingTicket === reg.ticketNumber}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all text-xs inline-flex items-center gap-1.5 disabled:opacity-50"
+                              >
+                                {loadingTicket === reg.ticketNumber ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Check className="w-3.5 h-3.5" />
+                                )}
+                                <span>Mark Paid</span>
+                              </button>
+                              {reg.offlineTicketCode && (
+                                <button
+                                  onClick={() => openEditCodeModal(reg)}
+                                  disabled={loadingTicket === reg.ticketNumber}
+                                  title="Edit the retained offline ticket code"
+                                  className="text-[11px] font-medium text-muted-foreground hover:text-primary inline-flex items-center gap-1 transition-colors disabled:opacity-50"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                  <span>Edit code</span>
+                                </button>
                               )}
-                              <span>Mark Paid</span>
-                            </button>
+                            </span>
                           ) : (
                             <span className="flex flex-col items-end gap-1.5">
                               <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                                 <span>Verified</span>
                               </span>
+                              <button
+                                onClick={() => openEditCodeModal(reg)}
+                                disabled={loadingTicket === reg.ticketNumber}
+                                title={reg.offlineTicketCode ? "Edit the offline ticket code" : "Add the offline ticket code (missing on older records)"}
+                                className="px-3 py-1.5 rounded-lg bg-surface border border-border text-foreground font-medium hover:bg-accent transition-all text-xs inline-flex items-center gap-1.5 disabled:opacity-50"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                                <span>{reg.offlineTicketCode ? "Edit code" : "Add code"}</span>
+                              </button>
                               {isAdmin && (
                                 <button
                                   onClick={() => { setRevertReg(reg); setRevertReason("") }}
@@ -678,7 +756,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
                     </tr>
                     {expandedId === reg.id && (reg.paymentEvents?.length ?? 0) > 0 && (
                       <tr className="bg-muted/20">
-                        <td colSpan={8} className="p-4">
+                        <td colSpan={9} className="p-4">
                           <div className="space-y-2 max-w-2xl">
                             <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                               Payment history — {reg.ticketNumber}
@@ -769,6 +847,25 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
               </div>
             </dl>
 
+            <div className="space-y-2">
+              <label htmlFor="offline-code" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Offline ticket code <span className="text-destructive">(required)</span>
+              </label>
+              <input
+                id="offline-code"
+                type="text"
+                autoFocus
+                value={offlineCode}
+                onChange={(e) => setOfflineCode(e.target.value.toUpperCase())}
+                placeholder="e.g. OFF-1024"
+                maxLength={30}
+                className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm font-mono font-semibold tracking-wide placeholder:text-muted-foreground/60 placeholder:font-sans placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Physical stub code handed over with cash. Must be unique — duplicates are rejected.
+              </p>
+            </div>
+
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmReg(null)}
@@ -779,7 +876,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
               </button>
               <button
                 onClick={handleConfirmMarkPaid}
-                disabled={loadingTicket === confirmReg.ticketNumber}
+                disabled={loadingTicket === confirmReg.ticketNumber || !offlineCodeValid}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-all text-sm inline-flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loadingTicket === confirmReg.ticketNumber ? (
@@ -788,6 +885,81 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
                   <Check className="w-4 h-4" />
                 )}
                 <span>Confirm — Mark Paid</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit offline-code modal (already-paid rows, incl. legacy blanks) */}
+      {editingReg && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => (loadingTicket ? null : setEditingReg(null))}
+        >
+          <div
+            className="bg-surface border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Pencil className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-heading font-bold text-foreground">
+                    {editingReg.offlineTicketCode ? "Edit offline code" : "Add offline code"}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">Ticket <span className="font-mono font-bold text-primary">{editingReg.ticketNumber}</span> · {editingReg.fullName}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingReg(null)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="edit-offline-code" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Offline ticket code <span className="text-destructive">(required)</span>
+              </label>
+              <input
+                id="edit-offline-code"
+                type="text"
+                autoFocus
+                value={offlineCode}
+                onChange={(e) => setOfflineCode(e.target.value.toUpperCase())}
+                placeholder="e.g. OFF-1024"
+                maxLength={30}
+                className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm font-mono font-semibold tracking-wide placeholder:text-muted-foreground/60 placeholder:font-sans placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Must be unique — duplicates are rejected.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setEditingReg(null)}
+                disabled={loadingTicket === editingReg.ticketNumber}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-surface border border-border text-foreground font-medium hover:bg-accent transition-all text-sm disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmEditCode}
+                disabled={loadingTicket === editingReg.ticketNumber || !offlineCodeValid}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-all text-sm inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loadingTicket === editingReg.ticketNumber ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                <span>Save Code</span>
               </button>
             </div>
           </div>
@@ -826,6 +998,9 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
             <div className="rounded-xl border border-border bg-background p-4 text-sm space-y-1">
               <p><span className="text-muted-foreground">Ticket:</span> <span className="font-mono font-bold text-primary">{revertReg.ticketNumber}</span></p>
               <p><span className="text-muted-foreground">Student:</span> <span className="font-medium text-foreground">{revertReg.fullName}</span> {revertReg.studentId && <span className="font-mono text-xs text-muted-foreground">({revertReg.studentId})</span>}</p>
+              {revertReg.offlineTicketCode && (
+                <p><span className="text-muted-foreground">Offline code:</span> <span className="font-mono font-semibold text-foreground">{revertReg.offlineTicketCode}</span> <span className="text-[11px] text-muted-foreground">(kept after revert)</span></p>
+              )}
               {revertReg.marker && (
                 <p><span className="text-muted-foreground">Currently marked paid by:</span> <span className="font-medium text-foreground">{revertReg.marker.name || revertReg.marker.email || "Unknown"}</span></p>
               )}

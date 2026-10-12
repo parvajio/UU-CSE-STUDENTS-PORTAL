@@ -1,0 +1,2 @@
+ALTER TABLE "binary26_registrations" ADD COLUMN "offline_ticket_code" text;--> statement-breakpoint
+ALTER TABLE "binary26_registrations" ADD CONSTRAINT "binary26_registrations_offline_ticket_code_unique" UNIQUE("offline_ticket_code");

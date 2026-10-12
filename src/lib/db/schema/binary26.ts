@@ -13,6 +13,7 @@ export const binary26Registrations = pgTable("binary26_registrations", {
   section: text("section").notNull(), // "A" to "L"
   pickupPoint: text("pickup_point").notNull(),
   paymentStatus: text("payment_status").notNull().default("unpaid"), // "unpaid" | "paid"
+  offlineTicketCode: text("offline_ticket_code").unique(), // physical stub code, nullable; unique when set
   markedPaidBy: uuid("marked_paid_by").references(() => users.id, { onDelete: "set null" }),
   markedPaidAt: timestamp("marked_paid_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),

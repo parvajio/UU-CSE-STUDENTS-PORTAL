@@ -14,6 +14,25 @@ function fail(error: string): Binary26ActionResult {
   return { success: false, error }
 }
 
+function validateOfflineTicketCode(raw: unknown): { code: string } | { error: string } {
+  const code = typeof raw === "string" ? raw.trim().toUpperCase() : ""
+  if (!code) return { error: "Offline ticket code is required." }
+  if (code.length < 2 || code.length > 30) {
+    return { error: "Offline ticket code must be between 2 and 30 characters." }
+  }
+  if (!/^[A-Z0-9\-/]+$/.test(code)) {
+    return { error: "Offline ticket code may only contain letters, numbers, dashes and slashes." }
+  }
+  return { code }
+}
+
+function isUniqueViolation(err: unknown): boolean {
+  const code = (err as { code?: unknown })?.code
+  if (code === "23505") return true
+  const message = err instanceof Error ? err.message : String(err ?? "")
+  return message.includes("binary26_registrations_offline_ticket_code_unique")
+}
+
 export async function submitBinary26Registration(input: {
   fullName: string
   studentId: string
@@ -125,7 +144,10 @@ export async function getAllRegistrations() {
   }
 }
 
-export async function markBinary26Paid(ticketNumber: string): Promise<Binary26ActionResult> {
+export async function markBinary26Paid(
+  ticketNumber: string,
+  offlineTicketCode: string
+): Promise<Binary26ActionResult> {
   const session = await auth()
   if (!session?.user?.id) return fail("Unauthorized")
   if (session.user.role !== "admin" && session.user.role !== "moderator") {
@@ -135,6 +157,10 @@ export async function markBinary26Paid(ticketNumber: string): Promise<Binary26Ac
   const cleanedTicket = ticketNumber?.trim().toUpperCase()
   if (!cleanedTicket) return fail("Invalid ticket number.")
 
+  const validated = validateOfflineTicketCode(offlineTicketCode)
+  if ("error" in validated) return fail(validated.error)
+  const cleanedCode = validated.code
+
   try {
     const existing = await db.query.binary26Registrations.findFirst({
       where: eq(binary26Registrations.ticketNumber, cleanedTicket),
@@ -143,9 +169,17 @@ export async function markBinary26Paid(ticketNumber: string): Promise<Binary26Ac
     if (!existing) return fail("Ticket not found.")
     if (existing.paymentStatus === "paid") return fail("Ticket is already marked as paid.")
 
+    const duplicate = await db.query.binary26Registrations.findFirst({
+      where: eq(binary26Registrations.offlineTicketCode, cleanedCode),
+    })
+    if (duplicate && duplicate.id !== existing.id) {
+      return fail(`This offline ticket code is already used on ticket ${duplicate.ticketNumber}.`)
+    }
+
     await db.update(binary26Registrations)
       .set({
         paymentStatus: "paid",
+        offlineTicketCode: cleanedCode,
         markedPaidBy: session.user.id,
         markedPaidAt: new Date().toISOString(),
       })
@@ -162,7 +196,57 @@ export async function markBinary26Paid(ticketNumber: string): Promise<Binary26Ac
     return { success: true }
   } catch (err) {
     console.error("Failed to mark paid:", err)
+    if (isUniqueViolation(err)) {
+      return fail("This offline ticket code is already used on another ticket.")
+    }
     return fail("Failed to update payment status.")
+  }
+}
+
+export async function updateBinary26OfflineCode(
+  ticketNumber: string,
+  offlineTicketCode: string
+): Promise<Binary26ActionResult> {
+  const session = await auth()
+  if (!session?.user?.id) return fail("Unauthorized")
+  if (session.user.role !== "admin" && session.user.role !== "moderator") {
+    return fail("Only moderators and admins can edit offline ticket codes.")
+  }
+
+  const cleanedTicket = ticketNumber?.trim().toUpperCase()
+  if (!cleanedTicket) return fail("Invalid ticket number.")
+
+  const validated = validateOfflineTicketCode(offlineTicketCode)
+  if ("error" in validated) return fail(validated.error)
+  const cleanedCode = validated.code
+
+  try {
+    const existing = await db.query.binary26Registrations.findFirst({
+      where: eq(binary26Registrations.ticketNumber, cleanedTicket),
+    })
+
+    if (!existing) return fail("Ticket not found.")
+
+    const duplicate = await db.query.binary26Registrations.findFirst({
+      where: eq(binary26Registrations.offlineTicketCode, cleanedCode),
+    })
+    if (duplicate && duplicate.id !== existing.id) {
+      return fail(`This offline ticket code is already used on ticket ${duplicate.ticketNumber}.`)
+    }
+
+    await db.update(binary26Registrations)
+      .set({ offlineTicketCode: cleanedCode })
+      .where(eq(binary26Registrations.ticketNumber, cleanedTicket))
+
+    revalidatePath("/moderator/binary-26")
+    revalidatePath("/binary-26")
+    return { success: true }
+  } catch (err) {
+    console.error("Failed to update offline ticket code:", err)
+    if (isUniqueViolation(err)) {
+      return fail("This offline ticket code is already used on another ticket.")
+    }
+    return fail("Failed to update offline ticket code.")
   }
 }
 
@@ -197,6 +281,8 @@ export async function unmarkBinary26Paid(
     if (!existing) return fail("Ticket not found.")
     if (existing.paymentStatus !== "paid") return fail("Ticket is not marked as paid.")
 
+    // Intentionally keep offlineTicketCode on revert so the physical stub
+    // stays traceable and cannot be silently reused on another ticket.
     await db.update(binary26Registrations)
       .set({
         paymentStatus: "unpaid",
@@ -231,6 +317,7 @@ export async function searchBinary26Ticket(query: string) {
     const results = await db.query.binary26Registrations.findMany({
       where: or(
         ilike(binary26Registrations.ticketNumber, q),
+        ilike(binary26Registrations.offlineTicketCode, q),
         ilike(binary26Registrations.studentId, q),
         ilike(binary26Registrations.phone, q),
         ilike(binary26Registrations.email, q),
