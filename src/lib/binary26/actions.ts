@@ -18,7 +18,7 @@ export async function submitBinary26Registration(input: {
   fullName: string
   studentId: string
   phone: string
-  email: string
+  email?: string
   batch: string
   section: string
   pickupPoint: string
@@ -31,7 +31,7 @@ export async function submitBinary26Registration(input: {
   const fullName = input.fullName?.trim()
   const studentId = input.studentId?.trim().toUpperCase()
   const phone = input.phone?.trim()
-  const email = input.email?.trim().toLowerCase()
+  const email = input.email?.trim().toLowerCase() || ""
   const batch = input.batch?.trim()
   const section = input.section?.trim().toUpperCase()
   const pickupPoint = input.pickupPoint?.trim()
@@ -45,7 +45,7 @@ export async function submitBinary26Registration(input: {
     return fail("Student ID may only contain letters, numbers, dashes and slashes.")
   }
   if (!phone) return fail("Phone number is required.")
-  if (!email || !email.includes("@")) return fail("Valid email is required.")
+  if (email && !email.includes("@")) return fail("Valid email is required.")
   
   const validBatches = ["58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68"]
   if (!validBatches.includes(batch)) return fail("Invalid batch selected.")

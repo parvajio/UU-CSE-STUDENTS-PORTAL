@@ -591,7 +591,7 @@ export function ModeratorBinary26Client({ initialRegistrations, isAdmin }: Moder
                         ) : (
                           <div className="mt-1 text-[11px] italic text-muted-foreground">No student ID (legacy)</div>
                         )}
-                        <div className="text-xs text-muted-foreground mt-1">{reg.phone} • {reg.email}</div>
+                        <div className="text-xs text-muted-foreground mt-1">{reg.phone}{reg.email ? ` • ${reg.email}` : ""}</div>
                       </td>
                       <td className="p-4">
                         <span className="font-semibold">Batch {reg.batch}</span>

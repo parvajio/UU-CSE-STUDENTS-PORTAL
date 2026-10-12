@@ -109,18 +109,17 @@ export function Binary26Form() {
                 />
               </div>
 
-              {/* Email */}
+              {/* Email (optional) */}
               <div className="space-y-2 md:col-span-2">
                 <label htmlFor="bin26-email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-primary" strokeWidth={1.5} />
-                  <span>Email Address <span className="text-destructive">*</span></span>
+                  <span>Email Address <span className="font-normal normal-case tracking-normal text-muted-foreground/70">(Optional)</span></span>
                 </label>
                 <input
                   id="bin26-email"
                   type="email"
-                  required
                   autoComplete="email"
-                  placeholder="e.g. student@gmail.com"
+                  placeholder="e.g. student@gmail.com (optional)"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-all"
@@ -149,7 +148,7 @@ export function Binary26Form() {
                   required
                   autoComplete="off"
                   spellCheck={false}
-                  placeholder="e.g. CSE-68-001"
+                  placeholder="e.g. 22410xxxxxx"
                   value={formData.studentId}
                   onChange={(e) => setFormData({ ...formData, studentId: e.target.value.toUpperCase() })}
                   pattern="[A-Za-z0-9\-/]+"
